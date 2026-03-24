@@ -469,12 +469,11 @@ def get_following(user_id):
         traceback.print_exc()
         return jsonify({'success': False, 'message': 'Failed to fetch following', 'following': []}), 500
 # ===== ADD THIS ROUTE TO YOUR profile_routes.py FILE =====
-
 @profile_bp.route('/profile/remove-picture', methods=['DELETE'])
 def remove_profile_picture():
     """
-    Remove user's profile picture from database and delete file from server
-    ✅ Complete implementation with file deletion
+    Remove user's profile picture from database
+    ✅ Since using Cloudinary, we don't need to delete local files
     """
     try:
         auth_token = request.headers.get('Authorization', '').replace('Bearer ', '')
@@ -488,7 +487,6 @@ def remove_profile_picture():
         
         print(f"🗑️ Removing profile picture for user {user_id}")
         
-        # Get current profile picture path from database
         from database.db import get_db_connection
         connection = get_db_connection()
         
@@ -501,7 +499,7 @@ def remove_profile_picture():
         try:
             cursor = connection.cursor(dictionary=True)
             
-            # Get current profile picture
+            # Get current profile picture to check if exists
             cursor.execute("""
                 SELECT profile_pic FROM users WHERE id = %s
             """, (user_id,))
@@ -519,7 +517,7 @@ def remove_profile_picture():
             current_profile_pic = user.get('profile_pic')
             
             # Check if user has a profile picture
-            if not current_profile_pic or current_profile_pic == 'default-avatar.png':
+            if not current_profile_pic:
                 cursor.close()
                 connection.close()
                 return jsonify({
@@ -527,25 +525,9 @@ def remove_profile_picture():
                     'message': 'No profile picture to remove'
                 }), 400
             
-            # ✅ Delete file from server (if it exists and is not a URL)
-            file_deleted = False
-            if not current_profile_pic.startswith('http://') and not current_profile_pic.startswith('https://'):
-                # Extract filename from path
-                if current_profile_pic.startswith('uploads/profile/'):
-                    filename = current_profile_pic.split('/')[-1]
-                    file_path = os.path.join(UPLOAD_FOLDER_PROFILE, filename)
-                    
-                    # Delete file if it exists
-                    if os.path.exists(file_path):
-                        try:
-                            os.remove(file_path)
-                            file_deleted = True
-                            print(f"✅ Deleted file: {file_path}")
-                        except Exception as file_error:
-                            print(f"⚠️ Failed to delete file: {file_error}")
-                            # Don't fail the request if file deletion fails
-                    else:
-                        print(f"ℹ️ File not found on server: {file_path}")
+            # ✅ REMOVE the file deletion code entirely since using Cloudinary
+            # Just update the database to remove the profile_pic reference
+            # (Cloudinary handles the actual file storage)
             
             # ✅ Update database - set profile_pic to NULL
             cursor.execute("""
@@ -559,14 +541,11 @@ def remove_profile_picture():
             cursor.close()
             connection.close()
             
-            print(f"✅ Profile picture removed for user {user_id}")
-            print(f"   - Database updated: ✅")
-            print(f"   - File deleted: {'✅' if file_deleted else 'N/A'}")
+            print(f"✅ Profile picture removed from database for user {user_id}")
             
             return jsonify({
                 'success': True,
-                'message': 'Profile picture removed successfully',
-                'file_deleted': file_deleted
+                'message': 'Profile picture removed successfully'
             }), 200
             
         except Exception as db_error:

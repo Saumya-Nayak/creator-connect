@@ -1,6 +1,7 @@
 from flask_mail import Message
 from config.app_config import mail
 from flask import current_app
+from utils.network_utils import get_server_url  # ✅ FIXED
 
 def send_otp_email(email, otp):
     """Send OTP verification email"""
@@ -37,7 +38,7 @@ def send_otp_email(email, otp):
 def send_password_reset_email(email, token, username):
     """Send password reset email with link"""
     try:
-        base_url = get_server_url()
+        base_url = get_server_url()  # ✅ Now works
         reset_link = f"{base_url}/frontend/reset-password.html?token={token}"
         
         msg = Message(
@@ -96,6 +97,7 @@ def send_password_reset_email(email, token, username):
 def send_registration_success_email(email, username):
     """Send a beautiful pink-themed registration success email"""
     try:
+        base_url = get_server_url()  # ✅ Now works
         msg = Message(
             sender=("Creator_Connect", "saumyan24@gmail.com"),
             subject="🎉 Welcome to Creator Connect!",
@@ -126,7 +128,7 @@ def send_registration_success_email(email, username):
                     </div>
 
                     <div style="text-align:center; margin-top: 30px;">
-                        <a href="{get_server_url()}/frontend/login.html"
+                        <a href="{base_url}/frontend/login.html"
                            style="background-color: #e336cc; padding: 14px 28px; 
                                   color: #fff; text-decoration: none; 
                                   font-weight: bold; border-radius: 6px;
@@ -153,121 +155,4 @@ def send_registration_success_email(email, username):
 
     except Exception as e:
         print(f"❌ Error sending registration email: {str(e)}")
-        return False
-
-
-# ✅ NEW: Send account suspension notification email
-def send_account_suspension_email(email, username, locked_until_str, reason='Admin action'):
-    """Send email to user when their account is suspended by admin"""
-    try:
-        msg = Message(
-            sender=("Creator_Connect", "saumyan24@gmail.com"),
-            subject="⚠️ Your Creator Connect Account Has Been Suspended",
-            recipients=[email],
-            html=f"""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                
-                <div style="background: #fff5f5; border: 2px solid #ef4444; border-radius: 12px; padding: 30px;">
-                    
-                    <h2 style="color: #ef4444; margin-top: 0; text-align: center;">
-                        ⚠️ Account Suspended
-                    </h2>
-
-                    <p style="font-size: 15px;">Hello <strong>{username}</strong>,</p>
-
-                    <p style="font-size: 14px; color: #444; line-height: 1.7;">
-                        Your <strong>Creator Connect</strong> account has been temporarily suspended 
-                        by our moderation team.
-                    </p>
-
-                    <div style="background: #fff; border-left: 4px solid #ef4444; padding: 15px; 
-                                border-radius: 8px; margin: 20px 0;">
-                        <p style="margin: 0 0 8px 0; font-size: 13px; color: #666;">
-                            <strong>Reason:</strong> {reason}
-                        </p>
-                        <p style="margin: 0; font-size: 13px; color: #666;">
-                            <strong>Suspended Until:</strong> {locked_until_str}
-                        </p>
-                    </div>
-
-                    <p style="font-size: 13px; color: #555; line-height: 1.7;">
-                        During this period, you will not be able to log in to your account 
-                        or access any features. Your posts and profile will not be visible 
-                        to other users.
-                    </p>
-
-                    <p style="font-size: 13px; color: #555; line-height: 1.7;">
-                        If you believe this suspension was made in error, please reach out 
-                        to our support team.
-                    </p>
-
-                    <hr style="border: none; border-top: 1px solid #eee; margin: 25px 0;">
-
-                    <p style="font-size: 11px; color: #aaa; text-align: center;">
-                        © 2025 Creator Connect • All rights reserved.
-                    </p>
-                </div>
-            </div>
-            """
-        )
-        mail.send(msg)
-        print(f"✅ Suspension email sent to {email}")
-        return True
-    except Exception as e:
-        print(f"❌ Error sending suspension email: {str(e)}")
-        return False
-
-
-# ✅ NEW: Send account unlock notification email
-def send_account_unlock_email(email, username):
-    """Send email to user when their suspended account is unlocked by admin"""
-    try:
-        msg = Message(
-            sender=("Creator_Connect", "saumyan24@gmail.com"),
-            subject="✅ Your Creator Connect Account Has Been Restored",
-            recipients=[email],
-            html=f"""
-            <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
-                
-                <div style="background: #f0fdf4; border: 2px solid #22c55e; border-radius: 12px; padding: 30px;">
-                    
-                    <h2 style="color: #22c55e; margin-top: 0; text-align: center;">
-                        ✅ Account Restored
-                    </h2>
-
-                    <p style="font-size: 15px;">Hello <strong>{username}</strong>,</p>
-
-                    <p style="font-size: 14px; color: #444; line-height: 1.7;">
-                        Great news! Your <strong>Creator Connect</strong> account has been 
-                        restored and you can now log in again.
-                    </p>
-
-                    <div style="text-align: center; margin: 30px 0;">
-                        <a href="{get_server_url()}/frontend/login.html"
-                           style="background-color: #22c55e; padding: 14px 28px; 
-                                  color: #fff; text-decoration: none; 
-                                  font-weight: bold; border-radius: 6px;
-                                  display: inline-block;">
-                            Login Now
-                        </a>
-                    </div>
-
-                    <p style="font-size: 13px; color: #555; text-align: center;">
-                        Please ensure you follow our community guidelines going forward.
-                    </p>
-
-                    <hr style="border: none; border-top: 1px solid #eee; margin: 25px 0;">
-
-                    <p style="font-size: 11px; color: #aaa; text-align: center;">
-                        © 2025 Creator Connect • All rights reserved.
-                    </p>
-                </div>
-            </div>
-            """
-        )
-        mail.send(msg)
-        print(f"✅ Unlock email sent to {email}")
-        return True
-    except Exception as e:
-        print(f"❌ Error sending unlock email: {str(e)}")
         return False
