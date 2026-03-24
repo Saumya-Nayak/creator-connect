@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Orders — CreatorConnect Admin</title>
+    <link rel="icon" type="image/png" href="../images/logo2.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/admin/admin-orders.css" />
+  </head>
+  <body>
+    <div id="authGate">
+      <div style="text-align: center">
+        <div class="auth-spin-ring"></div>
+        <div class="auth-spin-label">Verifying session…</div>
+      </div>
+    </div>
+
+    <iframe
+      id="sidebarFrame"
+      src="admin-sidebar.html"
+      title="Admin Sidebar"
+      scrolling="no"
+      allowtransparency="true"
+      onload="syncSidebarState()"
+    ></iframe>
+
+    <!-- Logout Modal -->
+    <div class="logout-modal-backdrop" id="logoutModal">
+      <div class="logout-modal-box">
+        <div class="logout-modal-icon">
+          <i class="fas fa-right-from-bracket"></i>
+        </div>
+        <div class="logout-modal-title">Leaving so soon?</div>
+        <div class="logout-modal-desc">
+          You'll be signed out of the admin panel.<br />Any unsaved changes may
+          be lost.
+        </div>
+        <div class="logout-modal-actions">
+          <button class="logout-btn-cancel" id="logoutCancelBtn">
+            <i class="fas fa-xmark"></i> Stay
+          </button>
+          <button class="logout-btn-confirm" id="logoutConfirmBtn">
+            <i class="fas fa-right-from-bracket"></i> Yes, Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- View Order Detail Modal -->
+    <div class="modal-backdrop" id="detailModal">
+      <div
+        class="modal-box"
+        style="width: 640px; max-height: 90vh; overflow-y: auto"
+      >
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon pink">
+              <i class="fas fa-receipt"></i>
+            </div>
+            <div class="modal-title" id="detailModalTitle">Order Details</div>
+          </div>
+          <button class="modal-close" onclick="closeModal('detailModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div id="detailModalBody"></div>
+        <div class="modal-actions" style="margin-top: 16px">
+          <button class="modal-btn-cancel" onclick="closeModal('detailModal')">
+            <i class="fas fa-xmark"></i> Close
+          </button>
+          <button
+            class="modal-btn-save blue-btn"
+            id="detailEditStatusBtn"
+            onclick="openFromDetail()"
+          >
+            <i class="fas fa-pen"></i> Update Status
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Update Status Modal -->
+    <div class="modal-backdrop" id="statusModal">
+      <div class="modal-box blue-top">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon blue">
+              <i class="fas fa-arrow-right-arrow-left"></i>
+            </div>
+            <div class="modal-title">Update Order Status</div>
+          </div>
+          <button class="modal-close" onclick="closeModal('statusModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <input type="hidden" id="sm-order-id" />
+        <div class="modal-form-grid">
+          <div class="modal-form-group full">
+            <label class="modal-form-label">New Status *</label>
+            <select class="modal-form-select" id="sm-status">
+              <option value="pending">⏳ Pending</option>
+              <option value="confirmed">✅ Confirmed</option>
+              <option value="processing">⚙️ Processing</option>
+              <option value="shipped">📦 Shipped</option>
+              <option value="out_for_delivery">🚚 Out for Delivery</option>
+              <option value="delivered">🎉 Delivered</option>
+              <option value="cancelled">❌ Cancelled</option>
+              <option value="return_requested">↩️ Return Requested</option>
+              <option value="returned">🔄 Returned</option>
+              <option value="refunded">💸 Refunded</option>
+            </select>
+          </div>
+          <div class="modal-form-group full" id="sm-tracking-wrap">
+            <label class="modal-form-label">Tracking Number</label>
+            <input
+              class="modal-form-input"
+              id="sm-tracking"
+              type="text"
+              placeholder="e.g. DL1234567890IN"
+            />
+          </div>
+          <div class="modal-form-group full" id="sm-carrier-wrap">
+            <label class="modal-form-label">Shipping Carrier</label>
+            <input
+              class="modal-form-input"
+              id="sm-carrier"
+              type="text"
+              placeholder="e.g. Delhivery, BlueDart"
+            />
+          </div>
+          <div
+            class="modal-form-group full"
+            id="sm-cancel-wrap"
+            style="display: none"
+          >
+            <label class="modal-form-label">Cancellation Reason</label>
+            <input
+              class="modal-form-input"
+              id="sm-cancel-reason"
+              type="text"
+              placeholder="Reason for cancellation…"
+            />
+          </div>
+          <div class="modal-form-group full">
+            <label class="modal-form-label">Seller Message (optional)</label>
+            <textarea
+              class="modal-form-textarea"
+              id="sm-message"
+              placeholder="Message to buyer about this update…"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('statusModal')">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-save blue-btn"
+            id="smSaveBtn"
+            onclick="submitStatusModal()"
+          >
+            <i class="fas fa-check"></i> Update Status
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Refund Modal -->
+    <div class="modal-backdrop" id="refundModal">
+      <div class="modal-box red-top">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon red">
+              <i class="fas fa-rotate-left"></i>
+            </div>
+            <div class="modal-title">Issue Refund</div>
+          </div>
+          <button class="modal-close" onclick="closeModal('refundModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <input type="hidden" id="rm-order-id" />
+        <div
+          style="
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 18px;
+          "
+        >
+          <div
+            style="
+              font-size: 0.8rem;
+              font-weight: 700;
+              color: var(--red);
+              margin-bottom: 4px;
+            "
+          >
+            <i class="fas fa-triangle-exclamation"></i> Confirm Refund
+          </div>
+          <div style="font-size: 0.78rem; color: var(--text-secondary)">
+            Order #<strong id="rm-order-label"></strong> · Amount:
+            <strong id="rm-amount-label"></strong>
+          </div>
+        </div>
+        <div class="modal-form-grid">
+          <div class="modal-form-group full">
+            <label class="modal-form-label">Refund Note</label>
+            <textarea
+              class="modal-form-textarea"
+              id="rm-note"
+              placeholder="Reason for refund (internal note)…"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('refundModal')">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-save red-btn"
+            id="rmSaveBtn"
+            onclick="submitRefundModal()"
+          >
+            <i class="fas fa-rotate-left"></i> Issue Refund
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <main class="main" id="mainContent">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Product <span>Orders</span></div>
+          <div class="page-sub">
+            Manage all product orders — verify payments, update status &amp;
+            issue refunds.
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-row">
+        <div class="scard c-pink">
+          <div class="scard-icon"><i class="fas fa-shopping-bag"></i></div>
+          <div class="scard-val" id="sv-total">—</div>
+          <div class="scard-label">Total Orders</div>
+          <div class="scard-badge pink">
+            <i class="fas fa-layer-group"></i> All
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-shopping-bag" style="color: rgb(203, 2, 190)"></i>
+          </div>
+        </div>
+        <div class="scard c-green">
+          <div class="scard-icon"><i class="fas fa-circle-check"></i></div>
+          <div class="scard-val" id="sv-delivered">—</div>
+          <div class="scard-label">Delivered</div>
+          <div class="scard-badge green"><i class="fas fa-check"></i> Done</div>
+          <div class="scard-bg">
+            <i class="fas fa-circle-check" style="color: rgb(203, 2, 190)"></i>
+          </div>
+        </div>
+        <div class="scard c-orange">
+          <div class="scard-icon"><i class="fas fa-clock"></i></div>
+          <div class="scard-val" id="sv-pending">—</div>
+          <div class="scard-label">Pending / Active</div>
+          <div class="scard-badge orange">
+            <i class="fas fa-hourglass-half"></i> Active
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-clock" style="color: rgb(203, 2, 190)"></i>
+          </div>
+        </div>
+        <div class="scard c-red">
+          <div class="scard-icon"><i class="fas fa-xmark-circle"></i></div>
+          <div class="scard-val" id="sv-cancelled">—</div>
+          <div class="scard-label">Cancelled</div>
+          <div class="scard-badge red">
+            <i class="fas fa-ban"></i> Cancelled
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-xmark-circle" style="color: rgb(203, 2, 190)"></i>
+          </div>
+        </div>
+        <div class="scard c-blue">
+          <div class="scard-icon"><i class="fas fa-indian-rupee-sign"></i></div>
+          <div class="scard-val" id="sv-revenue">—</div>
+          <div class="scard-label">Total Revenue</div>
+          <div class="scard-badge blue">
+            <i class="fas fa-chart-line"></i> Revenue
+          </div>
+          <div class="scard-bg">
+            <i
+              class="fas fa-indian-rupee-sign"
+              style="color: rgb(203, 2, 190)"
+            ></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        <div class="chart-card" style="grid-column: span 1">
+          <div class="chart-card-title">
+            <i class="fas fa-chart-bar"></i> Revenue per Week
+          </div>
+          <div class="chart-sub">Last 8 weeks of order revenue</div>
+          <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">
+            <i class="fas fa-chart-pie"></i> Orders by Status
+          </div>
+          <div class="chart-sub">Distribution across all statuses</div>
+          <div class="chart-wrap" style="height: 160px">
+            <canvas id="pieChart"></canvas>
+          </div>
+          <div class="legend-row" id="pieLegend"></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">
+            <i class="fas fa-credit-card"></i> Payment Split
+          </div>
+          <div class="chart-sub">COD vs Online payments</div>
+          <div class="chart-wrap" style="height: 160px">
+            <canvas id="payChart"></canvas>
+          </div>
+          <div class="legend-row" id="payLegend"></div>
+        </div>
+      </div>
+
+      <!-- ═══ TOOLBAR — unified status + pay status, no space waste ═══ -->
+      <div class="toolbar" style="margin-bottom: 16px">
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input
+            class="search-input"
+            id="orderSearch"
+            type="text"
+            placeholder="Search by order ID, product, buyer, seller…"
+            autocomplete="off"
+          />
+        </div>
+
+        <!--
+          UNIFIED STATUS FILTER:
+          Order statuses + Payment statuses merged into one <select>
+          with <optgroup> separators for clarity.
+          The JS reads the value and decides whether it's an order_status or payment_status.
+        -->
+        <select
+          class="filter-select"
+          id="unifiedStatusFilter"
+          style="min-width: 185px"
+          title="Filter by order or payment status"
+        >
+          <option value="">All Status</option>
+          <optgroup label="── Order Status">
+            <option value="os:pending">⏳ Pending</option>
+            <option value="os:confirmed">✅ Confirmed</option>
+            <option value="os:processing">⚙️ Processing</option>
+            <option value="os:shipped">📦 Shipped</option>
+            <option value="os:out_for_delivery">🚚 Out for Delivery</option>
+            <option value="os:delivered">🎉 Delivered</option>
+            <option value="os:cancelled">❌ Cancelled</option>
+            <option value="os:refunded">💸 Refunded</option>
+          </optgroup>
+          <optgroup label="── Payment Status">
+            <option value="ps:verification_pending">⚠️ Verify Pending</option>
+            <option value="ps:completed">✅ Pay Confirmed</option>
+            <option value="ps:rejected">❌ Pay Rejected</option>
+            <option value="ps:pending">⏳ Pay Pending</option>
+            <option value="ps:cod_pending">💵 COD Pending</option>
+          </optgroup>
+        </select>
+
+        <!-- Payment METHOD filter -->
+        <select class="filter-select" id="payFilter">
+          <option value="">All Methods</option>
+          <option value="upi">📲 UPI</option>
+          <option value="cod">💵 COD</option>
+          <option value="bank_transfer">🏦 Bank Transfer</option>
+          <option value="razorpay">💳 Razorpay</option>
+        </select>
+
+        <div
+          style="display: flex; align-items: center; gap: 6px; flex-shrink: 0"
+        >
+          <i
+            class="fas fa-calendar-days"
+            style="color: var(--primary); font-size: 0.82rem; flex-shrink: 0"
+          ></i>
+          <input
+            type="date"
+            class="date-input-flat"
+            id="dateFrom"
+            title="From date"
+          />
+          <span
+            style="
+              color: var(--text-secondary);
+              font-size: 0.75rem;
+              flex-shrink: 0;
+            "
+            >→</span
+          >
+          <input
+            type="date"
+            class="date-input-flat"
+            id="dateTo"
+            title="To date"
+          />
+        </div>
+
+        <button
+          class="btn-reset"
+          id="resetFiltersBtn"
+          onclick="resetFilters()"
+          title="Clear all filters"
+        >
+          <i class="fas fa-rotate-left"></i> Reset
+        </button>
+
+        <div class="view-toggle">
+          <button
+            class="vt-btn"
+            id="listViewBtn"
+            title="Table view"
+            onclick="setView('list')"
+          >
+            <i class="fas fa-list"></i>
+          </button>
+          <button
+            class="vt-btn active"
+            id="gridViewBtn"
+            title="Card view"
+            onclick="setView('grid')"
+          >
+            <i class="fas fa-grip"></i>
+          </button>
+        </div>
+      </div>
+
+      <div id="ordersGridView" class="orders-grid" style="display: none"></div>
+      <div id="ordersListView">
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th onclick="sortOrders('order_id')">
+                    #ID
+                    <i
+                      class="fas fa-sort"
+                      style="font-size: 0.55rem; opacity: 0.5"
+                    ></i>
+                  </th>
+                  <th class="no-sort">Buyer</th>
+                  <th class="no-sort">Seller</th>
+                  <th onclick="sortOrders('product_name')">
+                    Product
+                    <i
+                      class="fas fa-sort"
+                      style="font-size: 0.55rem; opacity: 0.5"
+                    ></i>
+                  </th>
+                  <th onclick="sortOrders('total_amount')">
+                    Amount
+                    <i
+                      class="fas fa-sort"
+                      style="font-size: 0.55rem; opacity: 0.5"
+                    ></i>
+                  </th>
+                  <th class="no-sort">Payment</th>
+                  <th onclick="sortOrders('status')">
+                    Status
+                    <i
+                      class="fas fa-sort"
+                      style="font-size: 0.55rem; opacity: 0.5"
+                    ></i>
+                  </th>
+                  <th onclick="sortOrders('order_date')">
+                    Date
+                    <i
+                      class="fas fa-sort"
+                      style="font-size: 0.55rem; opacity: 0.5"
+                    ></i>
+                  </th>
+                  <th class="no-sort">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ordersTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="pagination" id="ordersPagination"></div>
+    </main>
+
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <script src="../js/admin/admin-orders.js"></script>
+  </body>
+</html>

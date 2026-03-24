@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Financial & Payouts — CreatorConnect Admin</title>
+    <link rel="icon" type="image/png" href="../images/logo2.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/admin/financial.css" />
+  </head>
+  <body>
+    <div id="authGate">
+      <div style="text-align: center">
+        <div class="auth-spin-ring"></div>
+        <div class="auth-spin-label">Verifying session…</div>
+      </div>
+    </div>
+
+    <iframe
+      id="sidebarFrame"
+      src="admin-sidebar.html"
+      title="Admin Sidebar"
+      scrolling="no"
+      allowtransparency="true"
+      onload="syncSidebarState()"
+    ></iframe>
+
+    <!-- Logout Modal -->
+    <div class="logout-modal-backdrop" id="logoutModal">
+      <div class="logout-modal-box">
+        <div class="logout-modal-icon">
+          <i class="fas fa-right-from-bracket"></i>
+        </div>
+        <div class="logout-modal-title">Leaving so soon?</div>
+        <div class="logout-modal-desc">
+          You'll be signed out of the admin panel.<br />Any unsaved changes may
+          be lost.
+        </div>
+        <div class="logout-modal-actions">
+          <button class="logout-btn-cancel" id="logoutCancelBtn">
+            <i class="fas fa-xmark"></i> Stay
+          </button>
+          <button class="logout-btn-confirm" id="logoutConfirmBtn">
+            <i class="fas fa-right-from-bracket"></i> Yes, Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- APPROVE MODAL -->
+    <div class="modal-backdrop" id="approveModal">
+      <div class="modal-box green-top">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon green">
+              <i class="fas fa-circle-check"></i>
+            </div>
+            <div class="modal-title">Approve Withdrawal</div>
+          </div>
+          <button class="modal-close" onclick="closeModal('approveModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <input type="hidden" id="am-request-id" />
+        <!-- Payment method selector shown first so detail panel updates accordingly -->
+        <div class="modal-fg" style="margin-bottom: 14px">
+          <label>Payment Method to Use *</label>
+          <select id="am-pay-method" onchange="onPayMethodChange()">
+            <option value="">— Select method —</option>
+          </select>
+        </div>
+        <!-- Dynamic payment detail panel — shows ONLY the selected method -->
+        <div id="amPayInfo" class="seller-pay-card"></div>
+        <div
+          style="
+            margin-bottom: 12px;
+            padding: 12px 14px;
+            background: rgba(34, 197, 94, 0.08);
+            border: 1px solid rgba(34, 197, 94, 0.25);
+            border-radius: 10px;
+          "
+        >
+          <div
+            style="
+              font-size: 0.72rem;
+              font-weight: 700;
+              color: var(--text-secondary);
+              text-transform: uppercase;
+              letter-spacing: 0.07em;
+              margin-bottom: 4px;
+            "
+          >
+            Withdrawal Amount
+          </div>
+          <div
+            id="amAmount"
+            style="font-size: 1.4rem; font-weight: 800; color: var(--green)"
+          >
+            —
+          </div>
+        </div>
+        <div class="modal-fg">
+          <label>Payment Reference / Transaction ID *</label>
+          <input
+            type="text"
+            id="am-pay-ref"
+            placeholder="UTR / Transaction ID / Reference number"
+          />
+        </div>
+        <div class="modal-fg">
+          <label>Admin Notes (optional)</label>
+          <textarea
+            id="am-notes"
+            placeholder="Any notes about this payment…"
+          ></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('approveModal')">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-approve"
+            id="amSaveBtn"
+            onclick="submitApprove()"
+          >
+            <i class="fas fa-check"></i> Confirm Payment & Approve
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- REJECT MODAL -->
+    <div class="modal-backdrop" id="rejectModal">
+      <div class="modal-box red-top">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon red">
+              <i class="fas fa-circle-xmark"></i>
+            </div>
+            <div class="modal-title">Reject Withdrawal</div>
+          </div>
+          <button class="modal-close" onclick="closeModal('rejectModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <input type="hidden" id="rm-request-id" />
+        <div
+          style="
+            padding: 12px 14px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 10px;
+            margin-bottom: 16px;
+          "
+        >
+          <div id="rmSeller" style="font-weight: 700; margin-bottom: 2px">
+            —
+          </div>
+          <div
+            id="rmAmount"
+            style="font-size: 1.1rem; font-weight: 800; color: var(--red)"
+          >
+            —
+          </div>
+        </div>
+        <div class="modal-fg">
+          <label>Rejection Reason *</label>
+          <textarea
+            id="rm-notes"
+            placeholder="Reason for rejecting this withdrawal (seller will see this)…"
+            style="min-height: 90px"
+          ></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('rejectModal')">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-reject"
+            id="rmSaveBtn"
+            onclick="submitReject()"
+          >
+            <i class="fas fa-ban"></i> Reject Withdrawal
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <main class="main" id="mainContent">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Financial &amp; <span>Payouts</span></div>
+          <div class="page-sub">
+            Manage withdrawals, view commission ledger and configure platform
+            payment settings.
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats — 3 cards (Net Platform Earnings removed) -->
+      <div class="stats-row">
+        <div class="scard c-pink">
+          <div class="scard-icon"><i class="fas fa-percent"></i></div>
+          <div class="scard-val" id="sv-commission">—</div>
+          <div class="scard-label">Total Commission</div>
+          <div class="scard-badge pink">
+            <i class="fas fa-chart-line"></i> Collected
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-percent" style="color: var(--primary)"></i>
+          </div>
+        </div>
+        <div class="scard c-orange">
+          <div class="scard-icon"><i class="fas fa-clock"></i></div>
+          <div class="scard-val" id="sv-pending">—</div>
+          <div class="scard-label">Pending Withdrawals</div>
+          <div class="scard-badge orange">
+            <i class="fas fa-hourglass-half"></i>
+            <span id="sv-pending-count">0</span> requests
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-clock" style="color: var(--orange)"></i>
+          </div>
+        </div>
+        <div class="scard c-green">
+          <div class="scard-icon">
+            <i class="fas fa-money-bill-transfer"></i>
+          </div>
+          <div class="scard-val" id="sv-paid">—</div>
+          <div class="scard-label">Total Paid Out</div>
+          <div class="scard-badge green">
+            <i class="fas fa-check"></i> Approved
+          </div>
+          <div class="scard-bg">
+            <i
+              class="fas fa-money-bill-transfer"
+              style="color: var(--green)"
+            ></i>
+          </div>
+        </div>
+        <div class="scard c-red">
+          <div class="scard-icon"><i class="fas fa-ban"></i></div>
+          <div class="scard-val" id="sv-rejected">—</div>
+          <div class="scard-label">Rejected Withdrawals</div>
+          <div class="scard-badge red">
+            <i class="fas fa-times-circle"></i>
+            <span id="sv-rejected-count">0</span> rejected
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-ban" style="color: #ef4444"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-card-title">
+            <i class="fas fa-chart-line"></i> Daily Commission Earnings
+          </div>
+          <div class="chart-sub">
+            Commission collected per day (last 30 days)
+          </div>
+          <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">
+            <i class="fas fa-chart-pie"></i> Withdrawal Status
+          </div>
+          <div class="chart-sub">Distribution by status</div>
+          <div class="chart-wrap" style="height: 160px">
+            <canvas id="donutChart"></canvas>
+          </div>
+          <div class="legend-row" id="donutLegend"></div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-nav">
+        <button
+          class="tab-btn active"
+          id="tabBtn-withdrawals"
+          onclick="switchTab('withdrawals',this)"
+        >
+          <i class="fas fa-money-bill-transfer"></i> Withdrawals
+        </button>
+        <button
+          class="tab-btn"
+          id="tabBtn-ledger"
+          onclick="switchTab('ledger',this)"
+        >
+          <i class="fas fa-receipt"></i> Commission Ledger
+        </button>
+        <button
+          class="tab-btn"
+          id="tabBtn-config"
+          onclick="switchTab('config',this)"
+        >
+          <i class="fas fa-gear"></i> Payment Config
+        </button>
+        <button
+          class="tab-btn"
+          id="tabBtn-logs"
+          onclick="switchTab('logs',this)"
+        >
+          <i class="fas fa-scroll"></i> Action Logs
+        </button>
+      </div>
+
+      <!-- ══ WITHDRAWALS TAB ══ -->
+      <div class="tab-content active" id="tab-withdrawals">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i
+            ><input
+              class="search-input"
+              id="wdSearch"
+              type="text"
+              placeholder="Search by seller name, username, email…"
+              autocomplete="off"
+            />
+          </div>
+          <select class="filter-select" id="wdStatusFilter">
+            <option value="">All Status</option>
+            <option value="pending">⏳ Pending</option>
+            <option value="approved">✅ Approved</option>
+            <option value="completed">🔵 Completed</option>
+            <option value="rejected">❌ Rejected</option>
+          </select>
+          <button class="btn-reset" onclick="resetWdFilters()">
+            <i class="fas fa-rotate-left"></i> Reset
+          </button>
+          <div class="view-toggle">
+            <button
+              class="vt-btn active"
+              id="wd-grid-btn"
+              title="Card view"
+              onclick="setWdView('grid')"
+            >
+              <i class="fas fa-grip"></i>
+            </button>
+            <button
+              class="vt-btn"
+              id="wd-list-btn"
+              title="Table view"
+              onclick="setWdView('list')"
+            >
+              <i class="fas fa-list"></i>
+            </button>
+          </div>
+        </div>
+        <div id="wdGridView" class="card-grid"></div>
+        <div id="wdListView" style="display: none">
+          <div class="table-card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th onclick="sortWd('request_id')">
+                      #ID
+                      <i
+                        class="fas fa-sort"
+                        style="font-size: 0.55rem; opacity: 0.5"
+                      ></i>
+                    </th>
+                    <th class="no-sort">Seller</th>
+                    <th onclick="sortWd('amount')">
+                      Amount
+                      <i
+                        class="fas fa-sort"
+                        style="font-size: 0.55rem; opacity: 0.5"
+                      ></i>
+                    </th>
+                    <th onclick="sortWd('status')">
+                      Status
+                      <i
+                        class="fas fa-sort"
+                        style="font-size: 0.55rem; opacity: 0.5"
+                      ></i>
+                    </th>
+                    <th class="no-sort">Payment Method</th>
+                    <th class="no-sort">Reference</th>
+                    <th onclick="sortWd('request_date')">
+                      Date
+                      <i
+                        class="fas fa-sort"
+                        style="font-size: 0.55rem; opacity: 0.5"
+                      ></i>
+                    </th>
+                    <th class="no-sort">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="wdTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="pagination" id="wdPagination"></div>
+      </div>
+
+      <!-- ══ COMMISSION LEDGER TAB ══ -->
+      <div class="tab-content" id="tab-ledger">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i
+            ><input
+              class="search-input"
+              id="ledgerSearch"
+              type="text"
+              placeholder="Search by seller, notes…"
+              autocomplete="off"
+            />
+          </div>
+          <select class="filter-select" id="ledgerEventFilter">
+            <option value="">All Events</option>
+            <option value="online_commission">💜 Online Commission</option>
+            <option value="cod_commission">💛 COD Commission</option>
+            <option value="cod_deficit">🔴 COD Deficit</option>
+            <option value="deficit_recovery">🟢 Deficit Recovery</option>
+            <option value="withdrawal">🔵 Withdrawal</option>
+            <option value="refund_reversal">🟣 Refund Reversal</option>
+          </select>
+          <button class="btn-reset" onclick="resetLedgerFilters()">
+            <i class="fas fa-rotate-left"></i> Reset
+          </button>
+          <div class="view-toggle">
+            <button
+              class="vt-btn active"
+              id="ledger-grid-btn"
+              title="Card view"
+              onclick="setLedgerView('grid')"
+            >
+              <i class="fas fa-grip"></i>
+            </button>
+            <button
+              class="vt-btn"
+              id="ledger-list-btn"
+              title="Table view"
+              onclick="setLedgerView('list')"
+            >
+              <i class="fas fa-list"></i>
+            </button>
+          </div>
+        </div>
+        <div id="ledgerGridView" class="card-grid"></div>
+        <div id="ledgerListView" style="display: none">
+          <div class="table-card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th onclick="sortLedger('ledger_id')">
+                      #ID
+                      <i
+                        class="fas fa-sort"
+                        style="font-size: 0.55rem; opacity: 0.5"
+                      ></i>
+                    </th>
+                    <th class="no-sort">Seller</th>
+                    <th class="no-sort">Event</th>
+                    <th onclick="sortLedger('gross_amount')">
+                      Gross
+                      <i
+                        class="fas fa-sort"
+                        style="font-size: 0.55rem; opacity: 0.5"
+                      ></i>
+                    </th>
+                    <th onclick="sortLedger('commission_amt')">
+                      Commission
+                      <i
+                        class="fas fa-sort"
+                        style="font-size: 0.55rem; opacity: 0.5"
+                      ></i>
+                    </th>
+                    <th onclick="sortLedger('net_credit')">
+                      Net Credit
+                      <i
+                        class="fas fa-sort"
+                        style="font-size: 0.55rem; opacity: 0.5"
+                      ></i>
+                    </th>
+                    <th class="no-sort">Ref</th>
+                    <th onclick="sortLedger('created_at')">
+                      Date
+                      <i
+                        class="fas fa-sort"
+                        style="font-size: 0.55rem; opacity: 0.5"
+                      ></i>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody id="ledgerTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="pagination" id="ledgerPagination"></div>
+      </div>
+
+      <!-- ══ PAYMENT CONFIG TAB ══ -->
+      <div class="tab-content" id="tab-config">
+        <div class="config-grid">
+          <div>
+            <div class="config-section" style="margin-bottom: 16px">
+              <div class="config-section-title">
+                <i class="fas fa-mobile-screen"></i> Platform UPI Details
+              </div>
+              <div class="fg">
+                <label>UPI ID</label
+                ><input
+                  type="text"
+                  id="cfg-upi-id"
+                  placeholder="yourplatform@upi"
+                  oninput="onConfigEdit()"
+                />
+              </div>
+              <div class="fg">
+                <label>UPI Account Name</label
+                ><input
+                  type="text"
+                  id="cfg-upi-name"
+                  placeholder="Platform name on UPI"
+                  oninput="onConfigEdit()"
+                />
+              </div>
+              <div class="fg">
+                <label>UPI Payment Instructions</label
+                ><input
+                  type="text"
+                  id="cfg-upi-desc"
+                  placeholder="Instructions for seller…"
+                  oninput="onConfigEdit()"
+                />
+              </div>
+            </div>
+            <div class="config-section">
+              <div class="config-section-title">
+                <i class="fas fa-percent"></i> Platform Fee Configuration
+              </div>
+              <div class="fee-row">
+                <div class="fg">
+                  <label>Online Order Fee (%)</label
+                  ><input
+                    type="number"
+                    id="cfg-fee-online"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    placeholder="5"
+                    oninput="onConfigEdit()"
+                  />
+                </div>
+                <div class="fg">
+                  <label>COD Order Fee (%)</label
+                  ><input
+                    type="number"
+                    id="cfg-fee-cod"
+                    min="0"
+                    max="100"
+                    step="0.1"
+                    placeholder="2"
+                    oninput="onConfigEdit()"
+                  />
+                </div>
+              </div>
+              <div
+                style="
+                  padding: 10px 12px;
+                  background: rgba(230, 10, 234, 0.06);
+                  border-radius: 10px;
+                  font-size: 0.75rem;
+                  color: var(--text-secondary);
+                  border: 1px solid var(--primary-border);
+                "
+              >
+                <i
+                  class="fas fa-info-circle"
+                  style="color: var(--primary); margin-right: 6px"
+                ></i
+                >These fees are applied to product orders. Service bookings have
+                0% commission — sellers keep 100%.
+              </div>
+            </div>
+          </div>
+          <div class="config-section">
+            <div class="config-section-title">
+              <i class="fas fa-building-columns"></i> Platform Bank Account
+            </div>
+            <div class="fg">
+              <label>Bank Name</label
+              ><input
+                type="text"
+                id="cfg-bank-name"
+                placeholder="State Bank of India"
+                oninput="onConfigEdit()"
+              />
+            </div>
+            <div class="fg">
+              <label>Account Holder</label
+              ><input
+                type="text"
+                id="cfg-bank-holder"
+                placeholder="Full legal name"
+                oninput="onConfigEdit()"
+              />
+            </div>
+            <div class="fg">
+              <label>Account Number</label
+              ><input
+                type="text"
+                id="cfg-bank-acc"
+                placeholder="XXXXXXXXXXXXXXXX"
+                oninput="onConfigEdit()"
+              />
+            </div>
+            <div class="fg">
+              <label>IFSC Code</label
+              ><input
+                type="text"
+                id="cfg-bank-ifsc"
+                placeholder="SBIN0000001"
+                oninput="onConfigEdit()"
+              />
+            </div>
+            <div class="fg">
+              <label>Branch</label
+              ><input
+                type="text"
+                id="cfg-bank-branch"
+                placeholder="Branch name, City"
+                oninput="onConfigEdit()"
+              />
+            </div>
+            <div class="fg">
+              <label>Bank Transfer Instructions</label
+              ><input
+                type="text"
+                id="cfg-bank-desc"
+                placeholder="Instructions for seller…"
+                oninput="onConfigEdit()"
+              />
+            </div>
+          </div>
+        </div>
+        <div
+          style="
+            margin-top: 20px;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+          "
+        >
+          <button
+            class="btn-save-config"
+            id="configSaveBtn"
+            onclick="saveConfig()"
+            disabled
+          >
+            <i class="fas fa-floppy-disk"></i> Save Configuration
+            <span class="config-unsaved-dot" id="configDot"></span>
+          </button>
+          <span
+            style="font-size: 0.75rem; color: var(--text-secondary)"
+            id="configSavedAt"
+          ></span>
+        </div>
+      </div>
+
+      <!-- ══ ACTION LOGS TAB ══ -->
+      <div class="tab-content" id="tab-logs">
+        <div class="logs-info-banner">
+          <i class="fas fa-info-circle"></i>
+          Showing all admin action logs. Logs for withdrawals, rejections, and
+          other actions appear here as they are performed. Currently only
+          actions that have been taken will appear.
+        </div>
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i
+            ><input
+              class="search-input"
+              id="logSearch"
+              type="text"
+              placeholder="Search by admin name, details…"
+              autocomplete="off"
+            />
+          </div>
+          <select class="filter-select" id="logTypeFilter">
+            <option value="">All Admin Actions</option>
+            <option value="withdrawal_approved">✅ Withdrawal Approved</option>
+            <option value="withdrawal_rejected">❌ Withdrawal Rejected</option>
+
+            <option value="post_removed">🗑️ Post Removed</option>
+            <option value="user_suspended">🚫 User Suspended</option>
+          </select>
+          <button class="btn-reset" onclick="resetLogsFilters()">
+            <i class="fas fa-rotate-left"></i> Reset
+          </button>
+          <div class="view-toggle">
+            <button
+              class="vt-btn active"
+              id="logs-grid-btn"
+              title="Card view"
+              onclick="setLogsView('grid')"
+            >
+              <i class="fas fa-grip"></i>
+            </button>
+            <button
+              class="vt-btn"
+              id="logs-list-btn"
+              title="Table view"
+              onclick="setLogsView('list')"
+            >
+              <i class="fas fa-list"></i>
+            </button>
+          </div>
+        </div>
+        <div id="logsGridView" class="card-grid"></div>
+        <div id="logsListView" style="display: none">
+          <div class="table-card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th class="no-sort">#ID</th>
+                    <th class="no-sort">Admin</th>
+                    <th class="no-sort">Action</th>
+                    <th class="no-sort">Details</th>
+                    <th class="no-sort">Reference</th>
+                    <th class="no-sort">IP</th>
+                    <th class="no-sort">Date</th>
+                  </tr>
+                </thead>
+                <tbody id="logsTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="pagination" id="logsPagination"></div>
+      </div>
+    </main>
+
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <script src="../js/admin/financial.js"></script>
+  </body>
+</html>

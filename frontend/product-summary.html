@@ -1,0 +1,1022 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Order Summary - Creator Connect</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/booking-summary-styles.css" />
+    <style>
+      :root {
+        --bg-secondary: #f8f9fa;
+        --text-primary: #1a1a1a;
+        --text-secondary: #6c757d;
+        --border-color: #dee2e6;
+        --card-bg: #ffffff;
+        --primary-purple: #e60aea;
+      }
+      [data-theme="dark"] {
+        --bg-secondary: #2d2d2d;
+        --text-primary: #ffffff;
+        --text-secondary: #b0b0b0;
+        --border-color: #3d3d3d;
+        --card-bg: #2d2d2d;
+      }
+
+      body {
+        background: transparent !important;
+        color: var(--text-primary);
+        margin: 0;
+        padding: 12px;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      .summary-container {
+        max-width: 1400px;
+        margin: 0 auto;
+      }
+
+      /* ── MAIN GRID ── */
+      .summary-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .left-column,
+      .right-column {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      /* ── CARDS ── */
+      .summary-header,
+      .section {
+        background: var(--card-bg);
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border-color);
+      }
+
+      /* ────────────────────────────────────────────────────────
+         COMPACT HEADER  — image column + info column
+         Stock badge lives BELOW the image, not inside it
+      ──────────────────────────────────────────────────────── */
+      .header-inner {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 14px;
+        align-items: start;
+        width: 100%; /* fill full card width */
+      }
+
+      /* Left column: image + badge stacked */
+      .image-col {
+        display: flex;
+        flex-direction: column;
+        width: 120px; /* ← MUST match grid-template-columns first value */
+        flex-shrink: 0;
+        gap: 0;
+      }
+
+      /* Image box — clean, no overflow issues */
+      .product-image-container {
+        position: relative;
+        width: 120px;
+        height: 120px;
+        border-radius: 12px 12px 0 0; /* flat bottom so badge attaches */
+        overflow: hidden; /* clips image only */
+        flex-shrink: 0;
+      }
+      .product-image,
+      #productVideo {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+      }
+
+      /* Product type badge — top-left inside image */
+      .product-badge {
+        position: absolute;
+        top: 7px;
+        left: 7px;
+        background: linear-gradient(135deg, var(--primary-purple), #da00dd);
+        color: white;
+        padding: 3px 8px;
+        border-radius: 20px;
+        font-size: 0.67rem;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        pointer-events: none;
+      }
+
+      /* Stock badge — below image. !important beats booking-summary-styles.css
+         which sets position:absolute; top:15px; right:15px on .stock-badge */
+      .stock-badge {
+        position: static !important;
+        top: unset !important;
+        right: unset !important;
+        left: unset !important;
+        bottom: unset !important;
+        width: 120px !important;
+        background: rgba(16, 185, 129, 0.92) !important;
+        color: white !important;
+        padding: 4px 6px !important;
+        border-radius: 0 0 10px 10px !important;
+        font-size: 0.68rem !important;
+        font-weight: 700 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 4px !important;
+        box-sizing: border-box !important;
+        backdrop-filter: none !important;
+        animation: none !important;
+        transform: none !important;
+        box-shadow: none !important;
+      }
+      .stock-badge.low-stock {
+        background: rgba(249, 115, 22, 0.92) !important;
+      }
+      .stock-badge.out-of-stock {
+        background: rgba(239, 68, 68, 0.92) !important;
+      }
+
+      /* ── HEADER INFO ── */
+      .header-info {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        min-width: 0;
+        width: 100%; /* stretch to fill grid cell */
+        overflow: hidden;
+      }
+
+      /* Title fills full width of info column */
+      .product-title {
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: var(--primary-purple);
+        line-height: 1.4;
+        margin: 0;
+        width: 100%; /* fill full column width */
+        text-align: left;
+        word-break: break-word;
+        display: -webkit-box;
+        -webkit-line-clamp: 4;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+
+      .seller-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 7px 10px;
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .seller-info:hover {
+        transform: translateX(3px);
+        box-shadow: 0 2px 8px rgba(230, 10, 234, 0.15);
+      }
+      .seller-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--primary-purple);
+      }
+      .seller-name {
+        font-weight: 600;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+      }
+      .seller-username {
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+      }
+
+      /* ── META CHIPS ── */
+      .product-meta {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+      .meta-item {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        font-size: 0.75rem;
+        color: var(--text-secondary);
+        padding: 4px 8px;
+        background: var(--bg-secondary);
+        border-radius: 6px;
+        white-space: nowrap;
+      }
+      .meta-item i {
+        color: var(--primary-purple);
+        font-size: 0.7rem;
+      }
+
+      /* ── SECTION TITLE ── */
+      .section-title {
+        color: var(--text-primary);
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        border-bottom: 1px solid var(--border-color);
+      }
+      .section-title i {
+        color: var(--primary-purple);
+      }
+
+      /* ── DESCRIPTION — justified ── */
+      .product-description {
+        color: var(--text-secondary);
+        line-height: 1.6;
+        font-size: 0.85rem;
+        text-align: left;
+
+        display: -webkit-box;
+        -webkit-line-clamp: 5;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+      }
+      .features-list {
+        margin: 8px 0;
+        padding-left: 16px;
+        font-size: 0.82rem;
+      }
+      .features-list li {
+        margin-bottom: 4px;
+      }
+
+      /* ── BILL ── */
+      .pricing-card {
+        background: var(--bg-secondary);
+        border-radius: 10px;
+        padding: 12px;
+      }
+      .price-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 7px 0;
+        color: var(--text-primary);
+        font-size: 0.88rem;
+        border-bottom: 1px dashed var(--border-color);
+      }
+      .price-row:last-child {
+        border-bottom: none;
+      }
+      .price-row.total-row {
+        font-weight: 700;
+        font-size: 1rem;
+        padding-top: 10px;
+      }
+      .price-row.gst-row {
+        color: var(--text-secondary);
+        font-size: 0.82rem;
+      }
+      .price-divider {
+        height: 1px;
+        background: var(--border-color);
+        margin: 4px 0;
+      }
+      .gst-badge {
+        background: rgba(230, 10, 234, 0.1);
+        color: var(--primary-purple);
+        font-size: 0.68rem;
+        font-weight: 700;
+        padding: 1px 6px;
+        border-radius: 20px;
+      }
+      .delivery-calculating {
+        color: var(--text-secondary);
+        font-style: italic;
+        font-size: 0.82rem;
+      }
+      .delivery-unavailable {
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        font-size: 0.78rem;
+        padding: 6px 10px;
+        border-radius: 8px;
+        margin-top: 6px;
+      }
+
+      /* ── DELIVERY SECTION ── */
+      .delivery-section {
+        background: var(--card-bg);
+        border-radius: 14px;
+        padding: 14px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        border: 1px solid var(--border-color);
+      }
+      .delivery-section.hidden-delivery {
+        display: none;
+      }
+      .pincode-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+      }
+      .pincode-input-wrap {
+        flex: 1;
+      }
+      .pincode-input-wrap input {
+        width: 100%;
+        padding: 9px 12px;
+        border: 2px solid var(--border-color);
+        border-radius: 9px;
+        font-size: 0.95rem;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        letter-spacing: 2px;
+        transition: border 0.2s;
+        box-sizing: border-box;
+      }
+      .pincode-input-wrap input:focus {
+        outline: none;
+        border-color: var(--primary-purple);
+      }
+      .pincode-check-btn {
+        background: var(--primary-purple);
+        color: white;
+        border: none;
+        padding: 9px 16px;
+        border-radius: 9px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+        font-size: 0.85rem;
+        transition: 0.2s;
+      }
+      .pincode-check-btn:hover {
+        background: #da00dd;
+      }
+      .pincode-check-btn:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+      .pincode-result {
+        margin-top: 8px;
+        font-size: 0.82rem;
+      }
+      .pincode-result.ok {
+        color: #10b981;
+      }
+      .pincode-result.err {
+        color: #ef4444;
+      }
+      .distance-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: rgba(230, 10, 234, 0.1);
+        color: var(--primary-purple);
+        padding: 4px 10px;
+        border-radius: 20px;
+        font-size: 0.78rem;
+        font-weight: 600;
+        margin-top: 5px;
+      }
+
+      /* ── ORDER FORM ── */
+      .form-group {
+        margin-bottom: 10px;
+      }
+      .form-group label {
+        color: var(--text-primary);
+        display: block;
+        margin-bottom: 4px;
+        font-weight: 500;
+        font-size: 0.85rem;
+      }
+      .form-group input,
+      .form-group textarea,
+      .form-group select {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 8px 10px;
+        width: 100%;
+        font-size: 0.85rem;
+        box-sizing: border-box;
+        transition: border 0.2s;
+      }
+      .form-group input:focus,
+      .form-group select:focus,
+      .form-group textarea:focus {
+        outline: none;
+        border-color: var(--primary-purple);
+      }
+      .form-section h3 {
+        font-size: 0.95rem;
+        color: var(--text-primary);
+        margin-bottom: 10px;
+        font-weight: 600;
+      }
+      .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      /* ── QUANTITY ── */
+      .quantity-selector {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: var(--bg-secondary);
+        border-radius: 8px;
+        padding: 4px;
+        width: fit-content;
+      }
+      .qty-btn {
+        background: var(--primary-purple);
+        color: white;
+        border: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .qty-btn:hover {
+        transform: scale(1.1);
+      }
+      #quantity {
+        width: 50px;
+        text-align: center;
+        padding: 5px;
+      }
+
+      /* ── ACTIONS ── */
+      .action-buttons {
+        grid-column: 1 / -1;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        padding: 12px 0 4px;
+        position: sticky;
+        bottom: 0;
+        background: transparent;
+      }
+      .btn-cancel,
+      .btn-order {
+        padding: 11px 22px;
+        border-radius: 10px;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .btn-cancel {
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+      }
+      .btn-cancel:hover {
+        border-color: var(--primary-purple);
+        color: var(--primary-purple);
+      }
+      .btn-order {
+        background: linear-gradient(135deg, var(--primary-purple), #da00dd);
+        color: white;
+        border: none;
+        box-shadow: 0 4px 14px rgba(230, 10, 234, 0.35);
+      }
+      .btn-order:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(230, 10, 234, 0.45);
+      }
+      .btn-order:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      /* ── TOAST ── */
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: var(--card-bg);
+        padding: 12px 18px;
+        border-radius: 12px;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 9999;
+        transform: translateX(300px);
+        transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        border: 1px solid var(--border-color);
+        font-size: 0.88rem;
+        font-weight: 600;
+      }
+      .toast.show {
+        transform: translateX(0);
+      }
+      .toast.success {
+        border-left: 3px solid #10b981;
+      }
+      .toast.error {
+        border-left: 3px solid #ef4444;
+      }
+      .toast.success i {
+        color: #10b981;
+      }
+      .toast.error i {
+        color: #ef4444;
+      }
+
+      /* ── LOADING ── */
+      .loading-state,
+      .error-state {
+        text-align: center;
+        padding: 60px 20px;
+        background: var(--card-bg);
+        border-radius: 16px;
+      }
+      .loader {
+        width: 48px;
+        height: 48px;
+        border: 4px solid rgba(230, 10, 234, 0.2);
+        border-top-color: var(--primary-purple);
+        border-radius: 50%;
+        margin: 0 auto 16px;
+        animation: spin 1s linear infinite;
+      }
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+      .btn-retry {
+        background: var(--primary-purple);
+        color: white;
+        border: none;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+      }
+
+      /* ── RESPONSIVE ── */
+      @media (max-width: 900px) {
+        .summary-content {
+          grid-template-columns: 1fr;
+        }
+        .header-inner {
+          grid-template-columns: 100px 1fr;
+        }
+        .product-image-container {
+          width: 100px;
+          height: 100px;
+        }
+        .stock-badge {
+          width: 100px !important;
+        }
+      }
+      @media (max-width: 500px) {
+        .form-row {
+          grid-template-columns: 1fr;
+        }
+        .action-buttons {
+          flex-direction: column;
+        }
+        .btn-cancel,
+        .btn-order {
+          width: 100%;
+          justify-content: center;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="summary-container">
+      <div class="loading-state" id="loadingState">
+        <div class="loader"></div>
+        <p style="color: var(--text-secondary)">Loading product details…</p>
+      </div>
+
+      <div class="error-state" id="errorState" style="display: none">
+        <i
+          class="fas fa-exclamation-circle"
+          style="font-size: 3rem; color: #ef4444; margin-bottom: 12px"
+        ></i>
+        <h3 style="margin-bottom: 8px">Failed to load product</h3>
+        <p id="errorMessage" style="color: var(--text-secondary)"></p>
+        <button class="btn-retry" onclick="loadProductDetails()">
+          <i class="fas fa-redo"></i> Retry
+        </button>
+      </div>
+
+      <div class="summary-content" id="summaryContent" style="display: none">
+        <!-- ══ LEFT COLUMN ══ -->
+        <div class="left-column">
+          <div class="summary-header">
+            <div class="header-inner">
+              <!-- Image column: image box + stock badge stacked -->
+              <div class="image-col">
+                <div class="product-image-container">
+                  <img
+                    src=""
+                    alt="Product"
+                    id="productImage"
+                    class="product-image"
+                  />
+                  <video
+                    id="productVideo"
+                    class="product-image"
+                    muted
+                    loop
+                    playsinline
+                    autoplay
+                    style="display: none"
+                  ></video>
+                  <div class="product-badge">
+                    <i class="fas fa-shopping-bag"></i><span>Product</span>
+                  </div>
+                </div>
+                <!-- Stock badge is OUTSIDE and BELOW the image container -->
+                <div class="stock-badge" id="stockBadge">
+                  <i class="fas fa-box"></i><span id="stockText"></span>
+                </div>
+              </div>
+
+              <!-- Info column -->
+              <div class="header-info">
+                <h1 class="product-title" id="productTitle"></h1>
+                <div
+                  class="seller-info"
+                  id="sellerInfo"
+                  onclick="navigateToProfile()"
+                >
+                  <img
+                    src=""
+                    alt="Seller"
+                    id="sellerAvatar"
+                    class="seller-avatar"
+                  />
+                  <div class="seller-details">
+                    <div class="seller-name" id="sellerName"></div>
+                    <div class="seller-username" id="sellerUsername"></div>
+                  </div>
+                </div>
+                <div class="product-meta">
+                  <div class="meta-item" id="conditionInfo">
+                    <i class="fas fa-certificate"></i
+                    ><span id="condition"></span>
+                  </div>
+                  <div class="meta-item" id="shippingInfo">
+                    <i class="fas fa-truck"></i><span id="shippingTime"></span>
+                  </div>
+                  <div class="meta-item" id="categoryInfo">
+                    <i class="fas fa-tag"></i><span id="category"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="section">
+            <h2 class="section-title">
+              <i class="fas fa-align-left"></i> Description
+            </h2>
+            <p class="product-description" id="productDescription"></p>
+            <div id="productFeaturesContainer" style="display: none">
+              <h3
+                style="
+                  font-size: 0.88rem;
+                  margin-top: 10px;
+                  margin-bottom: 6px;
+                  color: var(--text-primary);
+                "
+              >
+                Key Features:
+              </h3>
+              <ul class="features-list" id="featuresList"></ul>
+            </div>
+          </div>
+
+          <!-- Price Breakdown -->
+          <div class="section pricing-section">
+            <h2 class="section-title">
+              <i class="fas fa-receipt"></i> Price Breakdown
+            </h2>
+            <div class="pricing-card">
+              <div class="price-row">
+                <span>Price (<span id="priceQty">1</span> item)</span>
+                <span id="subtotalDisplay">₹0.00</span>
+              </div>
+              <div class="price-row gst-row" id="gstRow">
+                <span>GST <span class="gst-badge" id="gstBadge">0%</span></span>
+                <span id="gstDisplay">₹0.00</span>
+              </div>
+              <div class="price-row" id="deliveryRow">
+                <span
+                  ><i
+                    class="fas fa-truck"
+                    style="
+                      font-size: 0.75rem;
+                      margin-right: 4px;
+                      color: var(--primary-purple);
+                    "
+                  ></i
+                  >Delivery</span
+                >
+                <span id="deliveryDisplay"
+                  ><span class="delivery-calculating">Enter pincode</span></span
+                >
+              </div>
+              <!-- ETA row — shown only after pincode check -->
+              <div class="price-row" id="etaRow" style="display: none">
+                <span style="display: flex; align-items: center; gap: 5px">
+                  <i
+                    class="fas fa-clock"
+                    style="font-size: 0.75rem; color: var(--primary-purple)"
+                  ></i>
+                  Est. Delivery
+                </span>
+                <span id="etaDisplay"></span>
+              </div>
+              <div class="price-divider"></div>
+              <div class="price-row total-row">
+                <span>Total Amount</span>
+                <span id="totalDisplay" style="color: var(--primary-purple)"
+                  >₹0.00</span
+                >
+              </div>
+              <div
+                id="deliveryUnavailableMsg"
+                class="delivery-unavailable"
+                style="display: none"
+              >
+                <i class="fas fa-exclamation-triangle"></i>
+                <span id="deliveryUnavailableText"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ══ RIGHT COLUMN ══ -->
+        <div class="right-column">
+          <div class="delivery-section" id="deliverySection">
+            <h2 class="section-title">
+              <i class="fas fa-map-marker-alt"></i> Delivery Location
+            </h2>
+            <div id="noShippingMsg" style="display: none">
+              <div
+                class="delivery-unavailable"
+                style="
+                  background: rgba(107, 114, 128, 0.1);
+                  color: var(--text-secondary);
+                "
+              >
+                <i class="fas fa-info-circle"></i> Seller does not offer
+                shipping. Pickup only.
+              </div>
+            </div>
+            <div id="shippingForm">
+              <p
+                style="
+                  font-size: 0.82rem;
+                  color: var(--text-secondary);
+                  margin-bottom: 10px;
+                "
+              >
+                Enter your 6-digit pincode — city &amp; state fill
+                automatically.
+              </p>
+              <div class="pincode-row">
+                <div class="pincode-input-wrap">
+                  <input
+                    type="text"
+                    id="deliveryPincode"
+                    placeholder="e.g. 380001"
+                    maxlength="6"
+                    pattern="[0-9]{6}"
+                    inputmode="numeric"
+                  />
+                </div>
+                <button
+                  class="pincode-check-btn"
+                  onclick="checkDelivery()"
+                  id="pincodeCheckBtn"
+                >
+                  <i class="fas fa-search"></i> Check
+                </button>
+              </div>
+              <div id="pincodeResult" class="pincode-result"></div>
+              <div
+                id="distanceChip"
+                style="display: none"
+                class="distance-chip"
+              >
+                <i class="fas fa-route"></i><span id="distanceText"></span>
+              </div>
+            </div>
+          </div>
+
+          <div class="section order-form-section">
+            <h2 class="section-title">
+              <i class="fas fa-shopping-cart"></i> Order Details
+            </h2>
+            <form id="orderForm" class="order-form">
+              <div class="form-group">
+                <label><i class="fas fa-sort-numeric-up"></i> Quantity *</label>
+                <div class="quantity-selector">
+                  <button
+                    type="button"
+                    class="qty-btn"
+                    onclick="decreaseQuantity()"
+                  >
+                    <i class="fas fa-minus"></i>
+                  </button>
+                  <input
+                    type="number"
+                    id="quantity"
+                    value="1"
+                    min="1"
+                    max=""
+                    onchange="updateTotals()"
+                    required
+                  />
+                  <button
+                    type="button"
+                    class="qty-btn"
+                    onclick="increaseQuantity()"
+                  >
+                    <i class="fas fa-plus"></i>
+                  </button>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3>
+                  <i
+                    class="fas fa-map-marker-alt"
+                    style="color: var(--primary-purple)"
+                  ></i>
+                  Shipping Address
+                </h3>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Full Name *</label>
+                    <input
+                      type="text"
+                      id="fullName"
+                      placeholder="Enter full name"
+                      required
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label>Phone Number *</label>
+                    <input
+                      type="tel"
+                      id="phone"
+                      placeholder="10-digit number"
+                      maxlength="10"
+                      inputmode="numeric"
+                      required
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label>Address Line 1 *</label>
+                  <input
+                    type="text"
+                    id="address1"
+                    placeholder="House/Flat No., Building"
+                    required
+                  />
+                </div>
+                <div class="form-group">
+                  <label>Address Line 2</label>
+                  <input type="text" id="address2" placeholder="Street, Area" />
+                </div>
+                <div
+                  class="form-row"
+                  style="grid-template-columns: 1fr 1fr 1fr"
+                >
+                  <div class="form-group">
+                    <label>Country *</label>
+                    <select
+                      id="country"
+                      onchange="updateProductStates()"
+                      style="font-size: 0.82rem"
+                      required
+                    >
+                      <option value="">Select</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>State *</label>
+                    <select
+                      id="state"
+                      onchange="updateProductCities()"
+                      style="font-size: 0.82rem"
+                      required
+                    >
+                      <option value="">Select</option>
+                    </select>
+                  </div>
+                  <div class="form-group">
+                    <label>City *</label>
+                    <select id="city" style="font-size: 0.82rem" required>
+                      <option value="">Select</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>Pincode *</label>
+                    <input
+                      type="text"
+                      id="pincode"
+                      placeholder="6-digit"
+                      pattern="[0-9]{6}"
+                      required
+                      oninput="syncDeliveryPincode(this.value)"
+                    />
+                  </div>
+                  <div class="form-group">
+                    <label>Landmark</label>
+                    <input
+                      type="text"
+                      id="landmark"
+                      placeholder="Nearby landmark"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label
+                  ><i class="fas fa-sticky-note"></i> Special Instructions
+                  (Optional)</label
+                >
+                <textarea
+                  id="buyerNotes"
+                  rows="2"
+                  placeholder="Gift wrapping, delivery preferences, etc."
+                ></textarea>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons">
+          <button class="btn-cancel" onclick="closeSummary()">
+            <i class="fas fa-times"></i> Cancel
+          </button>
+          <button class="btn-order" id="placeOrderBtn" onclick="submitOrder()">
+            <i class="fas fa-shopping-cart"></i>
+            <span id="placeOrderText">Place Order</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast" id="toast">
+      <i class="fas fa-check-circle"></i><span id="toastMessage"></span>
+    </div>
+
+    <script src="js/product-summary.js"></script>
+    <script>
+      function applyTheme() {
+        const t = localStorage.getItem("theme") || "light";
+        document.documentElement.setAttribute("data-theme", t);
+      }
+      window.addEventListener("message", (e) => {
+        if (e.data.action === "themeChanged")
+          document.documentElement.setAttribute("data-theme", e.data.theme);
+      });
+      applyTheme();
+    </script>
+  </body>
+</html>

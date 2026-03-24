@@ -1,0 +1,17 @@
+.env
+.env
+__pycache__/
+*.pyc
+*.pyo
+backend/venv/
+venv/
+node_modules/
+*.log
+backend/uploads/posts/*
+backend/uploads/profile/*
+backend/uploads/cover/*
+backend/uploads/payment_proofs/*
+!backend/uploads/posts/.gitkeep
+!backend/uploads/profile/.gitkeep
+!backend/uploads/cover/.gitkeep
+!backend/uploads/payment_proofs/.gitkeep

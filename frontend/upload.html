@@ -1,0 +1,2699 @@
+=<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <title>Create Post - Creator Connect</title>
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/sidebar.css" />
+    <link rel="stylesheet" href="css/upload.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"
+    />
+
+    <style>
+      :root {
+        --border: var(--border-purple);
+        --input-bg: var(--bg-secondary);
+        --primary: var(--primary-purple);
+      }
+      [data-theme="dark"] {
+        --input-bg: #1a1a1a;
+        --border: #3f3f46;
+      }
+
+      .step-nav-fixed {
+        position: fixed;
+        bottom: 0;
+        z-index: 999;
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 12px 24px 14px;
+        background: rgba(255, 255, 255, 0.97);
+        border-top: 2px solid var(--border-purple, #f889e5);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        box-shadow: 0 -4px 20px rgba(230, 10, 234, 0.1);
+        border-radius: 0 0 24px 24px;
+      }
+      [data-theme="dark"] .step-nav-fixed {
+        background: rgba(31, 41, 55, 0.97);
+        border-top-color: #3f3f46;
+      }
+      .step-nav-fixed .btn {
+        flex: 0 0 auto;
+        min-width: 130px;
+      }
+      .step-form {
+        padding-bottom: 90px !important;
+      }
+      .step-navigation {
+        display: none !important;
+      }
+
+      /* ── Variant builder styles ─────────────────────────────── */
+      .variant-row {
+        border: 1px solid var(--border, #e5e7eb);
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        background: var(--bg-primary, #fff);
+      }
+      .variant-row-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 12px;
+      }
+      .variant-number {
+        font-weight: 700;
+        font-size: 0.88rem;
+        color: var(--primary-purple, #e60aea);
+      }
+      .variant-remove-btn {
+        background: transparent;
+        border: 1px solid #ef4444;
+        color: #ef4444;
+        border-radius: 6px;
+        width: 28px;
+        height: 28px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 0.75rem;
+        transition: all 0.2s;
+      }
+      .variant-remove-btn:hover {
+        background: #ef4444;
+        color: #fff;
+      }
+      .variant-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+      }
+      .variant-grid .full-width {
+        grid-column: 1 / -1;
+      }
+      @media (max-width: 600px) {
+        .variant-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <script src="js/auth-guard.js"></script>
+
+    <div id="preloader">
+      <div class="preloader-content">
+        <img
+          src="images/logo2.png"
+          alt="Creator Connect Logo"
+          class="preloader-logo"
+        />
+        <h1 class="preloader-title">Creator Connect</h1>
+      </div>
+    </div>
+
+    <div id="header"></div>
+    <div id="sidebar"></div>
+
+    <main class="upload-container">
+      <div class="upload-wrapper">
+        <!-- Progress Steps Header -->
+        <div class="steps-header">
+          <h1 class="main-title">
+            <i class="fas fa-cloud-upload-alt"></i> Create New Post
+          </h1>
+          <p class="main-subtitle">Follow the steps to share your creativity</p>
+          <div class="steps-indicator">
+            <div class="step-item active" data-step="1">
+              <div class="step-circle">
+                <span class="step-number">1</span
+                ><i class="fas fa-check step-check"></i>
+              </div>
+              <span class="step-label">Post Type</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-item" data-step="2">
+              <div class="step-circle">
+                <span class="step-number">2</span
+                ><i class="fas fa-check step-check"></i>
+              </div>
+              <span class="step-label">Media Upload</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-item" data-step="3">
+              <div class="step-circle">
+                <span class="step-number">3</span
+                ><i class="fas fa-check step-check"></i>
+              </div>
+              <span class="step-label">Basic Info</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-item" data-step="4">
+              <div class="step-circle">
+                <span class="step-number">4</span
+                ><i class="fas fa-check step-check"></i>
+              </div>
+              <span class="step-label">Details</span>
+            </div>
+            <div class="step-line"></div>
+            <div class="step-item" data-step="5">
+              <div class="step-circle">
+                <span class="step-number">5</span
+                ><i class="fas fa-check step-check"></i>
+              </div>
+              <span class="step-label">Review</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Form Container -->
+        <form id="postForm" class="step-form">
+          <!-- STEP 1: POST TYPE -->
+          <div class="step-content active" data-step="1">
+            <div class="step-title-box">
+              <h2><i class="fas fa-th-large"></i> Choose Post Type</h2>
+              <p>Select the type of content you want to share</p>
+            </div>
+            <div class="post-type-grid">
+              <div class="type-card" data-type="showcase">
+                <div class="type-icon-wrapper">
+                  <i class="fas fa-image"></i>
+                </div>
+                <h3>Showcase</h3>
+                <p>Share your creative work and portfolio</p>
+                <ul class="type-features">
+                  <li><i class="fas fa-check"></i> Display your art</li>
+                  <li><i class="fas fa-check"></i> Build portfolio</li>
+                  <li><i class="fas fa-check"></i> Get discovered</li>
+                </ul>
+                <div class="type-select-btn">Select</div>
+              </div>
+              <div class="type-card" data-type="service">
+                <div class="type-icon-wrapper">
+                  <i class="fas fa-briefcase"></i>
+                </div>
+                <h3>Service</h3>
+                <p>Offer professional services directly</p>
+                <ul class="type-features">
+                  <li><i class="fas fa-check"></i> Direct contact</li>
+                  <li><i class="fas fa-check"></i> Set your price</li>
+                  <li><i class="fas fa-check"></i> No platform fee</li>
+                </ul>
+                <div class="type-select-btn">Select</div>
+              </div>
+              <div class="type-card" data-type="product">
+                <div class="type-icon-wrapper">
+                  <i class="fas fa-shopping-bag"></i>
+                </div>
+                <h3>Product</h3>
+                <p>Sell products via secure platform</p>
+                <ul class="type-features">
+                  <li><i class="fas fa-check"></i> Secure payments</li>
+                  <li><i class="fas fa-check"></i> Track inventory</li>
+                  <li><i class="fas fa-check"></i> Easy shipping</li>
+                </ul>
+                <div class="type-select-btn">Select</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 2: MEDIA UPLOAD -->
+          <div class="step-content" data-step="2">
+            <div class="step-title-box">
+              <h2><i class="fas fa-photo-video"></i> Upload Media</h2>
+              <p>Add an image or video to showcase your content</p>
+            </div>
+            <div class="media-upload-section">
+              <div class="media-upload-area" id="mediaUploadArea">
+                <div class="upload-placeholder">
+                  <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                  </div>
+                  <h3>Drag & Drop your media here</h3>
+                  <p>or click to browse files</p>
+                  <div class="upload-formats">
+                    <span class="format-tag">JPG</span
+                    ><span class="format-tag">PNG</span>
+                    <span class="format-tag">GIF</span
+                    ><span class="format-tag">WebP</span>
+                    <span class="format-tag">MP4</span
+                    ><span class="format-tag">WebM</span>
+                  </div>
+                  <small>Maximum file size: 50MB</small>
+                </div>
+                <input
+                  type="file"
+                  id="mediaInput"
+                  accept="image/*,video/*"
+                  hidden
+                />
+              </div>
+              <div id="mediaPreview" class="media-preview-box hidden">
+                <div class="preview-header">
+                  <h4><i class="fas fa-eye"></i> Preview</h4>
+                  <div class="preview-actions">
+                    <button
+                      type="button"
+                      class="btn-icon crop-btn"
+                      id="cropBtn"
+                      title="Crop Image"
+                    >
+                      <i class="fas fa-crop"></i>
+                    </button>
+                    <button
+                      type="button"
+                      class="btn-icon remove-btn"
+                      onclick="removeMedia()"
+                      title="Remove"
+                    >
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </div>
+                <div class="preview-content">
+                  <img
+                    id="imagePreview"
+                    class="preview-media hidden"
+                    alt="Preview"
+                  />
+                  <video
+                    id="videoPreview"
+                    class="preview-media hidden"
+                    controls
+                  ></video>
+                </div>
+                <div class="file-info" id="fileInfo"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 3: BASIC INFO -->
+          <div class="step-content" data-step="3">
+            <div class="step-title-box">
+              <h2><i class="fas fa-info-circle"></i> Basic Information</h2>
+              <p>Add caption and categorize your post</p>
+            </div>
+            <div class="form-grid">
+              <div class="form-group full-width">
+                <label class="form-label"
+                  ><i class="fas fa-pen"></i> Caption *</label
+                >
+                <textarea
+                  id="caption"
+                  class="form-textarea"
+                  placeholder="Write a compelling caption for your post..."
+                  maxlength="500"
+                  required
+                ></textarea>
+                <div class="char-counter">
+                  <span id="charCount">0</span>/500
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label"
+                  ><i class="fas fa-folder"></i> Category *</label
+                >
+                <select id="category" class="form-select" required>
+                  <option value="">-- Select Category --</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label"
+                  ><i class="fas fa-folder-open"></i> Subcategory</label
+                >
+                <select id="subcategory" class="form-select">
+                  <option value="">-- Select Subcategory --</option>
+                </select>
+              </div>
+              <div class="form-group full-width">
+                <label class="form-label"
+                  ><i class="fas fa-lock"></i> Privacy Settings</label
+                >
+                <div class="radio-group">
+                  <label class="radio-label">
+                    <input type="radio" name="privacy" value="public" checked />
+                    <span class="radio-custom"></span>
+                    <span class="radio-text"
+                      ><i class="fas fa-globe"></i> Public - Everyone can
+                      see</span
+                    >
+                  </label>
+                  <label class="radio-label">
+                    <input type="radio" name="privacy" value="followers" />
+                    <span class="radio-custom"></span>
+                    <span class="radio-text"
+                      ><i class="fas fa-user-friends"></i> Followers Only</span
+                    >
+                  </label>
+                </div>
+              </div>
+              <div id="showcaseTags" class="form-group full-width hidden">
+                <label class="form-label"
+                  ><i class="fas fa-tags"></i> Tags</label
+                >
+                <input
+                  type="text"
+                  id="tags"
+                  class="form-input"
+                  placeholder="Add tags separated by commas (e.g., photography, art, design)"
+                />
+                <small class="help-text"
+                  >Helps others discover your content</small
+                >
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 4: DETAILED INFO -->
+          <div class="step-content" data-step="4">
+            <div class="step-title-box">
+              <h2><i class="fas fa-edit"></i> Additional Details</h2>
+              <p id="step4Description">Complete your post information</p>
+            </div>
+
+            <!-- ══════════════════════════════════════════════════════ -->
+            <!-- SERVICE FIELDS                                         -->
+            <!-- ══════════════════════════════════════════════════════ -->
+            <!-- ══════════════════════════════════════════════════════════════════ -->
+            <!-- SERVICE FIELDS  — replace the entire <div id="serviceFields">    -->
+            <!-- Removed: Service Mode dropdown (now derived from location type)  -->
+            <!-- Added:   Full Address field in serviceLocationBlock              -->
+            <!-- ══════════════════════════════════════════════════════════════════ -->
+
+            <div id="serviceFields" class="details-section hidden">
+              <div class="form-grid">
+                <!-- Service Title -->
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-heading"></i> Service Title *
+                  </label>
+                  <input
+                    type="text"
+                    id="serviceTitle"
+                    class="form-input"
+                    placeholder="e.g., Professional Logo Design"
+                    maxlength="200"
+                  />
+                </div>
+
+                <!-- Base Price -->
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-rupee-sign"></i> Starting / Base Price *
+                    <small
+                      style="font-weight: 400; color: var(--text-secondary)"
+                      >(0 = quote on request)</small
+                    >
+                  </label>
+                  <div class="input-with-icon">
+                    <span class="input-icon">₹</span>
+                    <input
+                      type="number"
+                      id="servicePrice"
+                      class="form-input with-icon"
+                      placeholder="0.00"
+                      min="0"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+
+                <!-- Duration -->
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-clock"></i> Service Duration
+                  </label>
+                  <input
+                    type="text"
+                    id="serviceDuration"
+                    class="form-input"
+                    placeholder="e.g., 2 hours, 1 day"
+                  />
+                </div>
+
+                <!-- Delivery Time -->
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-shipping-fast"></i> Delivery Time
+                  </label>
+                  <input
+                    type="text"
+                    id="deliveryTime"
+                    class="form-input"
+                    placeholder="e.g., 3–5 days"
+                  />
+                </div>
+
+                <!-- ── WHERE IS SERVICE DELIVERED? ── -->
+                <div class="form-group full-width">
+                  <label class="form-label">
+                    <i class="fas fa-map-marker-alt"></i> Where is the service
+                    delivered? *
+                  </label>
+                  <div
+                    style="
+                      display: flex;
+                      gap: 20px;
+                      flex-wrap: wrap;
+                      margin-top: 8px;
+                    "
+                  >
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        cursor: pointer;
+                        font-size: 0.9rem;
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name="serviceLocationType"
+                        value="online"
+                        onchange="updateServiceLocationFields()"
+                        checked
+                      />
+                      <i
+                        class="fas fa-laptop"
+                        style="color: var(--primary); font-size: 0.85rem"
+                      ></i>
+                      Online (remote)
+                    </label>
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        cursor: pointer;
+                        font-size: 0.9rem;
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name="serviceLocationType"
+                        value="at_provider"
+                        onchange="updateServiceLocationFields()"
+                      />
+                      <i
+                        class="fas fa-store"
+                        style="color: var(--primary); font-size: 0.85rem"
+                      ></i>
+                      At my location
+                    </label>
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        cursor: pointer;
+                        font-size: 0.9rem;
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name="serviceLocationType"
+                        value="doorstep"
+                        onchange="updateServiceLocationFields()"
+                      />
+                      <i
+                        class="fas fa-home"
+                        style="color: var(--primary); font-size: 0.85rem"
+                      ></i>
+                      I travel to customer
+                    </label>
+                    <label
+                      style="
+                        display: flex;
+                        align-items: center;
+                        gap: 8px;
+                        cursor: pointer;
+                        font-size: 0.9rem;
+                      "
+                    >
+                      <input
+                        type="radio"
+                        name="serviceLocationType"
+                        value="both"
+                        onchange="updateServiceLocationFields()"
+                      />
+                      <i
+                        class="fas fa-exchange-alt"
+                        style="color: var(--primary); font-size: 0.85rem"
+                      ></i>
+                      Both options
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Online note -->
+                <div
+                  id="serviceOnlineNote"
+                  class="form-group full-width"
+                  style="
+                    padding: 10px 14px;
+                    background: rgba(59, 130, 246, 0.07);
+                    border: 1px solid rgba(59, 130, 246, 0.2);
+                    border-radius: 10px;
+                    font-size: 0.85rem;
+                    color: #1d4ed8;
+                  "
+                >
+                  <i class="fas fa-info-circle" style="margin-right: 6px"></i>
+                  Online service — customer contacts you via email or WhatsApp.
+                  No address needed.
+                </div>
+
+                <!-- Provider location block (at_provider / both) -->
+                <div
+                  id="serviceLocationBlock"
+                  class="form-group full-width"
+                  style="display: none"
+                >
+                  <label class="form-label">
+                    <i class="fas fa-map-pin"></i> Your Service Location
+                  </label>
+
+                  <!-- Full Address field — NEW -->
+                  <div style="margin-bottom: 10px">
+                    <label
+                      class="form-label"
+                      style="
+                        font-size: 0.8rem;
+                        margin-bottom: 4px;
+                        display: block;
+                      "
+                    >
+                      Full Address
+                      <small
+                        style="color: var(--text-secondary); font-weight: 400"
+                      >
+                        — shown to customers as a Google Maps link
+                      </small>
+                    </label>
+                    <input
+                      type="text"
+                      id="serviceProviderAddress"
+                      class="form-input"
+                      placeholder="e.g., Shop 12, Navrangpura, Near HDFC Bank"
+                      maxlength="300"
+                    />
+                  </div>
+
+                  <!-- Country / State / City / Pincode grid (injected by upload-location-fields.js) -->
+                  <div
+                    style="
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 12px;
+                      margin-top: 4px;
+                    "
+                  >
+                    <!-- serviceProviderCity and serviceProviderState are converted to
+             dropdowns by upload-location-fields.js — order is State then City -->
+                    <input
+                      type="text"
+                      id="serviceProviderCity"
+                      class="form-input"
+                      placeholder="City *"
+                    />
+                    <input
+                      type="text"
+                      id="serviceProviderState"
+                      class="form-input"
+                      placeholder="State *"
+                    />
+                    <input
+                      type="text"
+                      id="serviceProviderPincode"
+                      class="form-input"
+                      placeholder="Pincode *"
+                      inputmode="numeric"
+                      maxlength="6"
+                    />
+                    <div class="form-group" style="margin: 0">
+                      <label class="form-label" style="font-size: 0.8rem">
+                        Service Radius (km)
+                        <small
+                          style="color: var(--text-secondary); font-weight: 400"
+                        >
+                          — 0 = no limit</small
+                        >
+                      </label>
+                      <input
+                        type="number"
+                        id="serviceRadiusKm"
+                        class="form-input"
+                        placeholder="e.g. 30"
+                        min="0"
+                        value="0"
+                      />
+                    </div>
+                  </div>
+                  <small
+                    style="
+                      color: var(--text-secondary);
+                      font-size: 0.73rem;
+                      margin-top: 4px;
+                      display: block;
+                    "
+                  >
+                    Buyers outside this radius will see "Service not available
+                    in your area"
+                  </small>
+                </div>
+
+                <!-- Doorstep fee block -->
+                <div
+                  id="serviceDoorstepBlock"
+                  class="form-group full-width"
+                  style="display: none"
+                >
+                  <label class="form-label">
+                    <i class="fas fa-rupee-sign"></i> Travel / Doorstep Charges
+                  </label>
+                  <div
+                    style="
+                      display: grid;
+                      grid-template-columns: 1fr 1fr;
+                      gap: 12px;
+                      margin-top: 8px;
+                    "
+                  >
+                    <div>
+                      <label class="form-label" style="font-size: 0.8rem"
+                        >Base Travel Fee (₹)</label
+                      >
+                      <div
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: 8px;
+                          border: 1px solid var(--border);
+                          border-radius: 8px;
+                          padding: 8px 12px;
+                          background: var(--input-bg);
+                        "
+                      >
+                        <span style="color: var(--primary); font-weight: 600"
+                          >₹</span
+                        >
+                        <input
+                          type="number"
+                          id="doorstepBaseFee"
+                          min="0"
+                          placeholder="e.g. 50"
+                          style="
+                            border: none;
+                            background: transparent;
+                            outline: none;
+                            width: 100%;
+                            color: var(--text-primary);
+                          "
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label class="form-label" style="font-size: 0.8rem"
+                        >Per KM Rate (₹/km)</label
+                      >
+                      <div
+                        style="
+                          display: flex;
+                          align-items: center;
+                          gap: 8px;
+                          border: 1px solid var(--border);
+                          border-radius: 8px;
+                          padding: 8px 12px;
+                          background: var(--input-bg);
+                        "
+                      >
+                        <span style="color: var(--primary); font-weight: 600"
+                          >₹</span
+                        >
+                        <input
+                          type="number"
+                          id="doorstepPerKm"
+                          min="0"
+                          step="0.5"
+                          placeholder="e.g. 5"
+                          style="
+                            border: none;
+                            background: transparent;
+                            outline: none;
+                            width: 100%;
+                            color: var(--text-primary);
+                          "
+                        />
+                      </div>
+                    </div>
+                    <div style="grid-column: 1/-1">
+                      <label class="form-label" style="font-size: 0.8rem">
+                        Your Pincode (for distance calculation) *
+                      </label>
+                      <input
+                        type="text"
+                        id="serviceDoorstepPincode"
+                        class="form-input"
+                        placeholder="Your 6-digit pincode"
+                        inputmode="numeric"
+                        maxlength="6"
+                      />
+                    </div>
+                    <div style="grid-column: 1/-1">
+                      <label class="form-label" style="font-size: 0.8rem">
+                        Max Distance You Travel (km)
+                        <small
+                          style="color: var(--text-secondary); font-weight: 400"
+                        >
+                          — 0 = no limit</small
+                        >
+                      </label>
+                      <input
+                        type="number"
+                        id="serviceDoorstepRadius"
+                        class="form-input"
+                        placeholder="e.g. 20"
+                        min="0"
+                        value="0"
+                        style="max-width: 220px"
+                      />
+                    </div>
+                  </div>
+                  <small
+                    style="
+                      color: var(--text-secondary);
+                      font-size: 0.73rem;
+                      margin-top: 4px;
+                      display: block;
+                    "
+                  >
+                    Travel fee = base + (distance × per km rate). Shown to buyer
+                    at booking.
+                  </small>
+                </div>
+
+                <!-- Short Description -->
+                <div class="form-group full-width">
+                  <label class="form-label">
+                    <i class="fas fa-align-left"></i> Short Description *
+                  </label>
+                  <textarea
+                    id="serviceShortDesc"
+                    class="form-textarea short"
+                    placeholder="Brief summary (max 150 characters)"
+                    maxlength="150"
+                  ></textarea>
+                  <div class="char-counter">
+                    <span id="serviceShortDescCount">0</span>/150
+                  </div>
+                </div>
+
+                <!-- Full Description -->
+                <div class="form-group full-width">
+                  <label class="form-label">
+                    <i class="fas fa-file-alt"></i> Full Description
+                  </label>
+                  <textarea
+                    id="serviceFullDesc"
+                    class="form-textarea"
+                    placeholder="Detailed service description..."
+                    maxlength="1500"
+                  ></textarea>
+                  <div class="char-counter">
+                    <span id="serviceFullDescCount">0</span>/1500
+                  </div>
+                </div>
+
+                <!-- Key Features -->
+                <div class="form-group full-width">
+                  <label class="form-label">
+                    <i class="fas fa-star"></i> Key Features
+                  </label>
+                  <textarea
+                    id="serviceFeatures"
+                    class="form-textarea short"
+                    placeholder="List key features (one per line)"
+                    maxlength="500"
+                  ></textarea>
+                </div>
+
+                <!-- Contact Email -->
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-envelope"></i> Contact Email *
+                  </label>
+                  <input
+                    type="email"
+                    id="serviceEmail"
+                    class="form-input"
+                    placeholder="your.email@example.com"
+                  />
+                </div>
+
+                <!-- Contact Phone -->
+                <div class="form-group">
+                  <label class="form-label">
+                    <i class="fas fa-phone"></i> Phone / WhatsApp *
+                  </label>
+                  <input
+                    type="tel"
+                    id="servicePhone"
+                    class="form-input"
+                    placeholder="+91 98765 43210"
+                  />
+                </div>
+
+                <!-- Revisions -->
+                <div class="form-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="includesRevisions" />
+                    <span class="checkbox-box"></span>
+                    <span class="checkbox-text"
+                      ><i class="fas fa-redo"></i> Includes Revisions</span
+                    >
+                  </label>
+                  <div id="revisionsDetails" class="hidden sub-field">
+                    <input
+                      type="number"
+                      id="maxRevisions"
+                      class="form-input"
+                      placeholder="Max revisions (e.g., 3)"
+                      min="1"
+                    />
+                  </div>
+                </div>
+
+                <!-- Advance Booking -->
+                <div class="form-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="requiresBooking" />
+                    <span class="checkbox-box"></span>
+                    <span class="checkbox-text"
+                      ><i class="fas fa-calendar"></i> Requires Advance
+                      Booking</span
+                    >
+                  </label>
+                  <div id="bookingDetails" class="hidden sub-field">
+                    <input
+                      type="number"
+                      id="bookingNoticeDays"
+                      class="form-input"
+                      placeholder="Days notice (e.g., 3)"
+                      min="1"
+                    />
+                  </div>
+                </div>
+              </div>
+              <!-- end .form-grid -->
+
+              <!-- ── PRICING PACKAGES (Variants) ── -->
+              <div
+                style="
+                  margin-top: 24px;
+                  padding: 18px;
+                  background: var(--card-bg-alt, var(--input-bg));
+                  border: 1px solid var(--border);
+                  border-radius: 12px;
+                "
+              >
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    margin-bottom: 14px;
+                    flex-wrap: wrap;
+                    gap: 10px;
+                  "
+                >
+                  <div>
+                    <h4 style="margin: 0; font-size: 1rem">
+                      <i class="fas fa-tags" style="color: var(--primary)"></i>
+                      Pricing Packages
+                    </h4>
+                    <small
+                      style="color: var(--text-secondary); font-size: 0.78rem"
+                    >
+                      Add multiple packages so buyers can pick what suits them.
+                      Leave empty to use the base price above.
+                    </small>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-primary"
+                    onclick="addVariantRow()"
+                    style="padding: 8px 16px; font-size: 0.85rem"
+                  >
+                    <i class="fas fa-plus"></i> Add Package
+                  </button>
+                </div>
+                <div id="variantRows"></div>
+                <div
+                  id="variantEmptyNote"
+                  style="
+                    text-align: center;
+                    color: var(--text-secondary);
+                    font-size: 0.82rem;
+                    padding: 10px 0;
+                  "
+                >
+                  No packages yet — click <strong>Add Package</strong> to define
+                  pricing tiers.
+                </div>
+              </div>
+
+              <div class="info-banner service-banner" style="margin-top: 16px">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                  <strong>Direct Contact Service</strong>
+                  <p>
+                    Customers will contact you directly via email or phone. No
+                    platform payment — you handle everything with the client.
+                  </p>
+                </div>
+              </div>
+            </div>
+            <!-- end #serviceFields -->
+
+            <!-- PRODUCT FIELDS -->
+            <div id="productFields" class="details-section hidden">
+              <div class="form-grid">
+                <div class="form-group">
+                  <label class="form-label"
+                    ><i class="fas fa-heading"></i> Product Title *</label
+                  >
+                  <input
+                    type="text"
+                    id="productTitle"
+                    class="form-input"
+                    placeholder="e.g., Handmade Leather Wallet"
+                    maxlength="200"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label"
+                    ><i class="fas fa-rupee-sign"></i> Price *</label
+                  >
+                  <div class="input-with-icon">
+                    <span class="input-icon">₹</span>
+                    <input
+                      type="number"
+                      id="productPrice"
+                      class="form-input with-icon"
+                      placeholder="0.00"
+                      min="0.01"
+                      step="0.01"
+                    />
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label"
+                    ><i class="fas fa-boxes"></i> Stock Quantity *</label
+                  >
+                  <input
+                    type="number"
+                    id="productStock"
+                    class="form-input"
+                    placeholder="e.g., 10"
+                    min="0"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label"
+                    ><i class="fas fa-certificate"></i> Condition *</label
+                  >
+                  <select id="productCondition" class="form-select">
+                    <option value="new">Brand New</option>
+                    <option value="like_new">Like New</option>
+                    <option value="good">Good</option>
+                    <option value="fair">Fair</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label class="form-label"
+                    ><i class="fas fa-tag"></i> Brand</label
+                  >
+                  <input
+                    type="text"
+                    id="productBrand"
+                    class="form-input"
+                    placeholder="Brand name"
+                  />
+                </div>
+                <div class="form-group">
+                  <label class="form-label"
+                    ><i class="fas fa-barcode"></i> SKU</label
+                  >
+                  <input
+                    type="text"
+                    id="productSku"
+                    class="form-input"
+                    placeholder="Stock keeping unit"
+                  />
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label"
+                    ><i class="fas fa-align-left"></i> Short Description
+                    *</label
+                  >
+                  <textarea
+                    id="productShortDesc"
+                    class="form-textarea short"
+                    placeholder="Brief summary (max 150 characters)"
+                    maxlength="150"
+                  ></textarea>
+                  <div class="char-counter">
+                    <span id="productShortDescCount">0</span>/150
+                  </div>
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label"
+                    ><i class="fas fa-file-alt"></i> Full Description</label
+                  >
+                  <textarea
+                    id="productFullDesc"
+                    class="form-textarea"
+                    placeholder="Detailed product description..."
+                    maxlength="1500"
+                  ></textarea>
+                  <div class="char-counter">
+                    <span id="productFullDescCount">0</span>/1500
+                  </div>
+                </div>
+                <div class="form-group full-width">
+                  <label class="form-label"
+                    ><i class="fas fa-list-ul"></i> Key Features</label
+                  >
+                  <textarea
+                    id="productFeatures"
+                    class="form-textarea short"
+                    placeholder="List key features (one per line)"
+                    maxlength="500"
+                  ></textarea>
+                </div>
+
+                <div class="form-group full-width">
+                  <div class="shipping-section">
+                    <h4>
+                      <i class="fas fa-shipping-fast"></i> Fulfillment Method
+                    </h4>
+
+                    <!-- ── TAB TOGGLE: Shipping / Pickup / Both ── -->
+                    <div
+                      id="fulfillmentTabs"
+                      style="
+                        display: flex;
+                        gap: 0;
+                        border: 2px solid var(--border-purple, #f889e5);
+                        border-radius: 12px;
+                        overflow: hidden;
+                        margin-bottom: 20px;
+                        margin-top: 10px;
+                      "
+                    >
+                      <button
+                        type="button"
+                        id="tabShipping"
+                        onclick="setFulfillmentTab('shipping')"
+                        style="
+                          flex: 1;
+                          padding: 11px 6px;
+                          border: none;
+                          cursor: pointer;
+                          font-size: 0.85rem;
+                          font-weight: 700;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          gap: 6px;
+                          background: var(--primary-purple, #e60aea);
+                          color: #fff;
+                          transition: all 0.2s;
+                        "
+                      >
+                        <i class="fas fa-truck"></i> Shipping
+                      </button>
+                      <button
+                        type="button"
+                        id="tabPickup"
+                        onclick="setFulfillmentTab('pickup')"
+                        style="
+                          flex: 1;
+                          padding: 11px 6px;
+                          border: none;
+                          cursor: pointer;
+                          font-size: 0.85rem;
+                          font-weight: 700;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          gap: 6px;
+                          background: var(--bg-secondary, #f8f9fa);
+                          color: var(--text-secondary, #6c757d);
+                          border-left: 2px solid var(--border-purple, #f889e5);
+                          transition: all 0.2s;
+                        "
+                      >
+                        <i class="fas fa-store"></i> Pickup Only
+                      </button>
+                      <button
+                        type="button"
+                        id="tabBoth"
+                        onclick="setFulfillmentTab('both')"
+                        style="
+                          flex: 1;
+                          padding: 11px 6px;
+                          border: none;
+                          cursor: pointer;
+                          font-size: 0.85rem;
+                          font-weight: 700;
+                          display: flex;
+                          align-items: center;
+                          justify-content: center;
+                          gap: 6px;
+                          background: var(--bg-secondary, #f8f9fa);
+                          color: var(--text-secondary, #6c757d);
+                          border-left: 2px solid var(--border-purple, #f889e5);
+                          transition: all 0.2s;
+                        "
+                      >
+                        <i class="fas fa-exchange-alt"></i> Both
+                      </button>
+                    </div>
+
+                    <!-- Hidden real checkbox (kept for JS compatibility) -->
+                    <input
+                      type="checkbox"
+                      id="shippingAvailable"
+                      checked
+                      style="display: none"
+                    />
+
+                    <!-- ── SHIPPING DETAILS (shown for Shipping / Both) ── -->
+                    <div id="shippingDetails" style="margin-top: 4px">
+                      <div class="form-row-2col">
+                        <div class="form-group">
+                          <label class="form-label">
+                            <i
+                              class="fas fa-map-marker-alt"
+                              style="color: var(--primary)"
+                            ></i>
+                            Your Pincode *
+                          </label>
+                          <input
+                            class="form-input"
+                            id="sellerPincode"
+                            type="text"
+                            inputmode="numeric"
+                            maxlength="6"
+                            placeholder="e.g. 380001"
+                          />
+                          <small
+                            style="
+                              color: var(--text-secondary);
+                              font-size: 0.72rem;
+                            "
+                          >
+                            Used to calculate delivery distance &amp;
+                            charges</small
+                          >
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">
+                            <i
+                              class="fas fa-calendar-alt"
+                              style="color: var(--primary)"
+                            ></i>
+                            Delivery Time (days)
+                          </label>
+                          <input
+                            class="form-input"
+                            id="deliveryDays"
+                            type="number"
+                            min="1"
+                            max="30"
+                            placeholder="e.g. 5"
+                          />
+                          <small
+                            style="
+                              color: var(--text-secondary);
+                              font-size: 0.72rem;
+                            "
+                            >Your base delivery days</small
+                          >
+                        </div>
+                      </div>
+
+                      <div class="form-group" style="margin-top: 14px">
+                        <label class="form-label">
+                          <i
+                            class="fas fa-rupee-sign"
+                            style="color: var(--primary)"
+                          ></i>
+                          Delivery Charge Type *
+                        </label>
+                        <div
+                          style="
+                            display: flex;
+                            gap: 20px;
+                            flex-wrap: wrap;
+                            margin-top: 8px;
+                          "
+                        >
+                          <label
+                            style="
+                              display: flex;
+                              align-items: center;
+                              gap: 8px;
+                              cursor: pointer;
+                              font-size: 0.9rem;
+                            "
+                          >
+                            <input
+                              type="radio"
+                              name="deliveryChargeType"
+                              value="flat"
+                              onchange="updateDeliveryFields()"
+                              checked
+                            />
+                            <i
+                              class="fas fa-tag"
+                              style="color: var(--primary); font-size: 0.85rem"
+                            ></i>
+                            Flat Rate
+                          </label>
+                          <label
+                            style="
+                              display: flex;
+                              align-items: center;
+                              gap: 8px;
+                              cursor: pointer;
+                              font-size: 0.9rem;
+                            "
+                          >
+                            <input
+                              type="radio"
+                              name="deliveryChargeType"
+                              value="per_km"
+                              onchange="updateDeliveryFields()"
+                            />
+                            <i
+                              class="fas fa-mountain"
+                              style="color: var(--primary); font-size: 0.85rem"
+                            ></i>
+                            Per KM
+                          </label>
+                          <label
+                            style="
+                              display: flex;
+                              align-items: center;
+                              gap: 8px;
+                              cursor: pointer;
+                              font-size: 0.9rem;
+                            "
+                          >
+                            <input
+                              type="radio"
+                              name="deliveryChargeType"
+                              value="free"
+                              onchange="updateDeliveryFields()"
+                            />
+                            <i
+                              class="fas fa-gift"
+                              style="color: var(--primary); font-size: 0.85rem"
+                            ></i>
+                            Free Shipping
+                          </label>
+                        </div>
+                      </div>
+
+                      <div
+                        id="flatRateFields"
+                        style="
+                          display: grid;
+                          grid-template-columns: 1fr 1fr;
+                          gap: 12px;
+                          margin-top: 12px;
+                        "
+                      >
+                        <div class="form-group">
+                          <label class="form-label"
+                            >Flat Delivery Charge (₹)</label
+                          >
+                          <div
+                            style="
+                              display: flex;
+                              align-items: center;
+                              gap: 8px;
+                              border: 1px solid var(--border);
+                              border-radius: 8px;
+                              padding: 8px 12px;
+                              background: var(--input-bg);
+                            "
+                          >
+                            <span
+                              style="color: var(--primary); font-weight: 600"
+                              >₹</span
+                            >
+                            <input
+                              type="number"
+                              id="baseDeliveryCharge"
+                              min="0"
+                              placeholder="e.g. 50"
+                              style="
+                                border: none;
+                                background: transparent;
+                                outline: none;
+                                width: 100%;
+                                color: var(--text-primary);
+                              "
+                            />
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label"
+                            >Free Shipping Above (₹)</label
+                          >
+                          <div
+                            style="
+                              display: flex;
+                              align-items: center;
+                              gap: 8px;
+                              border: 1px solid var(--border);
+                              border-radius: 8px;
+                              padding: 8px 12px;
+                              background: var(--input-bg);
+                            "
+                          >
+                            <span
+                              style="color: var(--primary); font-weight: 600"
+                              >₹</span
+                            >
+                            <input
+                              type="number"
+                              id="freeShippingThreshold"
+                              min="0"
+                              placeholder="e.g. 1000"
+                              style="
+                                border: none;
+                                background: transparent;
+                                outline: none;
+                                width: 100%;
+                                color: var(--text-primary);
+                              "
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        id="perKmFields"
+                        style="
+                          display: none;
+                          grid-template-columns: 1fr 1fr;
+                          gap: 12px;
+                          margin-top: 12px;
+                        "
+                      >
+                        <div class="form-group">
+                          <label class="form-label">Base Charge (₹)</label>
+                          <div
+                            style="
+                              display: flex;
+                              align-items: center;
+                              gap: 8px;
+                              border: 1px solid var(--border);
+                              border-radius: 8px;
+                              padding: 8px 12px;
+                              background: var(--input-bg);
+                            "
+                          >
+                            <span
+                              style="color: var(--primary); font-weight: 600"
+                              >₹</span
+                            >
+                            <input
+                              type="number"
+                              id="baseDeliveryChargeKm"
+                              min="0"
+                              placeholder="e.g. 30"
+                              style="
+                                border: none;
+                                background: transparent;
+                                outline: none;
+                                width: 100%;
+                                color: var(--text-primary);
+                              "
+                              oninput="updateDeliveryPreview()"
+                            />
+                          </div>
+                        </div>
+                        <div class="form-group">
+                          <label class="form-label">Per KM Rate (₹/km)</label>
+                          <div
+                            style="
+                              display: flex;
+                              align-items: center;
+                              gap: 8px;
+                              border: 1px solid var(--border);
+                              border-radius: 8px;
+                              padding: 8px 12px;
+                              background: var(--input-bg);
+                            "
+                          >
+                            <span
+                              style="color: var(--primary); font-weight: 600"
+                              >₹</span
+                            >
+                            <input
+                              type="number"
+                              id="perKmRate"
+                              min="0"
+                              step="0.5"
+                              placeholder="e.g. 5"
+                              style="
+                                border: none;
+                                background: transparent;
+                                outline: none;
+                                width: 100%;
+                                color: var(--text-primary);
+                              "
+                              oninput="updateDeliveryPreview()"
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      <div
+                        id="freeShippingNote"
+                        style="
+                          display: none;
+                          margin-top: 12px;
+                          padding: 12px 16px;
+                          background: rgba(16, 185, 129, 0.08);
+                          border: 1px solid rgba(16, 185, 129, 0.25);
+                          border-radius: 10px;
+                          border-left: 4px solid #10b981;
+                        "
+                      >
+                        <div
+                          style="
+                            font-weight: 700;
+                            font-size: 0.9rem;
+                            color: #065f46;
+                            display: flex;
+                            align-items: center;
+                            gap: 8px;
+                          "
+                        >
+                          <i
+                            class="fas fa-check-circle"
+                            style="color: #10b981"
+                          ></i>
+                          Free Shipping Selected
+                        </div>
+                        <div
+                          style="
+                            font-size: 0.8rem;
+                            color: #047857;
+                            margin-top: 4px;
+                          "
+                        >
+                          Buyers won't be charged any delivery fee.
+                        </div>
+                      </div>
+
+                      <div
+                        class="form-group"
+                        id="maxKmSection"
+                        style="
+                          margin-top: 14px;
+                          padding: 14px;
+                          background: var(--card-bg-alt, var(--input-bg));
+                          border: 1px solid var(--border);
+                          border-radius: 10px;
+                        "
+                      >
+                        <label class="form-label" style="margin-bottom: 6px">
+                          <i
+                            class="fas fa-road"
+                            style="color: var(--primary)"
+                          ></i>
+                          Max Delivery Distance (km)
+                          <span
+                            style="
+                              font-weight: 400;
+                              font-size: 0.78rem;
+                              color: var(--text-secondary);
+                              margin-left: 6px;
+                            "
+                            >— 0 = unlimited</span
+                          >
+                        </label>
+                        <input
+                          class="form-input"
+                          id="deliveryMaxKm"
+                          type="number"
+                          min="0"
+                          placeholder="e.g. 50"
+                          oninput="updateDeliveryPreview()"
+                          style="max-width: 220px"
+                        />
+                        <small
+                          id="maxKmHint"
+                          style="
+                            display: block;
+                            margin-top: 5px;
+                            font-size: 0.73rem;
+                            color: var(--text-secondary);
+                          "
+                        ></small>
+                      </div>
+
+                      <div
+                        id="deliveryPreviewWrap"
+                        style="
+                          margin-top: 12px;
+                          padding: 10px 14px;
+                          background: var(--card-bg-alt, var(--input-bg));
+                          border: 1px solid var(--border);
+                          border-radius: 10px;
+                          display: none;
+                        "
+                      >
+                        <div
+                          style="
+                            font-size: 0.78rem;
+                            font-weight: 700;
+                            color: var(--text-primary);
+                            margin-bottom: 4px;
+                          "
+                        >
+                          <i
+                            class="fas fa-table"
+                            style="color: var(--primary); margin-right: 5px"
+                          ></i>
+                          Delivery charge preview:
+                        </div>
+                        <div
+                          id="deliveryPreviewText"
+                          style="
+                            font-size: 0.78rem;
+                            color: var(--text-secondary);
+                          "
+                        >
+                          Enter base charge + per km rate to see preview
+                        </div>
+                      </div>
+                    </div>
+                    <!-- END #shippingDetails -->
+
+                    <!-- ── PICKUP ADDRESS (shown for Pickup / Both) ── -->
+                    <div
+                      id="productPickupDetails"
+                      style="
+                        display: none;
+                        margin-top: 16px;
+                        padding: 18px;
+                        background: rgba(139, 92, 246, 0.06);
+                        border: 1.5px solid rgba(139, 92, 246, 0.25);
+                        border-radius: 12px;
+                      "
+                    >
+                      <div
+                        style="
+                          font-weight: 700;
+                          font-size: 0.9rem;
+                          color: var(--text-primary);
+                          margin-bottom: 14px;
+                          display: flex;
+                          align-items: center;
+                          gap: 8px;
+                        "
+                      >
+                        <i class="fas fa-store" style="color: #7c3aed"></i>
+                        Pickup Location
+                        <small
+                          style="
+                            font-weight: 400;
+                            color: var(--text-secondary);
+                            font-size: 0.78rem;
+                          "
+                        >
+                          — shown to buyers as a Google Maps link
+                        </small>
+                      </div>
+
+                      <!-- Full Address -->
+                      <div class="form-group" style="margin-bottom: 12px">
+                        <label class="form-label" style="font-size: 0.82rem"
+                          >Full Address</label
+                        >
+                        <input
+                          type="text"
+                          id="pickupAddress"
+                          class="form-input"
+                          placeholder="e.g. Shop 12, MG Road"
+                          maxlength="300"
+                        />
+                      </div>
+
+                      <!-- Country -->
+                      <div class="form-group" style="margin-bottom: 12px">
+                        <label class="form-label" style="font-size: 0.82rem"
+                          >Country</label
+                        >
+                        <select
+                          id="pickupCountry"
+                          class="form-input"
+                          style="width: 100%"
+                          onchange="onPickupCountryChange()"
+                        >
+                          <option value="">-- Select Country --</option>
+                        </select>
+                      </div>
+
+                      <!-- State + City (2 col) -->
+                      <div
+                        style="
+                          display: grid;
+                          grid-template-columns: 1fr 1fr;
+                          gap: 12px;
+                          margin-bottom: 12px;
+                        "
+                      >
+                        <div class="form-group" style="margin: 0">
+                          <label class="form-label" style="font-size: 0.82rem"
+                            >State *</label
+                          >
+                          <select
+                            id="pickupState"
+                            class="form-input"
+                            onchange="onPickupStateChange()"
+                          >
+                            <option value="">-- Select Country First --</option>
+                          </select>
+                        </div>
+                        <div class="form-group" style="margin: 0">
+                          <label class="form-label" style="font-size: 0.82rem"
+                            >City *</label
+                          >
+                          <select id="pickupCity" class="form-input">
+                            <option value="">-- Select State First --</option>
+                          </select>
+                        </div>
+                      </div>
+
+                      <!-- Pincode -->
+                      <div class="form-group">
+                        <label class="form-label" style="font-size: 0.82rem"
+                          >Pincode *</label
+                        >
+                        <input
+                          type="text"
+                          id="pickupPincode"
+                          class="form-input"
+                          placeholder="6-digit pincode"
+                          inputmode="numeric"
+                          maxlength="6"
+                          style="max-width: 200px"
+                        />
+                      </div>
+
+                      <small
+                        style="
+                          color: var(--text-secondary);
+                          font-size: 0.73rem;
+                          margin-top: 8px;
+                          display: block;
+                        "
+                      >
+                        <i
+                          class="fas fa-info-circle"
+                          style="margin-right: 4px"
+                        ></i>
+                        Buyers will see this location and a Google Maps link on
+                        the product page.
+                      </small>
+                    </div>
+                    <!-- END #productPickupDetails -->
+                  </div>
+                </div>
+
+                <div class="form-group">
+                  <label class="form-label"
+                    ><i class="fas fa-undo"></i> Return Policy</label
+                  >
+                  <textarea
+                    id="returnPolicy"
+                    class="form-textarea short"
+                    placeholder="e.g., 7-day return policy"
+                    maxlength="300"
+                  ></textarea>
+                </div>
+                <div class="form-group">
+                  <label class="checkbox-label">
+                    <input type="checkbox" id="productCOD" />
+                    <span class="checkbox-box"></span>
+                    <span class="checkbox-text"
+                      ><i class="fas fa-money-bill-wave"></i> Cash on
+                      Delivery</span
+                    >
+                  </label>
+                </div>
+              </div>
+              <div class="info-banner product-banner">
+                <i class="fas fa-info-circle"></i>
+                <div>
+                  <strong>Platform Fee: 5% per sale</strong>
+                  <p>
+                    Secure payments via Razorpay. Withdraw earnings to your bank
+                    account from Settings.
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <!-- SHOWCASE -->
+            <div id="showcaseMessage" class="details-section hidden">
+              <div class="empty-state">
+                <i class="fas fa-check-circle"></i>
+                <h3>Almost Done!</h3>
+                <p>
+                  Showcase posts don't require additional details. Click Next to
+                  review your post.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <!-- STEP 5: REVIEW -->
+          <div class="step-content" data-step="5">
+            <div class="step-title-box">
+              <h2><i class="fas fa-check-double"></i> Review & Publish</h2>
+              <p>Review your post before publishing</p>
+            </div>
+            <div id="reviewContent" class="review-content"></div>
+          </div>
+
+          <div class="step-navigation"></div>
+        </form>
+      </div>
+    </main>
+
+    <!-- Fixed Bottom Navigation -->
+    <div class="step-nav-fixed" id="stepNavFixed">
+      <button
+        type="button"
+        class="btn btn-secondary"
+        id="prevBtn"
+        onclick="changeStep(-1)"
+        style="display: none"
+      >
+        <i class="fas fa-arrow-left"></i> Previous
+      </button>
+      <button
+        type="button"
+        class="btn btn-primary"
+        id="nextBtn"
+        onclick="changeStep(1)"
+      >
+        Next <i class="fas fa-arrow-right"></i>
+      </button>
+      <button
+        type="button"
+        class="btn btn-success hidden"
+        id="publishBtn"
+        onclick="submitPost()"
+      >
+        <i class="fas fa-paper-plane"></i> Publish Post
+      </button>
+    </div>
+
+    <!-- Crop Modal -->
+    <div id="cropModal" class="crop-modal">
+      <div class="crop-modal-content">
+        <div class="crop-header">
+          <h3><i class="fas fa-crop"></i> Crop Image</h3>
+          <button type="button" class="close-crop" onclick="closeCropModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="crop-body">
+          <div class="crop-container">
+            <img id="cropImage" src="" alt="Crop" />
+          </div>
+          <div class="crop-controls">
+            <button type="button" class="crop-btn" onclick="rotateCrop(-90)">
+              <i class="fas fa-undo"></i> Rotate Left
+            </button>
+            <button type="button" class="crop-btn" onclick="rotateCrop(90)">
+              <i class="fas fa-redo"></i> Rotate Right
+            </button>
+            <button
+              type="button"
+              class="crop-btn"
+              onclick="flipCrop('horizontal')"
+            >
+              <i class="fas fa-arrows-alt-h"></i> Flip H
+            </button>
+            <button
+              type="button"
+              class="crop-btn"
+              onclick="flipCrop('vertical')"
+            >
+              <i class="fas fa-arrows-alt-v"></i> Flip V
+            </button>
+            <button type="button" class="crop-btn" onclick="resetCrop()">
+              <i class="fas fa-sync"></i> Reset
+            </button>
+          </div>
+        </div>
+        <div class="crop-footer">
+          <button
+            type="button"
+            class="btn btn-secondary"
+            onclick="closeCropModal()"
+          >
+            Cancel
+          </button>
+          <button type="button" class="btn btn-primary" onclick="applyCrop()">
+            <i class="fas fa-check"></i> Apply Crop
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Modal -->
+    <div id="loadingModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="spinner"></div>
+        <p>Publishing your post...</p>
+      </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script src="js/upload.js"></script>
+    <script>
+      function syncNavToCard() {
+        const card = document.querySelector(".upload-wrapper");
+        const nav = document.getElementById("stepNavFixed");
+        if (!card || !nav) return;
+        const rect = card.getBoundingClientRect();
+        nav.style.left = rect.left + "px";
+        nav.style.width = rect.width + "px";
+      }
+      window.addEventListener("load", syncNavToCard);
+      window.addEventListener("resize", syncNavToCard);
+      syncNavToCard();
+      setTimeout(syncNavToCard, 300);
+      setTimeout(syncNavToCard, 800);
+
+      /* Watch variant rows for empty-note toggle */
+      (function watchVariantRows() {
+        const container = document.getElementById("variantRows");
+        const note = document.getElementById("variantEmptyNote");
+        if (!container || !note) return;
+        new MutationObserver(() => {
+          note.style.display =
+            container.children.length === 0 ? "block" : "none";
+        }).observe(container, { childList: true });
+      })();
+    </script>
+    <script>
+      // =====================================================================
+      // upload-location-fields.js  — REPLACE the inline script in upload.html
+      // Provides Country → State → City cascade (State BEFORE City)
+      // =====================================================================
+
+      (function () {
+        let _allCountries = [];
+
+        async function _loadCountries() {
+          try {
+            const res = await fetch("js/data/countries+states+cities.json");
+            _allCountries = await res.json();
+          } catch (e) {
+            console.warn(
+              "upload-location-fields: could not load countries JSON",
+              e
+            );
+          }
+        }
+
+        function _populateServiceStates(countryCode) {
+          _resetEl("serviceProviderCity", "-- Select State First --");
+          if (!countryCode) {
+            _resetEl("serviceProviderState", "-- Select Country First --");
+            return;
+          }
+
+          const country = _allCountries.find((c) => c.iso2 === countryCode);
+          if (!country || !country.states || !country.states.length) {
+            _toText("serviceProviderState", "Enter state / province");
+            return;
+          }
+          _toSelect(
+            "serviceProviderState",
+            "-- Select State --",
+            "serviceStateChange"
+          );
+          const sel = document.getElementById("serviceProviderState");
+          if (!sel) return;
+          [...country.states]
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .forEach((s) => {
+              const o = document.createElement("option");
+              o.value = s.name;
+              o.textContent = s.name;
+              sel.appendChild(o);
+            });
+        }
+
+        function _populateServiceCities(countryCode, stateName) {
+          if (!stateName) {
+            _resetEl("serviceProviderCity", "-- Select State First --");
+            return;
+          }
+          const country = _allCountries.find((c) => c.iso2 === countryCode);
+          if (!country) return;
+          const stateObj = country.states?.find((s) => s.name === stateName);
+          if (!stateObj || !stateObj.cities || !stateObj.cities.length) {
+            _toText("serviceProviderCity", "Enter city");
+            return;
+          }
+          _toSelect("serviceProviderCity", "-- Select City --", null);
+          const sel = document.getElementById("serviceProviderCity");
+          if (!sel) return;
+          [...stateObj.cities]
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .forEach((c) => {
+              const o = document.createElement("option");
+              o.value = c.name;
+              o.textContent = c.name;
+              sel.appendChild(o);
+            });
+        }
+
+        function _toSelect(id, placeholder, cbName) {
+          const el = document.getElementById(id);
+          if (!el) return;
+          let sel;
+          if (el.tagName === "SELECT") {
+            sel = el;
+            sel.innerHTML = `<option value="">${placeholder}</option>`;
+          } else {
+            sel = document.createElement("select");
+            sel.id = id;
+            sel.className = el.className || "form-input";
+            sel.innerHTML = `<option value="">${placeholder}</option>`;
+            el.replaceWith(sel);
+          }
+          sel.onchange = cbName
+            ? () => window._svcLocationCallbacks[cbName]()
+            : null;
+        }
+
+        function _resetEl(id, placeholder) {
+          const el = document.getElementById(id);
+          if (!el) return;
+          if (el.tagName === "SELECT")
+            el.innerHTML = `<option value="">${placeholder}</option>`;
+          else {
+            el.value = "";
+            el.placeholder = placeholder;
+          }
+        }
+
+        function _toText(id, placeholder) {
+          const el = document.getElementById(id);
+          if (!el) return;
+          if (el.tagName === "INPUT") {
+            el.placeholder = placeholder;
+            return;
+          }
+          const inp = document.createElement("input");
+          inp.type = "text";
+          inp.id = id;
+          inp.className = el.className || "form-input";
+          inp.placeholder = placeholder;
+          el.replaceWith(inp);
+        }
+
+        window._svcLocationCallbacks = {
+          serviceCountryChange() {
+            _populateServiceStates(
+              document.getElementById("serviceProviderCountry")?.value || ""
+            );
+          },
+          serviceStateChange() {
+            _populateServiceCities(
+              document.getElementById("serviceProviderCountry")?.value || "",
+              document.getElementById("serviceProviderState")?.value || ""
+            );
+          },
+        };
+
+        function _inject() {
+          const block = document.getElementById("serviceLocationBlock");
+          if (!block || document.getElementById("serviceProviderCountry"))
+            return;
+
+          const grid = block.querySelector(
+            "div[style*='grid-template-columns']"
+          );
+          if (!grid) return;
+
+          // ── Insert Country row BEFORE the grid ──────────────────────────────
+          const cRow = document.createElement("div");
+          cRow.style.cssText = "margin-bottom:10px";
+          cRow.innerHTML = `
+      <label class="form-label" style="font-size:.8rem;margin-bottom:4px;display:block">Country</label>
+      <select id="serviceProviderCountry" class="form-input" style="width:100%">
+        <option value="">-- Select Country --</option>
+      </select>`;
+          block.insertBefore(cRow, grid);
+
+          // ── Re-order grid so State comes BEFORE City ─────────────────────────
+          // Current HTML order in grid: [City, State, Pincode, Radius]
+          // Desired: [State, City, Pincode, Radius]
+          const stateEl = document.getElementById("serviceProviderState");
+          const cityEl = document.getElementById("serviceProviderCity");
+
+          if (stateEl && cityEl) {
+            // Get their parent wrappers inside the grid
+            const getGridChild = (el) => {
+              let node = el;
+              while (node && node.parentElement !== grid)
+                node = node.parentElement;
+              return node;
+            };
+            const stateWrapper = getGridChild(stateEl);
+            const cityWrapper = getGridChild(cityEl);
+
+            if (stateWrapper && cityWrapper) {
+              // Move stateWrapper to position 0, cityWrapper to position 1
+              grid.insertBefore(stateWrapper, grid.firstChild);
+              grid.insertBefore(cityWrapper, stateWrapper.nextSibling);
+            }
+          }
+
+          // ── Convert to dropdowns ─────────────────────────────────────────────
+          _toSelect(
+            "serviceProviderState",
+            "-- Select Country First --",
+            "serviceStateChange"
+          );
+          _toSelect("serviceProviderCity", "-- Select State First --", null);
+
+          // ── Populate countries ───────────────────────────────────────────────
+          const countrySelect = document.getElementById(
+            "serviceProviderCountry"
+          );
+          countrySelect.onchange = () =>
+            window._svcLocationCallbacks.serviceCountryChange();
+          _allCountries.forEach((c) => {
+            const o = document.createElement("option");
+            o.value = c.iso2 || c.name;
+            o.textContent = c.name;
+            countrySelect.appendChild(o);
+          });
+          countrySelect.value = "IN";
+          _populateServiceStates("IN");
+        }
+
+        function _watch() {
+          const block = document.getElementById("serviceLocationBlock");
+          if (!block) return;
+          new MutationObserver(() => {
+            if (block.style.display !== "none") _inject();
+          }).observe(block, { attributes: true, attributeFilter: ["style"] });
+          if (block.style.display !== "none") _inject();
+        }
+
+        document.addEventListener("DOMContentLoaded", async () => {
+          await _loadCountries();
+          _watch();
+        });
+      })();
+    </script>
+    <script>
+      // ── Fulfillment tab controller ────────────────────────────────────────────
+
+      let _fulfillmentMode = "shipping"; // 'shipping' | 'pickup' | 'both'
+      let _pickupCountriesData = [];
+      let _pickupDropdownsReady = false;
+
+      function setFulfillmentTab(mode) {
+        _fulfillmentMode = mode;
+
+        const shippingDetails = document.getElementById("shippingDetails");
+        const pickupDetails = document.getElementById("productPickupDetails");
+        const shippingCb = document.getElementById("shippingAvailable");
+
+        // Update tab button styles
+        ["shipping", "pickup", "both"].forEach((key) => {
+          const btn = document.getElementById(
+            "tab" + key.charAt(0).toUpperCase() + key.slice(1)
+          );
+          if (!btn) return;
+          const isActive = key === mode;
+          btn.style.background = isActive
+            ? "var(--primary-purple,#e60aea)"
+            : "var(--bg-secondary,#f8f9fa)";
+          btn.style.color = isActive ? "#fff" : "var(--text-secondary,#6c757d)";
+        });
+
+        // Show/hide panels
+        if (shippingDetails)
+          shippingDetails.style.display =
+            mode === "shipping" || mode === "both" ? "block" : "none";
+        if (pickupDetails)
+          pickupDetails.style.display =
+            mode === "pickup" || mode === "both" ? "block" : "none";
+
+        // Keep hidden checkbox in sync
+        if (shippingCb)
+          shippingCb.checked = mode === "shipping" || mode === "both";
+
+        // When pickup panel shown, ensure dropdowns are populated + autofill
+        if (mode === "pickup" || mode === "both") {
+          if (_pickupDropdownsReady) {
+            _tryAutofillPickup();
+          } else {
+            _initPickupDropdowns().then(() => _tryAutofillPickup());
+          }
+        }
+      }
+      window.setFulfillmentTab = setFulfillmentTab;
+
+      // ── Load countries data ───────────────────────────────────────────────────
+
+      async function _loadPickupCountriesData() {
+        if (_pickupDropdownsReady) return;
+
+        if (
+          typeof allCountriesData !== "undefined" &&
+          allCountriesData.length > 0
+        ) {
+          _pickupCountriesData = allCountriesData;
+        } else if (window._allCountries && window._allCountries.length > 0) {
+          _pickupCountriesData = window._allCountries;
+        } else {
+          try {
+            const res = await fetch("js/data/countries+states+cities.json");
+            _pickupCountriesData = await res.json();
+          } catch (e) {
+            console.warn("Could not load countries for pickup dropdowns:", e);
+            return;
+          }
+        }
+
+        const countrySelect = document.getElementById("pickupCountry");
+        if (!countrySelect) return;
+        if (countrySelect.options.length > 1) {
+          _pickupDropdownsReady = true;
+          return;
+        }
+
+        countrySelect.innerHTML =
+          '<option value="">-- Select Country --</option>';
+        _pickupCountriesData.forEach((c) => {
+          const o = document.createElement("option");
+          o.value = c.iso2 || c.name;
+          o.textContent = c.name;
+          o.setAttribute("data-name", c.name);
+          countrySelect.appendChild(o);
+        });
+
+        countrySelect.value = "IN";
+        _pickupDropdownsReady = true;
+        onPickupCountryChange();
+      }
+
+      async function _initPickupDropdowns() {
+        await _loadPickupCountriesData();
+      }
+
+      // ── Country/State/City cascade ────────────────────────────────────────────
+
+      function onPickupCountryChange() {
+        const code = document.getElementById("pickupCountry")?.value;
+        const stateEl = document.getElementById("pickupState");
+        const cityEl = document.getElementById("pickupCity");
+
+        if (cityEl)
+          cityEl.innerHTML =
+            '<option value="">-- Select State First --</option>';
+        if (!stateEl) return;
+
+        if (!code) {
+          stateEl.innerHTML =
+            '<option value="">-- Select Country First --</option>';
+          return;
+        }
+
+        const country = _pickupCountriesData.find((c) => c.iso2 === code);
+        if (!country?.states?.length) {
+          _toPickupTextInput("pickupState", "Enter state");
+          return;
+        }
+
+        if (stateEl.tagName === "INPUT") {
+          const sel = document.createElement("select");
+          sel.id = "pickupState";
+          sel.className = stateEl.className || "form-input";
+          sel.onchange = onPickupStateChange;
+          stateEl.replaceWith(sel);
+        }
+
+        const sel = document.getElementById("pickupState");
+        sel.innerHTML = '<option value="">-- Select State --</option>';
+        [...country.states]
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .forEach((s) => {
+            const o = document.createElement("option");
+            o.value = s.name;
+            o.textContent = s.name;
+            sel.appendChild(o);
+          });
+        sel.onchange = onPickupStateChange;
+      }
+      window.onPickupCountryChange = onPickupCountryChange;
+
+      function onPickupStateChange() {
+        const code = document.getElementById("pickupCountry")?.value;
+        const stateEl = document.getElementById("pickupState");
+        const cityEl = document.getElementById("pickupCity");
+        const stateName = stateEl?.value || "";
+
+        if (!cityEl) return;
+        if (!stateName) {
+          if (cityEl.tagName === "SELECT")
+            cityEl.innerHTML =
+              '<option value="">-- Select State First --</option>';
+          return;
+        }
+
+        const country = _pickupCountriesData.find((c) => c.iso2 === code);
+        const stateObj = country?.states?.find((s) => s.name === stateName);
+
+        if (!stateObj?.cities?.length) {
+          _toPickupTextInput("pickupCity", "Enter city");
+          return;
+        }
+
+        if (cityEl.tagName === "INPUT") {
+          const sel = document.createElement("select");
+          sel.id = "pickupCity";
+          sel.className = cityEl.className || "form-input";
+          cityEl.replaceWith(sel);
+        }
+
+        const sel = document.getElementById("pickupCity");
+        sel.innerHTML = '<option value="">-- Select City --</option>';
+        [...stateObj.cities]
+          .sort((a, b) => a.name.localeCompare(b.name))
+          .forEach((c) => {
+            const o = document.createElement("option");
+            o.value = c.name;
+            o.textContent = c.name;
+            sel.appendChild(o);
+          });
+      }
+      window.onPickupStateChange = onPickupStateChange;
+
+      function _toPickupTextInput(id, placeholder) {
+        const el = document.getElementById(id);
+        if (!el) return;
+        if (el.tagName === "INPUT") {
+          el.placeholder = placeholder;
+          return;
+        }
+        const inp = document.createElement("input");
+        inp.type = "text";
+        inp.id = id;
+        inp.className = el.className || "form-input";
+        inp.placeholder = placeholder;
+        el.replaceWith(inp);
+      }
+
+      // ── Set state + city in pickup dropdowns ──────────────────────────────────
+
+      async function _setPickupLocation(stateName, cityName) {
+        if (!stateName) return;
+        if (!_pickupDropdownsReady) await _loadPickupCountriesData();
+        await new Promise((r) => setTimeout(r, 100));
+
+        const stateEl = document.getElementById("pickupState");
+        if (!stateEl) return;
+
+        if (stateEl.tagName === "SELECT") {
+          const opt = Array.from(stateEl.options).find(
+            (o) =>
+              o.value.toLowerCase() === stateName.toLowerCase() ||
+              o.text.toLowerCase() === stateName.toLowerCase()
+          );
+          if (opt) {
+            stateEl.value = opt.value;
+            onPickupStateChange();
+            await new Promise((r) => setTimeout(r, 100));
+          }
+        } else {
+          stateEl.value = stateName;
+        }
+
+        if (!cityName) return;
+        await new Promise((r) => setTimeout(r, 50));
+
+        const cityEl = document.getElementById("pickupCity");
+        if (!cityEl) return;
+
+        if (cityEl.tagName === "SELECT") {
+          const opt = Array.from(cityEl.options).find(
+            (o) =>
+              o.value.toLowerCase() === cityName.toLowerCase() ||
+              o.text.toLowerCase() === cityName.toLowerCase() ||
+              o.text.toLowerCase().includes(cityName.toLowerCase())
+          );
+          if (opt) cityEl.value = opt.value;
+          else {
+            _toPickupTextInput("pickupCity", "Enter city");
+            const inp = document.getElementById("pickupCity");
+            if (inp) inp.value = cityName;
+          }
+        } else {
+          cityEl.value = cityName;
+        }
+      }
+
+      // ── Autofill pickup address from profile ──────────────────────────────────
+
+      let _pickupAutofilled = false;
+
+      async function _tryAutofillPickup() {
+        if (_pickupAutofilled) return;
+
+        const alreadyFilled =
+          document.getElementById("pickupAddress")?.value.trim() ||
+          document.getElementById("pickupPincode")?.value.trim();
+        if (alreadyFilled) return;
+
+        const token =
+          localStorage.getItem("authToken") ||
+          sessionStorage.getItem("authToken");
+        if (!token) return;
+
+        const API =
+          window.API_BASE_URL ||
+          (location.hostname === "localhost" ||
+          location.hostname === "127.0.0.1"
+            ? "http://localhost:3000/api"
+            : `http://${location.hostname}:3000/api`);
+
+        // Try previous pickup orders first
+        try {
+          const res = await fetch(`${API}/deals/seller/products`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          if (data.success && data.orders?.length > 0) {
+            const pickupOrder = data.orders.find(
+              (o) =>
+                o.is_pickup &&
+                (o.pickup_address || o.pickup_city || o.pickup_pincode)
+            );
+            if (pickupOrder) {
+              _sfPickup("pickupAddress", pickupOrder.pickup_address);
+              _sfPickup("pickupPincode", pickupOrder.pickup_pincode);
+              await _setPickupLocation(
+                pickupOrder.pickup_state,
+                pickupOrder.pickup_city
+              );
+              _pickupAutofilled = true;
+              _showPickupAutofillBadge("last pickup order");
+              return;
+            }
+          }
+        } catch (e) {
+          console.warn("Could not fetch seller orders for pickup autofill:", e);
+        }
+
+        // Fallback: autofill from profile
+        try {
+          const res = await fetch(`${API}/profile/me`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          const data = await res.json();
+          if (!data.success) return;
+          const p = data.user || data.profile || data;
+          _sfPickup("pickupAddress", p.address || p.street_address || "");
+          _sfPickup("pickupPincode", p.pincode || p.postal_code || "");
+          await _setPickupLocation(p.state || "", p.city || "");
+          if (p.city || p.state || p.pincode) {
+            _pickupAutofilled = true;
+            _showPickupAutofillBadge("your profile");
+          }
+        } catch (e) {
+          console.warn("Could not autofill pickup from profile:", e);
+        }
+      }
+
+      function _sfPickup(id, val) {
+        if (!val) return;
+        const el = document.getElementById(id);
+        if (el && !el.value) el.value = val;
+      }
+
+      function _showPickupAutofillBadge(src) {
+        const heading = document.querySelector(
+          "#productPickupDetails > div:first-child"
+        );
+        if (!heading || document.getElementById("_pickupAutofillBadge")) return;
+        const badge = document.createElement("span");
+        badge.id = "_pickupAutofillBadge";
+        badge.innerHTML = `<i class="fas fa-magic"></i> Pre-filled from ${src}`;
+        badge.style.cssText =
+          "display:inline-flex;align-items:center;gap:5px;font-size:.72rem;font-weight:500;" +
+          "color:#e60aea;background:rgba(230,10,234,.08);border:1px solid rgba(230,10,234,.2);" +
+          "padding:3px 10px;border-radius:20px;margin-left:10px;white-space:nowrap;";
+        heading.appendChild(badge);
+        setTimeout(() => {
+          badge.style.transition = "opacity .6s";
+          badge.style.opacity = "0";
+          setTimeout(() => badge.remove(), 600);
+        }, 5000);
+      }
+
+      // ── Patch validateProductFields — FIX 5 ──────────────────────────────────
+      // Overrides the base function in upload.js with fulfillment-mode-aware
+      // validation that also checks delivery charge fields.
+
+      window.validateProductFields = function () {
+        const mode = _fulfillmentMode; // 'shipping' | 'pickup' | 'both'
+
+        // ── Core fields (always required) ────────────────────────────────────
+        const title = document.getElementById("productTitle")?.value.trim();
+        const price = document.getElementById("productPrice")?.value;
+        const stock = document.getElementById("productStock")?.value;
+        const shortDesc = document
+          .getElementById("productShortDesc")
+          ?.value.trim();
+
+        if (!title) {
+          showModal(
+            "Product Title Required",
+            "Please enter a product title.",
+            "error"
+          );
+          return false;
+        }
+        if (!price || parseFloat(price) <= 0) {
+          showModal(
+            "Valid Price Required",
+            "Please enter a valid product price.",
+            "error"
+          );
+          return false;
+        }
+        if (stock === "" || parseInt(stock) < 0) {
+          showModal(
+            "Valid Stock Required",
+            "Please enter a valid stock quantity.",
+            "error"
+          );
+          return false;
+        }
+        if (!shortDesc) {
+          showModal(
+            "Description Required",
+            "Please enter a short description.",
+            "error"
+          );
+          return false;
+        }
+
+        // ── Shipping fields ──────────────────────────────────────────────────
+        if (mode === "shipping" || mode === "both") {
+          const pin = document.getElementById("sellerPincode")?.value.trim();
+          if (!pin || pin.length !== 6 || !/^\d{6}$/.test(pin)) {
+            showModal(
+              "Seller Pincode Required",
+              "Please enter your valid 6-digit seller pincode — used to calculate delivery distance and charges.",
+              "error"
+            );
+            return false;
+          }
+
+          const chargeType =
+            document.querySelector('input[name="deliveryChargeType"]:checked')
+              ?.value || "flat";
+
+          if (chargeType === "flat") {
+            const flatCharge =
+              document.getElementById("baseDeliveryCharge")?.value;
+            if (
+              flatCharge === "" ||
+              flatCharge === null ||
+              flatCharge === undefined
+            ) {
+              showModal(
+                "Flat Delivery Charge Required",
+                "Please enter the flat delivery charge (₹). Enter 0 for free shipping.",
+                "error"
+              );
+              return false;
+            }
+            if (parseFloat(flatCharge) < 0) {
+              showModal(
+                "Invalid Flat Charge",
+                "Delivery charge cannot be negative.",
+                "error"
+              );
+              return false;
+            }
+          }
+
+          if (chargeType === "per_km") {
+            const baseKm = document.getElementById(
+              "baseDeliveryChargeKm"
+            )?.value;
+            if (baseKm === "" || baseKm === null || baseKm === undefined) {
+              showModal(
+                "Base Charge Required",
+                "Please enter the Base Charge (₹) for per-km delivery. Enter 0 if there is no base charge.",
+                "error"
+              );
+              return false;
+            }
+            if (parseFloat(baseKm) < 0) {
+              showModal(
+                "Invalid Base Charge",
+                "Base delivery charge cannot be negative.",
+                "error"
+              );
+              return false;
+            }
+
+            const perKm = document.getElementById("perKmRate")?.value;
+            if (perKm === "" || perKm === null || perKm === undefined) {
+              showModal(
+                "Per KM Rate Required",
+                "Please enter the Per KM Rate (₹/km). Enter 0 if you only charge a flat base.",
+                "error"
+              );
+              return false;
+            }
+            if (parseFloat(perKm) < 0) {
+              showModal(
+                "Invalid Per KM Rate",
+                "Per KM rate cannot be negative.",
+                "error"
+              );
+              return false;
+            }
+          }
+          // "free" charge type — no extra fields required
+        }
+
+        // ── Pickup fields ────────────────────────────────────────────────────
+        if (mode === "pickup" || mode === "both") {
+          const city = document.getElementById("pickupCity")?.value.trim();
+          const pincode = document
+            .getElementById("pickupPincode")
+            ?.value.trim();
+          if (!city && !pincode) {
+            showModal(
+              "Pickup Location Required",
+              "Please enter at least a pickup city or pincode so buyers know where to collect their order.",
+              "error"
+            );
+            return false;
+          }
+        }
+
+        return true;
+      };
+
+      // ── Patch gatherProductData ───────────────────────────────────────────────
+
+      const _origGatherProduct = window.gatherProductData;
+      window.gatherProductData = function (formData) {
+        const mode = _fulfillmentMode;
+        const shippingCb = document.getElementById("shippingAvailable");
+        if (shippingCb)
+          shippingCb.checked = mode === "shipping" || mode === "both";
+        _origGatherProduct(formData);
+        formData.set(
+          "shipping_available",
+          mode === "shipping" || mode === "both" ? "true" : "false"
+        );
+
+        // For 'both' mode, also collect pickup fields
+        if (mode === "both") {
+          const pickupAddress = document
+            .getElementById("pickupAddress")
+            ?.value.trim();
+          const pickupCity = document
+            .getElementById("pickupCity")
+            ?.value.trim();
+          const pickupState = document
+            .getElementById("pickupState")
+            ?.value.trim();
+          const pickupPincode = document
+            .getElementById("pickupPincode")
+            ?.value.trim();
+          if (pickupAddress && !formData.has("pickup_address"))
+            formData.append("pickup_address", pickupAddress);
+          if (pickupCity && !formData.has("pickup_city"))
+            formData.append("pickup_city", pickupCity);
+          if (pickupState && !formData.has("pickup_state"))
+            formData.append("pickup_state", pickupState);
+          if (pickupPincode && !formData.has("pickup_pincode"))
+            formData.append("pickup_pincode", pickupPincode);
+        }
+      };
+
+      // ── Init on page load ─────────────────────────────────────────────────────
+
+      document.addEventListener("DOMContentLoaded", async () => {
+        setFulfillmentTab("shipping");
+        await _loadPickupCountriesData();
+      });
+    </script>
+  </body>
+</html>

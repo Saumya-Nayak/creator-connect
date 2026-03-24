@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <title>Login - Creator Connect</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/login.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">
+        <div class="logo">
+          <img
+            src="images/logo2.png"
+            width="90"
+            height="90"
+            style="margin-top: -20px"
+          />
+        </div>
+        <!--<i class="fas fa-user-circle"></i>-->
+      </div>
+      <h2 class="head" style="font-size: 40px; color: #e336cc">
+        Creator Connect
+      </h2>
+      <p class="subtitle">Login to continue your creative journey</p>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email"
+            >Email Address or Username <span class="required">*</span></label
+          >
+          <div class="input-icon">
+            <i class="fas fa-envelope"></i>
+            <input
+              type="text"
+              id="email"
+              name="email"
+              placeholder="abc@gmail.com or abc_art"
+              required
+              autocomplete="email"
+            />
+          </div>
+          <span class="error"
+            >Please enter a valid email or username address</span
+          >
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password <span class="required">*</span></label>
+          <div class="input-icon">
+            <i class="fas fa-lock"></i>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter your password"
+              autocomplete="current-password"
+              required
+            />
+            <i
+              class="fas fa-eye password-toggle"
+              onclick="togglePassword()"
+            ></i>
+          </div>
+          <span class="error">Password is required</span>
+        </div>
+
+        <div class="form-options">
+          <div class="remember-me">
+            <input type="checkbox" id="remember" name="remember" />
+            <label for="remember">Remember me</label>
+          </div>
+          <a href="#" class="forgot-password">Forgot Password?</a>
+        </div>
+
+        <button type="submit" class="btn-primary">Login</button>
+      </form>
+
+      <div class="divider">
+        <span>or continue with</span>
+      </div>
+
+      <div class="social-login">
+        <!-- Hidden div for Google button - managed by login.js -->
+        <div id="googleSignInDiv" style="display: none"></div>
+
+        <!-- Custom Google button that triggers the login -->
+        <button
+          type="button"
+          class="social-btn"
+          onclick="socialLogin('google')"
+        >
+          <i class="fab fa-google fa-8x"></i> Continue with Google
+        </button>
+      </div>
+
+      <div class="signup-link">
+        Don't have an account?
+        <a href="#" onclick="switchToSignup()">Sign Up</a>
+      </div>
+    </div>
+
+    <!-- Your custom login script - handles all Google logic -->
+    <script src="js/login.js"></script>
+  </body>
+</html>

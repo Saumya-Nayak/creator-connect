@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Service Bookings — CreatorConnect Admin</title>
+    <link rel="icon" type="image/png" href="../images/logo2.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/admin/admin-bookings.css" />
+  </head>
+  <body>
+    <!-- Auth Gate -->
+    <div id="authGate">
+      <div style="text-align: center">
+        <div class="auth-spin-ring"></div>
+        <div class="auth-spin-label">Verifying session…</div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <iframe
+      id="sidebarFrame"
+      src="admin-sidebar.html"
+      title="Admin Sidebar"
+      scrolling="no"
+      allowtransparency="true"
+      onload="syncSidebarState()"
+    ></iframe>
+
+    <!-- Logout Modal -->
+    <div class="logout-modal-backdrop" id="logoutModal">
+      <div class="logout-modal-box">
+        <div class="logout-modal-icon">
+          <i class="fas fa-right-from-bracket"></i>
+        </div>
+        <div class="logout-modal-title">Leaving so soon?</div>
+        <div class="logout-modal-desc">
+          You'll be signed out of the admin panel.<br />Any unsaved changes may
+          be lost.
+        </div>
+        <div class="logout-modal-actions">
+          <button class="logout-btn-cancel" id="logoutCancelBtn">
+            <i class="fas fa-xmark"></i> Stay
+          </button>
+          <button class="logout-btn-confirm" id="logoutConfirmBtn">
+            <i class="fas fa-right-from-bracket"></i> Yes, Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- VIEW DETAIL MODAL -->
+    <div class="modal-backdrop" id="detailModal">
+      <div
+        class="modal-box"
+        style="width: 660px; max-height: 90vh; overflow-y: auto"
+      >
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon pink">
+              <i class="fas fa-calendar-check"></i>
+            </div>
+            <div class="modal-title" id="detailModalTitle">Booking Details</div>
+          </div>
+          <button class="modal-close" onclick="closeModal('detailModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div id="detailModalBody"></div>
+        <div class="modal-actions" style="margin-top: 16px">
+          <button class="modal-btn-cancel" onclick="closeModal('detailModal')">
+            <i class="fas fa-xmark"></i> Close
+          </button>
+          <button
+            class="modal-btn-save blue-btn"
+            id="detailUpdateStatusBtn"
+            onclick="openStatusFromDetail()"
+          >
+            <i class="fas fa-pen"></i> Update Status
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPDATE STATUS MODAL -->
+    <div class="modal-backdrop" id="statusModal">
+      <div class="modal-box blue-top">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon blue">
+              <i class="fas fa-arrow-right-arrow-left"></i>
+            </div>
+            <div class="modal-title">Update Booking Status</div>
+          </div>
+          <button class="modal-close" onclick="closeModal('statusModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <input type="hidden" id="sm-booking-id" />
+        <div class="modal-form-grid">
+          <div class="modal-form-group full">
+            <label class="modal-form-label">New Status *</label>
+            <select class="modal-form-select" id="sm-status">
+              <option value="pending">⏳ Pending</option>
+              <option value="accepted">✅ Accepted</option>
+              <option value="in_progress">⚙️ In Progress</option>
+              <option value="revision_requested">🔄 Revision Requested</option>
+              <option value="completed">🎉 Completed</option>
+              <option value="cancelled">❌ Cancelled</option>
+              <option value="rejected">🚫 Rejected</option>
+            </select>
+          </div>
+          <div
+            class="modal-form-group full"
+            id="sm-cancel-wrap"
+            style="display: none"
+          >
+            <label class="modal-form-label">Cancellation Reason</label>
+            <input
+              class="modal-form-input"
+              id="sm-cancel-reason"
+              type="text"
+              placeholder="Reason for cancellation…"
+            />
+          </div>
+          <div class="modal-form-group full">
+            <label class="modal-form-label">Message (optional)</label>
+            <textarea
+              class="modal-form-textarea"
+              id="sm-message"
+              placeholder="Additional message about this status update…"
+            ></textarea>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('statusModal')">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-save blue-btn"
+            id="smSaveBtn"
+            onclick="submitStatusModal()"
+          >
+            <i class="fas fa-check"></i> Update Status
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MESSAGES MODAL -->
+    <div class="modal-backdrop" id="messagesModal">
+      <div class="modal-box" style="width: 580px">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon pink">
+              <i class="fas fa-comments"></i>
+            </div>
+            <div class="modal-title" id="msgModalTitle">Booking Messages</div>
+          </div>
+          <button class="modal-close" onclick="closeModal('messagesModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="messages-area" id="messagesArea">
+          <div style="text-align: center; padding: 30px">
+            <div
+              class="auth-spin-ring"
+              style="margin: 0 auto; width: 32px; height: 32px"
+            ></div>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button
+            class="modal-btn-cancel"
+            onclick="closeModal('messagesModal')"
+          >
+            <i class="fas fa-xmark"></i> Close
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <main class="main" id="mainContent">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Service <span>Bookings</span></div>
+          <div class="page-sub">
+            Manage all service bookings — update status, view messages &amp;
+            track progress.
+          </div>
+        </div>
+      </div>
+
+      <!-- Stat Cards (4 cards, contact requests removed) -->
+      <div class="stats-row">
+        <div class="scard c-pink">
+          <div class="scard-icon"><i class="fas fa-calendar-check"></i></div>
+          <div class="scard-val" id="sv-total">—</div>
+          <div class="scard-label">Total Bookings</div>
+          <div class="scard-badge pink">
+            <i class="fas fa-layer-group"></i> All
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-calendar-check" style="color: var(--primary)"></i>
+          </div>
+        </div>
+        <div class="scard c-green">
+          <div class="scard-icon"><i class="fas fa-circle-check"></i></div>
+          <div class="scard-val" id="sv-completed">—</div>
+          <div class="scard-label">Completed</div>
+          <div class="scard-badge green"><i class="fas fa-check"></i> Done</div>
+          <div class="scard-bg">
+            <i class="fas fa-circle-check" style="color: var(--green)"></i>
+          </div>
+        </div>
+        <div class="scard c-orange">
+          <div class="scard-icon"><i class="fas fa-clock"></i></div>
+          <div class="scard-val" id="sv-active">—</div>
+          <div class="scard-label">Active / Pending</div>
+          <div class="scard-badge orange">
+            <i class="fas fa-hourglass-half"></i> Active
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-clock" style="color: var(--orange)"></i>
+          </div>
+        </div>
+        <div class="scard c-purple">
+          <div class="scard-icon"><i class="fas fa-indian-rupee-sign"></i></div>
+          <div class="scard-val" id="sv-revenue">—</div>
+          <div class="scard-label">Total Revenue</div>
+          <div class="scard-badge purple">
+            <i class="fas fa-chart-line"></i> Revenue
+          </div>
+          <div class="scard-bg">
+            <i
+              class="fas fa-indian-rupee-sign"
+              style="color: var(--purple)"
+            ></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <div class="chart-card-title">
+            <i class="fas fa-chart-line"></i> Bookings per Week
+          </div>
+          <div class="chart-sub">
+            Weekly booking volume over the last 8 weeks
+          </div>
+          <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-title">
+            <i class="fas fa-chart-pie"></i> Bookings by Status
+          </div>
+          <div class="chart-sub">Distribution across all statuses</div>
+          <div class="chart-wrap" style="height: 160px">
+            <canvas id="donutChart"></canvas>
+          </div>
+          <div class="legend-row" id="donutLegend"></div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input
+            class="search-input"
+            id="bookingSearch"
+            type="text"
+            placeholder="Search by ID, client, provider, service…"
+            autocomplete="off"
+          />
+        </div>
+        <select class="filter-select" id="bookingStatusFilter">
+          <option value="">All Status</option>
+          <option value="pending">⏳ Pending</option>
+          <option value="accepted">✅ Accepted</option>
+          <option value="in_progress">⚙️ In Progress</option>
+          <option value="revision_requested">🔄 Revision Requested</option>
+          <option value="completed">🎉 Completed</option>
+          <option value="cancelled">❌ Cancelled</option>
+          <option value="rejected">🚫 Rejected</option>
+        </select>
+        <select class="filter-select" id="bookingPayFilter">
+          <option value="">All Payments</option>
+          <option value="pending">⏳ Pending</option>
+          <option value="partial">💛 Partial</option>
+          <option value="completed">✅ Completed</option>
+          <option value="refunded">🔄 Refunded</option>
+        </select>
+        <button
+          class="btn-reset"
+          id="bookingResetBtn"
+          onclick="resetBookingFilters()"
+        >
+          <i class="fas fa-rotate-left"></i> Reset
+        </button>
+        <!-- View Toggle -->
+        <div class="view-toggle">
+          <button
+            class="vt-btn"
+            id="listViewBtn"
+            title="Table view"
+            onclick="setBookingView('list')"
+          >
+            <i class="fas fa-list"></i>
+          </button>
+          <button
+            class="vt-btn active"
+            id="gridViewBtn"
+            title="Card view"
+            onclick="setBookingView('grid')"
+          >
+            <i class="fas fa-grip"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card Grid View -->
+      <div
+        id="bookingsGridView"
+        class="bookings-grid"
+        style="display: none"
+      ></div>
+
+      <!-- Table View -->
+      <div id="bookingsListView">
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th onclick="sortBookings('booking_id')">
+                    #ID
+                    <i
+                      class="fas fa-sort"
+                      style="font-size: 0.55rem; opacity: 0.5"
+                    ></i>
+                  </th>
+                  <th class="no-sort">Client</th>
+                  <th class="no-sort">Provider</th>
+                  <th onclick="sortBookings('service_title')">
+                    Service
+                    <i
+                      class="fas fa-sort"
+                      style="font-size: 0.55rem; opacity: 0.5"
+                    ></i>
+                  </th>
+                  <th onclick="sortBookings('total_amount')">
+                    Amount
+                    <i
+                      class="fas fa-sort"
+                      style="font-size: 0.55rem; opacity: 0.5"
+                    ></i>
+                  </th>
+                  <th onclick="sortBookings('status')">
+                    Status
+                    <i
+                      class="fas fa-sort"
+                      style="font-size: 0.55rem; opacity: 0.5"
+                    ></i>
+                  </th>
+                  <th class="no-sort">Payment</th>
+                  <th onclick="sortBookings('booking_date')">
+                    Date
+                    <i
+                      class="fas fa-sort"
+                      style="font-size: 0.55rem; opacity: 0.5"
+                    ></i>
+                  </th>
+                  <th class="no-sort">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="bookingsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="pagination" id="bookingsPagination"></div>
+    </main>
+
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <script src="../js/admin/admin-bookings.js"></script>
+  </body>
+</html>

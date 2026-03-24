@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <title>Settings - Creator Connect</title>
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/sidebar.css" />
+    <link rel="stylesheet" href="css/settings.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"
+    />
+  </head>
+  <body>
+    <!-- Preloader -->
+    <div id="preloader">
+      <div class="preloader-inner">
+        <img src="images/logo2.png" alt="Logo" class="preloader-logo" />
+        <div class="preloader-bar"><div class="preloader-fill"></div></div>
+      </div>
+    </div>
+
+    <div id="header"></div>
+    <div id="sidebar"></div>
+
+    <main class="settings-wrapper">
+      <!-- Page Header -->
+      <div class="settings-page-header">
+        <div class="settings-page-title">
+          <div class="title-icon-wrap">
+            <i class="fas fa-cog fa-spin-slow"></i>
+          </div>
+          <div>
+            <h1>Account Settings</h1>
+            <p>Manage your profile, security and preferences</p>
+          </div>
+        </div>
+        <div class="save-bar" id="saveBar">
+          <span><i class="fas fa-circle-dot"></i> Unsaved changes</span>
+          <button onclick="saveCurrentTab()">
+            <i class="fas fa-floppy-disk"></i> Save
+          </button>
+        </div>
+      </div>
+
+      <!-- Tab Nav -->
+      <nav class="settings-nav" id="settingsNav">
+        <button class="snav-btn active" data-tab="profile">
+          <i class="fas fa-user-circle"></i><span>Profile</span>
+        </button>
+        <button class="snav-btn" data-tab="security">
+          <i class="fas fa-shield-halved"></i><span>Security</span>
+        </button>
+        <button class="snav-btn" data-tab="seller">
+          <i class="fas fa-store"></i><span>Seller</span>
+        </button>
+        <button class="snav-btn" data-tab="buyer">
+          <i class="fas fa-bag-shopping"></i><span>Buyer</span>
+        </button>
+        <button class="snav-btn" data-tab="account">
+          <i class="fas fa-user-gear"></i><span>Account &amp; Privacy</span>
+        </button>
+      </nav>
+
+      <!-- ════════════ PROFILE TAB ════════════ -->
+      <section class="stab active" id="tab-profile">
+        <div class="settings-grid">
+          <!-- Avatar Card -->
+          <div class="scard full avatar-card">
+            <div class="avatar-area">
+              <div class="avatar-ring" id="avatarRing">
+                <img
+                  id="avatarPreview"
+                  src="images/default-avatar.png"
+                  alt="Profile"
+                />
+                <label class="cam-btn" for="avatarInput" title="Change photo"
+                  ><i class="fas fa-camera"></i
+                ></label>
+                <input type="file" id="avatarInput" accept="image/*" hidden />
+              </div>
+              <div class="avatar-meta">
+                <h3 id="avatarDisplayName">Loading…</h3>
+                <p id="avatarDisplayUser">@username</p>
+                <div class="avatar-btns">
+                  <button class="btn-outline-xs" onclick="removeAvatar()">
+                    <i class="fas fa-trash"></i> Remove
+                  </button>
+                  <a
+                    href="profile.html"
+                    class="btn-outline-xs"
+                    id="previewProfileLink"
+                    ><i class="fas fa-eye"></i> Preview Profile</a
+                  >
+                </div>
+              </div>
+              <div class="completion-widget">
+                <div class="completion-ring">
+                  <svg viewBox="0 0 36 36">
+                    <path
+                      class="ring-bg"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                    <path
+                      class="ring-fill"
+                      id="completionArc"
+                      stroke-dasharray="0,100"
+                      d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    />
+                  </svg>
+                  <span id="completionPct">0%</span>
+                </div>
+                <div>
+                  <strong>Profile Complete</strong>
+                  <p id="completionHint">Fill in all fields</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Basic Info -->
+          <div class="scard">
+            <div class="scard-hd">
+              <i class="fas fa-id-card"></i>
+              <h3>Basic Information</h3>
+            </div>
+            <div class="fg2">
+              <div class="fg">
+                <label>Full Name</label>
+                <input
+                  type="text"
+                  id="fullName"
+                  placeholder="Your full name"
+                  oninput="markDirty()"
+                />
+              </div>
+              <div class="fg username-fg">
+                <label>Username</label>
+                <div class="pfx-wrap">
+                  <span class="pfx">@</span>
+                  <input
+                    type="text"
+                    id="username"
+                    placeholder="username"
+                    oninput="onUsernameInput()"
+                  />
+                  <span id="unStatus" class="un-status"></span>
+                </div>
+                <small>Letters, numbers, underscores only</small>
+              </div>
+              <div class="fg">
+                <label>Email Address</label>
+                <div class="locked-wrap">
+                  <input type="email" id="email" readonly />
+                  <span class="verified-badge"
+                    ><i class="fas fa-shield-check"></i> Verified</span
+                  >
+                </div>
+              </div>
+              <div class="fg">
+                <label>Phone Number</label>
+                <input
+                  type="tel"
+                  id="phone"
+                  placeholder="+91 XXXXX XXXXX"
+                  oninput="markDirty()"
+                />
+              </div>
+              <div class="fg">
+                <label>Date of Birth</label>
+                <input type="date" id="dob" onchange="markDirty()" />
+              </div>
+              <div class="fg">
+                <label>Gender</label>
+                <select id="gender" onchange="markDirty()">
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- About & Location -->
+          <div class="scard">
+            <div class="scard-hd">
+              <i class="fas fa-map-marker-alt"></i>
+              <h3>About &amp; Location</h3>
+            </div>
+            <div class="fg2">
+              <div class="fg full-span">
+                <label
+                  >About Me
+                  <span class="char-cnt" id="aboutCnt">0/500</span></label
+                >
+                <textarea
+                  id="aboutMe"
+                  rows="4"
+                  maxlength="500"
+                  placeholder="Tell the world who you are…"
+                  oninput="onAboutInput()"
+                ></textarea>
+              </div>
+              <div class="fg">
+                <label>Country</label>
+                <select
+                  id="country"
+                  onchange="onSettingsCountryChange(event)"
+                  oninput="markDirty()"
+                >
+                  <option value="">Select Country</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label>State</label>
+                <select
+                  id="state"
+                  onchange="onSettingsStateChange(event)"
+                  oninput="markDirty()"
+                >
+                  <option value="">Select Country First</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label>City</label>
+                <select id="city" oninput="markDirty()">
+                  <option value="">Select State First</option>
+                </select>
+              </div>
+              <div class="fg">
+                <label>Website URL</label>
+                <input
+                  type="url"
+                  id="websiteUrl"
+                  placeholder="https://yoursite.com"
+                  oninput="markDirty()"
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Social Links -->
+          <div class="scard full">
+            <div class="scard-hd">
+              <i class="fas fa-share-nodes"></i>
+              <h3>Social Links</h3>
+            </div>
+            <div id="socialLinksGrid" class="social-links-list"></div>
+            <button class="btn-add-social" onclick="addSocialLink()">
+              <i class="fas fa-plus"></i> Add Social Link
+            </button>
+          </div>
+
+          <div class="tab-actions full">
+            <button class="btn-primary" onclick="saveProfileSettings()">
+              <i class="fas fa-check"></i> Save Profile
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════════ SECURITY TAB ════════════ -->
+      <section class="stab" id="tab-security">
+        <div class="settings-grid">
+          <div class="scard">
+            <div class="scard-hd">
+              <i class="fas fa-key"></i>
+              <h3>Change Password</h3>
+            </div>
+            <div class="fg2">
+              <div class="fg full-span">
+                <label>Current Password</label>
+                <div class="pw-wrap">
+                  <input
+                    type="password"
+                    id="currentPw"
+                    placeholder="Enter current password"
+                  />
+                  <button
+                    type="button"
+                    class="eye-btn"
+                    onclick="togglePw('currentPw',this)"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+              <div class="fg">
+                <label>New Password</label>
+                <div class="pw-wrap">
+                  <input
+                    type="password"
+                    id="newPw"
+                    placeholder="Min 8 characters"
+                    oninput="checkStrength(this.value)"
+                  />
+                  <button
+                    type="button"
+                    class="eye-btn"
+                    onclick="togglePw('newPw',this)"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+                <div class="strength-bar">
+                  <div id="strengthFill" class="strength-fill"></div>
+                </div>
+                <small id="strengthLabel" class="strength-lbl"></small>
+              </div>
+              <div class="fg">
+                <label>Confirm New Password</label>
+                <div class="pw-wrap">
+                  <input
+                    type="password"
+                    id="confirmPw"
+                    placeholder="Repeat new password"
+                  />
+                  <button
+                    type="button"
+                    class="eye-btn"
+                    onclick="togglePw('confirmPw',this)"
+                  >
+                    <i class="fas fa-eye"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div class="tab-actions">
+              <button class="btn-primary" onclick="changePassword()">
+                <i class="fas fa-lock"></i> Update Password
+              </button>
+            </div>
+          </div>
+
+          <div class="scard">
+            <div class="scard-hd">
+              <i class="fas fa-shield-halved"></i>
+              <h3>Security Status</h3>
+            </div>
+            <div class="sec-status-list" id="secStatusList">
+              <div class="shimmer-item"></div>
+              <div class="shimmer-item"></div>
+              <div class="shimmer-item"></div>
+            </div>
+          </div>
+
+          <div class="scard full">
+            <div class="scard-hd">
+              <i class="fas fa-desktop"></i>
+              <h3>Login Activity</h3>
+              <button
+                class="btn-danger-xs"
+                onclick="logoutAllDevices()"
+                style="margin-left: auto"
+              >
+                <i class="fas fa-right-from-bracket"></i> Logout All
+              </button>
+            </div>
+            <div class="sessions-list" id="sessionsList">
+              <div class="shimmer-item"></div>
+              <div class="shimmer-item"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════════ SELLER TAB ════════════ -->
+      <section class="stab" id="tab-seller">
+        <div class="settings-grid">
+          <!-- ── Balance Overview — Redesigned Light Card ── -->
+          <div class="balance-card-new">
+            <div class="balance-card-header">
+              <h3><i class="fas fa-wallet"></i> Seller Balance Overview</h3>
+              <button class="balance-refresh-btn" onclick="refreshBalance()">
+                <i class="fas fa-rotate-right"></i> Refresh
+              </button>
+            </div>
+            <div class="balance-tiles">
+              <div class="bal-tile">
+                <div class="bal-tile-icon green">
+                  <i class="fas fa-wallet"></i>
+                </div>
+                <div class="bal-tile-label">Available Balance</div>
+                <div class="bal-tile-value" id="availBal">₹–</div>
+                <div class="bal-tile-sub">Ready to withdraw</div>
+              </div>
+              <div class="bal-tile">
+                <div class="bal-tile-icon purple">
+                  <i class="fas fa-arrow-trend-up"></i>
+                </div>
+                <div class="bal-tile-label">Total Earnings</div>
+                <div class="bal-tile-value" id="totalEarn">₹–</div>
+                <div class="bal-tile-sub">All time</div>
+              </div>
+              <div class="bal-tile">
+                <div class="bal-tile-icon amber">
+                  <i class="fas fa-clock-rotate-left"></i>
+                </div>
+                <div class="bal-tile-label">Pending Clearance</div>
+                <div class="bal-tile-value" id="pendingBal">₹–</div>
+                <div class="bal-tile-sub">Awaiting delivery</div>
+              </div>
+              <div class="bal-tile">
+                <div class="bal-tile-icon blue">
+                  <i class="fas fa-bag-shopping"></i>
+                </div>
+                <div class="bal-tile-label">Total Sales</div>
+                <div class="bal-tile-value" id="totalSales">–</div>
+                <div class="bal-tile-sub">Completed orders</div>
+              </div>
+            </div>
+            <div class="balance-info-bar">
+              <i class="fas fa-circle-info"></i>
+              <span
+                ><strong>Available</strong> = Total Earnings − Withdrawn −
+                Pending Clearance. Product orders carry a 5% platform fee;
+                service bookings have no commission.</span
+              >
+            </div>
+          </div>
+
+          <!-- ── Withdrawal Requests ── -->
+          <div class="scard full">
+            <div class="scard-hd">
+              <i class="fas fa-money-bill-transfer"></i>
+              <h3>Withdrawal Requests</h3>
+              <button
+                class="btn-primary"
+                onclick="showWithdrawModal()"
+                style="margin-left: auto"
+              >
+                <i class="fas fa-plus"></i> Request Withdrawal
+              </button>
+            </div>
+            <div id="withdrawalsList">
+              <div class="shimmer-item"></div>
+            </div>
+          </div>
+
+          <!-- ── UPI Payment ── -->
+          <div class="scard">
+            <div class="scard-hd">
+              <i class="fas fa-mobile-screen"></i>
+              <h3>UPI Payment</h3>
+              <label class="tog-sw" style="margin-left: auto">
+                <input
+                  type="checkbox"
+                  id="acceptsUpi"
+                  onchange="toggleSection('upiSection',this.checked); markSellerPaymentDirty();"
+                />
+                <span class="tog-track"></span>
+              </label>
+            </div>
+            <div id="upiSection" class="pay-section" style="display: none">
+              <div class="fg2">
+                <div class="fg">
+                  <label>UPI ID</label>
+                  <input
+                    type="text"
+                    id="upiId"
+                    placeholder="yourname@upi"
+                    oninput="markSellerPaymentDirty()"
+                  />
+                </div>
+                <div class="fg">
+                  <label>Account Name</label>
+                  <input
+                    type="text"
+                    id="upiName"
+                    placeholder="Name on UPI"
+                    oninput="markSellerPaymentDirty()"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Bank Transfer ── -->
+          <div class="scard">
+            <div class="scard-hd">
+              <i class="fas fa-building-columns"></i>
+              <h3>Bank Transfer</h3>
+              <label class="tog-sw" style="margin-left: auto">
+                <input
+                  type="checkbox"
+                  id="acceptsBank"
+                  onchange="toggleSection('bankSection',this.checked); markSellerPaymentDirty();"
+                />
+                <span class="tog-track"></span>
+              </label>
+            </div>
+            <div id="bankSection" class="pay-section" style="display: none">
+              <div class="fg2">
+                <div class="fg">
+                  <label>Bank Name</label
+                  ><input
+                    type="text"
+                    id="bankName"
+                    placeholder="State Bank of India"
+                    oninput="markSellerPaymentDirty()"
+                  />
+                </div>
+                <div class="fg">
+                  <label>Account Holder</label
+                  ><input
+                    type="text"
+                    id="bankHolder"
+                    placeholder="Full legal name"
+                    oninput="markSellerPaymentDirty()"
+                  />
+                </div>
+                <div class="fg">
+                  <label>Account Number</label
+                  ><input
+                    type="text"
+                    id="bankAccNo"
+                    placeholder="XXXXXXXXXXXXXXXX"
+                    oninput="markSellerPaymentDirty()"
+                  />
+                </div>
+                <div class="fg">
+                  <label>IFSC Code</label
+                  ><input
+                    type="text"
+                    id="bankIfsc"
+                    placeholder="SBIN0000001"
+                    oninput="markSellerPaymentDirty()"
+                  />
+                </div>
+                <div class="fg">
+                  <label>Branch</label
+                  ><input
+                    type="text"
+                    id="bankBranch"
+                    placeholder="Branch name"
+                    oninput="markSellerPaymentDirty()"
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── Save Payment Settings (only shows when edited) ── -->
+          <div class="tab-actions full" style="margin-top: 0">
+            <button
+              id="savePaymentBtn"
+              class="inline-save-btn"
+              onclick="saveSellerSettings()"
+            >
+              <i class="fas fa-floppy-disk"></i> Save Payment Settings
+            </button>
+          </div>
+
+          <!-- ── Commission & Earnings Log ── -->
+          <div class="scard full" id="commissionLedgerCard">
+            <div class="scard-hd">
+              <i class="fas fa-receipt"></i>
+              <h3>Commission &amp; Earnings Log</h3>
+            </div>
+
+            <!-- Deficit banner -->
+            <div
+              id="commissionDeficitBanner"
+              style="
+                display: none;
+                align-items: center;
+                gap: 14px;
+                padding: 14px 16px;
+                background: rgba(245, 158, 11, 0.1);
+                border: 1.5px solid rgba(245, 158, 11, 0.4);
+                border-radius: 12px;
+                margin-bottom: 16px;
+              "
+            ></div>
+
+            <div id="commissionLedgerList">
+              <div class="shimmer-item"></div>
+              <div class="shimmer-item"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════════ BUYER TAB ════════════ -->
+      <section class="stab" id="tab-buyer">
+        <div class="settings-grid">
+          <div class="scard full">
+            <div class="scard-hd">
+              <i class="fas fa-box-open"></i>
+              <h3>Order History</h3>
+              <span class="badge-pill" id="orderPill">0 orders</span>
+            </div>
+            <div id="ordersList">
+              <div class="shimmer-item"></div>
+              <div class="shimmer-item"></div>
+            </div>
+          </div>
+
+          <div class="scard full">
+            <div class="scard-hd">
+              <i class="fas fa-map-location-dot"></i>
+              <h3>Billing Address</h3>
+            </div>
+            <div class="fg2">
+              <div class="fg">
+                <label>Full Name</label
+                ><input
+                  type="text"
+                  id="billingName"
+                  placeholder="Billing full name"
+                  oninput="markDirty()"
+                />
+              </div>
+              <div class="fg">
+                <label>Address</label
+                ><input
+                  type="text"
+                  id="billingAddr"
+                  placeholder="Street, Area"
+                  oninput="markDirty()"
+                />
+              </div>
+              <div class="fg">
+                <label>City</label
+                ><input
+                  type="text"
+                  id="billingCity"
+                  placeholder="City"
+                  oninput="markDirty()"
+                />
+              </div>
+              <div class="fg">
+                <label>Pincode</label
+                ><input
+                  type="text"
+                  id="billingPin"
+                  placeholder="380001"
+                  oninput="markDirty()"
+                />
+              </div>
+            </div>
+            <div class="tab-actions">
+              <button class="btn-primary" onclick="saveBillingAddress()">
+                <i class="fas fa-check"></i> Save Address
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ════════════ ACCOUNT & PRIVACY TAB ════════════ -->
+      <section class="stab" id="tab-account">
+        <div class="settings-grid">
+          <div class="scard full">
+            <div class="scard-hd">
+              <i class="fas fa-lock"></i>
+              <h3>Privacy</h3>
+            </div>
+            <div class="privacy-list">
+              <div class="priv-row">
+                <div class="priv-info">
+                  <strong>Private Account</strong>
+                  <p>Only approved followers can see your posts</p>
+                </div>
+                <label class="tog-sw">
+                  <input
+                    type="checkbox"
+                    id="isPrivate"
+                    onchange="markPrivacyDirty()"
+                  />
+                  <span class="tog-track"></span>
+                </label>
+              </div>
+            </div>
+            <!-- Save Privacy button — only visible when changed -->
+            <div class="tab-actions" style="margin-top: 16px">
+              <button
+                id="savePrivacyBtn"
+                class="inline-save-btn"
+                onclick="savePrivacySettings()"
+              >
+                <i class="fas fa-check"></i> Save Privacy Settings
+              </button>
+            </div>
+          </div>
+
+          <div class="scard full">
+            <div class="scard-hd">
+              <i class="fas fa-cloud-arrow-down"></i>
+              <h3>Download My Data</h3>
+            </div>
+            <p class="scard-desc">
+              Export your Creator Connect data as
+              <strong>XLSX spreadsheets</strong> — ready to open in Excel or
+              Google Sheets.
+            </p>
+            <div class="dl-grid">
+              <div class="dl-tile">
+                <i class="fas fa-user"></i>
+                <span>Profile Info</span>
+                <small>XLSX / PDF</small>
+                <div style="display: flex; gap: 6px; margin-top: 6px">
+                  <button onclick="downloadData('profile')">⬇ XLSX</button>
+                  <button onclick="downloadDataAsPDF('profile')">⬇ PDF</button>
+                </div>
+              </div>
+              <div class="dl-tile">
+                <i class="fas fa-images"></i>
+                <span>My Posts</span>
+                <small>XLSX / PDF</small>
+                <div style="display: flex; gap: 6px; margin-top: 6px">
+                  <button onclick="downloadData('posts')">⬇ XLSX</button>
+                  <button onclick="downloadDataAsPDF('posts')">⬇ PDF</button>
+                </div>
+              </div>
+              <div class="dl-tile">
+                <i class="fas fa-box"></i>
+                <span>Orders</span>
+                <small>XLSX / PDF</small>
+                <div style="display: flex; gap: 6px; margin-top: 6px">
+                  <button onclick="downloadData('orders')">⬇ XLSX</button>
+                  <button onclick="downloadDataAsPDF('orders')">⬇ PDF</button>
+                </div>
+              </div>
+              <div class="dl-tile">
+                <i class="fas fa-receipt"></i>
+                <span>Transactions</span>
+                <small>XLSX / PDF</small>
+                <div style="display: flex; gap: 6px; margin-top: 6px">
+                  <button onclick="downloadData('transactions')">⬇ XLSX</button>
+                  <button onclick="downloadDataAsPDF('transactions')">
+                    ⬇ PDF
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div
+              class="tab-actions"
+              style="display: flex; gap: 10px; flex-wrap: wrap"
+            >
+              <button class="btn-primary" onclick="downloadAllData()">
+                <i class="fas fa-download"></i> Download All (XLSX)
+              </button>
+              <button class="btn-primary" onclick="downloadAllDataAsPDF()">
+                <i class="fas fa-file-pdf"></i> Download All (PDF)
+              </button>
+            </div>
+          </div>
+
+          <div class="scard full danger-zone">
+            <div class="scard-hd danger-hd">
+              <i class="fas fa-triangle-exclamation"></i>
+              <h3>Danger Zone</h3>
+            </div>
+            <div class="danger-row">
+              <div class="danger-info">
+                <strong>Delete Account Permanently</strong>
+                <p>
+                  Erase all data — posts, orders, followers. This
+                  <strong>cannot be undone</strong>.
+                </p>
+              </div>
+              <button class="btn-danger-solid" onclick="showDeleteModal()">
+                <i class="fas fa-trash"></i> Delete Account
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Delete Modal -->
+    <div class="modal-backdrop" id="deleteModal" style="display: none">
+      <div class="modal-box danger-modal">
+        <div class="modal-ico"><i class="fas fa-skull-crossbones"></i></div>
+        <h3>Permanently Delete Account?</h3>
+        <p>
+          All your data will be erased forever. This action is irreversible.
+        </p>
+        <div class="fg" style="margin-top: 20px; text-align: left">
+          <label>Confirm your password</label>
+          <div class="pw-wrap">
+            <input type="password" id="delPw" placeholder="Enter password" />
+            <button
+              type="button"
+              class="eye-btn"
+              onclick="togglePw('delPw',this)"
+            >
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="fg" style="text-align: left; margin-top: 12px">
+          <label>Type <strong>DELETE</strong> to confirm</label>
+          <input type="text" id="delConfirmText" placeholder="DELETE" />
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeDeleteModal()">
+            Cancel
+          </button>
+          <button class="btn-danger-solid" onclick="deleteAccount()">
+            <i class="fas fa-trash"></i> Delete Forever
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Withdrawal Modal -->
+    <div class="modal-backdrop" id="withdrawModal" style="display: none">
+      <div class="modal-box">
+        <div
+          class="modal-ico"
+          style="background: var(--lp); color: var(--purple)"
+        >
+          <i class="fas fa-money-bill-transfer"></i>
+        </div>
+        <h3>Request Withdrawal</h3>
+        <p style="margin-bottom: 20px; color: var(--txt2)">
+          Minimum withdrawal amount is ₹100
+        </p>
+        <div class="fg">
+          <label>Amount (₹)</label>
+          <input
+            type="number"
+            id="withdrawAmount"
+            min="100"
+            step="0.01"
+            placeholder="Enter amount"
+          />
+          <small>Available: <span id="withdrawAvailable">₹0.00</span></small>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-cancel" onclick="closeWithdrawModal()">
+            Cancel
+          </button>
+          <button class="btn-primary" onclick="submitWithdrawal()">
+            <i class="fas fa-paper-plane"></i> Submit Request
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="s-toast" id="sToast"></div>
+
+    <script src="js/auth-guard.js"></script>
+    <script src="js/settings.js"></script>
+    <script src="js/settings_pdf.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+  </body>
+</html>

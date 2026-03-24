@@ -1,0 +1,889 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics & Reports — CreatorConnect Admin</title>
+    <link rel="icon" type="image/png" href="../images/logo2.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/admin/analytics.css" />
+  </head>
+  <body>
+    <!-- Auth Gate -->
+    <div id="authGate">
+      <div style="text-align: center">
+        <div class="auth-spin-ring"></div>
+        <div class="auth-spin-label">Verifying session…</div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <iframe
+      id="sidebarFrame"
+      src="admin-sidebar.html"
+      title="Admin Sidebar"
+      scrolling="no"
+      allowtransparency="true"
+      onload="syncSidebarState()"
+    ></iframe>
+
+    <!-- Logout Modal -->
+    <div class="logout-modal-backdrop" id="logoutModal">
+      <div class="logout-modal-box">
+        <div class="logout-modal-icon">
+          <i class="fas fa-right-from-bracket"></i>
+        </div>
+        <div class="logout-modal-title">Leaving so soon?</div>
+        <div class="logout-modal-desc">
+          You'll be signed out of the admin panel.<br />Any unsaved changes may
+          be lost.
+        </div>
+        <div class="logout-modal-actions">
+          <button class="logout-btn-cancel" id="logoutCancelBtn">
+            <i class="fas fa-xmark"></i> Stay
+          </button>
+          <button class="logout-btn-confirm" id="logoutConfirmBtn">
+            <i class="fas fa-right-from-bracket"></i> Yes, Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <main class="main" id="mainContent">
+      <!-- Header -->
+      <div class="page-header">
+        <div>
+          <div class="page-title">Analytics &amp; <span>Reports</span></div>
+          <div class="page-sub">
+            Comprehensive platform insights, trends &amp; exportable reports.
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center">
+          <button
+            class="export-btn pdf"
+            id="quickExportPdf"
+            onclick="quickExport('pdf')"
+          >
+            <i class="fas fa-file-pdf"></i> Export PDF
+          </button>
+          <button
+            class="export-btn xls"
+            id="quickExportXls"
+            onclick="quickExport('xls')"
+          >
+            <i class="fas fa-file-excel"></i> Export Excel
+          </button>
+        </div>
+      </div>
+
+      <!-- Date Range Bar -->
+      <div class="date-bar">
+        <span class="date-bar-label"
+          ><i
+            class="fas fa-calendar-range"
+            style="color: var(--primary); margin-right: 4px"
+          ></i>
+          Period</span
+        >
+        <div class="date-preset-btns">
+          <button class="preset-btn" onclick="setPreset('7d')">7D</button>
+          <button class="preset-btn active" onclick="setPreset('30d')">
+            30D
+          </button>
+          <button class="preset-btn" onclick="setPreset('90d')">90D</button>
+          <button class="preset-btn" onclick="setPreset('6m')">6M</button>
+          <button class="preset-btn" onclick="setPreset('1y')">1Y</button>
+          <button class="preset-btn" onclick="setPreset('all')">
+            All Time
+          </button>
+        </div>
+        <div class="date-divider"></div>
+        <div class="date-input-group">
+          <label>From</label>
+          <input type="date" class="date-input" id="dateFrom" />
+        </div>
+        <div class="date-input-group">
+          <label>To</label>
+          <input type="date" class="date-input" id="dateTo" />
+        </div>
+        <button class="apply-btn" onclick="applyDateRange()">
+          <i class="fas fa-bolt" style="margin-right: 4px"></i> Apply
+        </button>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs-row">
+        <button
+          class="tab-btn active"
+          onclick="switchTab('overview')"
+          id="tab-overview"
+        >
+          <i class="fas fa-chart-pie"></i> Overview
+        </button>
+        <button class="tab-btn" onclick="switchTab('revenue')" id="tab-revenue">
+          <i class="fas fa-indian-rupee-sign"></i> Revenue
+        </button>
+        <button class="tab-btn" onclick="switchTab('users')" id="tab-users">
+          <i class="fas fa-users"></i> Users
+        </button>
+        <button class="tab-btn" onclick="switchTab('content')" id="tab-content">
+          <i class="fas fa-photo-film"></i> Content
+        </button>
+        <button class="tab-btn" onclick="switchTab('orders')" id="tab-orders">
+          <i class="fas fa-bag-shopping"></i> Orders
+        </button>
+        <button
+          class="tab-btn"
+          onclick="switchTab('bookings')"
+          id="tab-bookings"
+        >
+          <i class="fas fa-calendar-check"></i> Bookings
+        </button>
+        <button
+          class="tab-btn"
+          onclick="switchTab('leaderboard')"
+          id="tab-leaderboard"
+        >
+          <i class="fas fa-trophy"></i> Leaderboard
+        </button>
+        <button class="tab-btn" onclick="switchTab('reports')" id="tab-reports">
+          <i class="fas fa-file-chart-column"></i> Reports
+        </button>
+      </div>
+
+      <!-- ═══════════════════ OVERVIEW TAB ═══════════════════ -->
+      <div class="tab-panel active" id="panel-overview">
+        <div class="kpi-row" id="overview-kpis">
+          <div class="kpi-card c-pink">
+            <div class="kpi-icon"><i class="fas fa-indian-rupee-sign"></i></div>
+            <div class="kpi-val" id="ov-revenue">—</div>
+            <div class="kpi-label">Total Revenue</div>
+            <div class="kpi-trend neutral" id="ov-revenue-trend">—</div>
+            <div class="kpi-bg-icon">
+              <i
+                class="fas fa-indian-rupee-sign"
+                style="color: var(--primary)"
+              ></i>
+            </div>
+          </div>
+          <div class="kpi-card c-blue">
+            <div class="kpi-icon"><i class="fas fa-users"></i></div>
+            <div class="kpi-val" id="ov-users">—</div>
+            <div class="kpi-label">Total Users</div>
+            <div class="kpi-trend neutral" id="ov-users-trend">—</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-users" style="color: var(--blue)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-green">
+            <div class="kpi-icon"><i class="fas fa-bag-shopping"></i></div>
+            <div class="kpi-val" id="ov-orders">—</div>
+            <div class="kpi-label">Total Orders</div>
+            <div class="kpi-trend neutral" id="ov-orders-trend">—</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-bag-shopping" style="color: var(--green)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-purple">
+            <div class="kpi-icon"><i class="fas fa-calendar-check"></i></div>
+            <div class="kpi-val" id="ov-bookings">—</div>
+            <div class="kpi-label">Total Bookings</div>
+            <div class="kpi-trend neutral" id="ov-bookings-trend">—</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-calendar-check" style="color: var(--purple)"></i>
+            </div>
+          </div>
+        </div>
+        <div class="charts-grid-3">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-card-title">
+                  <i class="fas fa-chart-area"></i> Platform Revenue
+                </div>
+                <div class="chart-card-sub">Commission earned per month</div>
+              </div>
+            </div>
+            <div class="chart-wrap tall">
+              <canvas id="ov-revenue-chart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <i class="fas fa-chart-pie"></i> Order Mix
+              </div>
+            </div>
+            <div class="chart-wrap short">
+              <canvas id="ov-order-mix-chart"></canvas>
+            </div>
+            <div class="legend-row" id="ov-order-mix-legend"></div>
+          </div>
+        </div>
+        <div class="charts-grid-2">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <i class="fas fa-user-plus"></i> User Growth
+              </div>
+            </div>
+            <div class="chart-wrap"><canvas id="ov-users-chart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <i class="fas fa-photo-film"></i> Content Activity
+              </div>
+            </div>
+            <div class="chart-wrap">
+              <canvas id="ov-content-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ REVENUE TAB ═══════════════════ -->
+      <div class="tab-panel" id="panel-revenue">
+        <div class="kpi-row">
+          <div class="kpi-card c-pink">
+            <div class="kpi-icon"><i class="fas fa-coins"></i></div>
+            <div class="kpi-val" id="rev-commission">—</div>
+            <div class="kpi-label">Total Commission</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-coins" style="color: var(--primary)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-green">
+            <div class="kpi-icon">
+              <i class="fas fa-arrow-up-right-dots"></i>
+            </div>
+            <div class="kpi-val" id="rev-online">—</div>
+            <div class="kpi-label">Online Orders Rev.</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-globe" style="color: var(--green)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-orange">
+            <div class="kpi-icon"><i class="fas fa-truck"></i></div>
+            <div class="kpi-val" id="rev-cod">—</div>
+            <div class="kpi-label">COD Orders Rev.</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-truck" style="color: var(--orange)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-blue">
+            <div class="kpi-icon"><i class="fas fa-wallet"></i></div>
+            <div class="kpi-val" id="rev-withdrawn">—</div>
+            <div class="kpi-label">Total Withdrawn</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-wallet" style="color: var(--blue)"></i>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card" style="margin-bottom: 22px">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">
+                <i class="fas fa-chart-line"></i> Monthly Commission Ledger
+              </div>
+              <div class="chart-card-sub">
+                Platform earnings from all commission events
+              </div>
+            </div>
+          </div>
+          <div class="chart-wrap tall">
+            <canvas id="rev-monthly-chart"></canvas>
+          </div>
+        </div>
+        <div class="charts-grid-2">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <i class="fas fa-chart-bar"></i> Commission by Type
+              </div>
+            </div>
+            <div class="chart-wrap"><canvas id="rev-type-chart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <i class="fas fa-money-bill-transfer"></i> Withdrawal Status
+              </div>
+            </div>
+            <div class="chart-wrap short">
+              <canvas id="rev-withdrawal-chart"></canvas>
+            </div>
+            <div class="legend-row" id="rev-withdrawal-legend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ USERS TAB ═══════════════════ -->
+      <div class="tab-panel" id="panel-users">
+        <div class="kpi-row">
+          <div class="kpi-card c-blue">
+            <div class="kpi-icon"><i class="fas fa-users"></i></div>
+            <div class="kpi-val" id="usr-total">—</div>
+            <div class="kpi-label">Total Users</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-users" style="color: var(--blue)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-green">
+            <div class="kpi-icon"><i class="fas fa-user-check"></i></div>
+            <div class="kpi-val" id="usr-active">—</div>
+            <div class="kpi-label">Active (7 days)</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-user-check" style="color: var(--green)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-pink">
+            <div class="kpi-icon"><i class="fas fa-user-plus"></i></div>
+            <div class="kpi-val" id="usr-new">—</div>
+            <div class="kpi-label">New (30 days)</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-user-plus" style="color: var(--primary)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-orange">
+            <div class="kpi-icon"><i class="fas fa-lock"></i></div>
+            <div class="kpi-val" id="usr-locked">—</div>
+            <div class="kpi-label">Suspended</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-lock" style="color: var(--orange)"></i>
+            </div>
+          </div>
+        </div>
+        <div class="charts-grid-2">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-card-title">
+                  <i class="fas fa-chart-bar"></i> Signups per Month
+                </div>
+                <div class="chart-card-sub">
+                  New user registrations over time
+                </div>
+              </div>
+            </div>
+            <div class="chart-wrap tall">
+              <canvas id="usr-signup-chart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-card-title">
+                  <i class="fas fa-chart-line"></i> Active Users Trend
+                </div>
+                <div class="chart-card-sub">Daily active sessions</div>
+              </div>
+            </div>
+            <div class="chart-wrap tall">
+              <canvas id="usr-active-chart"></canvas>
+            </div>
+          </div>
+        </div>
+        <div class="charts-grid-2">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <i class="fas fa-venus-mars"></i> Gender Distribution
+              </div>
+            </div>
+            <div class="chart-wrap short">
+              <canvas id="usr-gender-chart"></canvas>
+            </div>
+            <div class="legend-row" id="usr-gender-legend"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <i class="fas fa-user-shield"></i> Role Distribution
+              </div>
+            </div>
+            <div class="chart-wrap short">
+              <canvas id="usr-role-chart"></canvas>
+            </div>
+            <div class="legend-row" id="usr-role-legend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ CONTENT TAB ═══════════════════ -->
+      <div class="tab-panel" id="panel-content">
+        <div class="kpi-row">
+          <div class="kpi-card c-pink">
+            <div class="kpi-icon"><i class="fas fa-images"></i></div>
+            <div class="kpi-val" id="con-total">—</div>
+            <div class="kpi-label">Total Posts</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-images" style="color: var(--primary)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-green">
+            <div class="kpi-icon"><i class="fas fa-heart"></i></div>
+            <div class="kpi-val" id="con-likes">—</div>
+            <div class="kpi-label">Total Likes</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-heart" style="color: var(--green)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-blue">
+            <div class="kpi-icon"><i class="fas fa-comment"></i></div>
+            <div class="kpi-val" id="con-comments">—</div>
+            <div class="kpi-label">Total Comments</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-comment" style="color: var(--blue)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-orange">
+            <div class="kpi-icon"><i class="fas fa-store"></i></div>
+            <div class="kpi-val" id="con-products">—</div>
+            <div class="kpi-label">Products Listed</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-store" style="color: var(--orange)"></i>
+            </div>
+          </div>
+        </div>
+        <div class="charts-grid-3">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-card-title">
+                  <i class="fas fa-chart-bar"></i> Posts per Month
+                </div>
+                <div class="chart-card-sub">Content published each month</div>
+              </div>
+            </div>
+            <div class="chart-wrap tall">
+              <canvas id="con-monthly-chart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <i class="fas fa-chart-pie"></i> Post Types
+              </div>
+            </div>
+            <div class="chart-wrap short">
+              <canvas id="con-type-chart"></canvas>
+            </div>
+            <div class="legend-row" id="con-type-legend"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ ORDERS TAB ═══════════════════ -->
+      <div class="tab-panel" id="panel-orders">
+        <div class="kpi-row">
+          <div class="kpi-card c-pink">
+            <div class="kpi-icon"><i class="fas fa-bag-shopping"></i></div>
+            <div class="kpi-val" id="ord-total">—</div>
+            <div class="kpi-label">Total Orders</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-bag-shopping" style="color: var(--primary)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-blue">
+            <div class="kpi-icon"><i class="fas fa-globe"></i></div>
+            <div class="kpi-val" id="ord-online">—</div>
+            <div class="kpi-label">Online Orders</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-globe" style="color: var(--blue)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-orange">
+            <div class="kpi-icon"><i class="fas fa-truck"></i></div>
+            <div class="kpi-val" id="ord-cod">—</div>
+            <div class="kpi-label">COD Orders</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-truck" style="color: var(--orange)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-green">
+            <div class="kpi-icon"><i class="fas fa-indian-rupee-sign"></i></div>
+            <div class="kpi-val" id="ord-revenue">—</div>
+            <div class="kpi-label">Gross Revenue</div>
+            <div class="kpi-bg-icon">
+              <i
+                class="fas fa-indian-rupee-sign"
+                style="color: var(--green)"
+              ></i>
+            </div>
+          </div>
+        </div>
+        <div class="chart-card" style="margin-bottom: 22px">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">
+                <i class="fas fa-chart-bar"></i> COD vs Online — Monthly Stacked
+              </div>
+              <div class="chart-card-sub">
+                Order volume split by payment type
+              </div>
+            </div>
+          </div>
+          <div class="chart-wrap tall">
+            <canvas id="ord-stacked-chart"></canvas>
+          </div>
+        </div>
+        <div class="charts-grid-2">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <i class="fas fa-chart-pie"></i> Order Status
+              </div>
+            </div>
+            <div class="chart-wrap short">
+              <canvas id="ord-status-chart"></canvas>
+            </div>
+            <div class="legend-row" id="ord-status-legend"></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <i class="fas fa-chart-line"></i> Revenue Trend
+              </div>
+            </div>
+            <div class="chart-wrap short">
+              <canvas id="ord-revenue-chart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ BOOKINGS TAB ═══════════════════ -->
+      <div class="tab-panel" id="panel-bookings">
+        <div class="kpi-row">
+          <div class="kpi-card c-purple">
+            <div class="kpi-icon"><i class="fas fa-calendar-check"></i></div>
+            <div class="kpi-val" id="bk-total">—</div>
+            <div class="kpi-label">Total Bookings</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-calendar-check" style="color: var(--purple)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-green">
+            <div class="kpi-icon"><i class="fas fa-circle-check"></i></div>
+            <div class="kpi-val" id="bk-completed">—</div>
+            <div class="kpi-label">Completed</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-circle-check" style="color: var(--green)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-orange">
+            <div class="kpi-icon"><i class="fas fa-clock"></i></div>
+            <div class="kpi-val" id="bk-pending">—</div>
+            <div class="kpi-label">Active / Pending</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-clock" style="color: var(--orange)"></i>
+            </div>
+          </div>
+          <div class="kpi-card c-teal">
+            <div class="kpi-icon"><i class="fas fa-percent"></i></div>
+            <div class="kpi-val" id="bk-rate">—</div>
+            <div class="kpi-label">Completion Rate</div>
+            <div class="kpi-bg-icon">
+              <i class="fas fa-percent" style="color: var(--teal)"></i>
+            </div>
+          </div>
+        </div>
+        <div class="charts-grid-3">
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div>
+                <div class="chart-card-title">
+                  <i class="fas fa-chart-bar"></i> Bookings per Month
+                </div>
+                <div class="chart-card-sub">Monthly booking volume trend</div>
+              </div>
+            </div>
+            <div class="chart-wrap tall">
+              <canvas id="bk-monthly-chart"></canvas>
+            </div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-header">
+              <div class="chart-card-title">
+                <i class="fas fa-chart-pie"></i> Status Breakdown
+              </div>
+            </div>
+            <div style="padding: 10px 0">
+              <div class="completion-wrap" id="bk-completion-wrap">
+                <div class="completion-donut">
+                  <canvas id="bk-donut-chart" width="90" height="90"></canvas>
+                  <div class="completion-center">
+                    <div class="completion-pct" id="bk-completion-pct">—</div>
+                    <div class="completion-label">Complete</div>
+                  </div>
+                </div>
+                <div class="completion-stats" id="bk-completion-stats"></div>
+              </div>
+            </div>
+            <div
+              class="legend-row"
+              id="bk-status-legend"
+              style="margin-top: 16px"
+            ></div>
+          </div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-card-header">
+            <div>
+              <div class="chart-card-title">
+                <i class="fas fa-chart-area"></i> Booking Revenue
+              </div>
+              <div class="chart-card-sub">
+                Revenue from completed service bookings
+              </div>
+            </div>
+          </div>
+          <div class="chart-wrap"><canvas id="bk-revenue-chart"></canvas></div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ LEADERBOARD TAB ═══════════════════ -->
+      <div class="tab-panel" id="panel-leaderboard">
+        <div class="charts-grid-2" style="margin-bottom: 22px">
+          <div class="leaderboard-card">
+            <div class="leaderboard-header">
+              <div class="leaderboard-icon gold">
+                <i class="fas fa-trophy"></i>
+              </div>
+              <div>
+                <div class="leaderboard-title">Top Creators by Earnings</div>
+                <div class="leaderboard-sub">
+                  Ranked by available balance in seller wallet
+                </div>
+              </div>
+            </div>
+            <div id="lb-creators-list">
+              <div class="loading-overlay">
+                <div
+                  class="auth-spin-ring"
+                  style="width: 32px; height: 32px"
+                ></div>
+                <p>Loading…</p>
+              </div>
+            </div>
+          </div>
+          <div class="leaderboard-card">
+            <div class="leaderboard-header">
+              <div class="leaderboard-icon pink">
+                <i class="fas fa-fire"></i>
+              </div>
+              <div>
+                <div class="leaderboard-title">Top Posts by Likes</div>
+                <div class="leaderboard-sub">
+                  Most-liked content on the platform
+                </div>
+              </div>
+            </div>
+            <div id="lb-posts-list">
+              <div class="loading-overlay">
+                <div
+                  class="auth-spin-ring"
+                  style="width: 32px; height: 32px"
+                ></div>
+                <p>Loading…</p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="charts-grid-2">
+          <div class="leaderboard-card">
+            <div class="leaderboard-header">
+              <div class="leaderboard-icon gold">
+                <i class="fas fa-store"></i>
+              </div>
+              <div>
+                <div class="leaderboard-title">Top Sellers by Orders</div>
+                <div class="leaderboard-sub">
+                  Most orders received as seller
+                </div>
+              </div>
+            </div>
+            <div id="lb-sellers-list">
+              <div class="loading-overlay">
+                <div
+                  class="auth-spin-ring"
+                  style="width: 32px; height: 32px"
+                ></div>
+                <p>Loading…</p>
+              </div>
+            </div>
+          </div>
+          <div class="leaderboard-card">
+            <div class="leaderboard-header">
+              <div class="leaderboard-icon pink">
+                <i class="fas fa-users"></i>
+              </div>
+              <div>
+                <div class="leaderboard-title">Top by Followers</div>
+                <div class="leaderboard-sub">
+                  Most followed creators on the platform
+                </div>
+              </div>
+            </div>
+            <div id="lb-followers-list">
+              <div class="loading-overlay">
+                <div
+                  class="auth-spin-ring"
+                  style="width: 32px; height: 32px"
+                ></div>
+                <p>Loading…</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ═══════════════════ REPORTS TAB ═══════════════════ -->
+      <div class="tab-panel" id="panel-reports">
+        <div class="report-hero">
+          <div class="report-hero-title">
+            <i class="fas fa-file-chart-column" style="margin-right: 10px"></i
+            >Report Generator
+          </div>
+          <div class="report-hero-sub">
+            Generate comprehensive reports for any date range and export them as
+            PDF or Excel for offline use.
+          </div>
+          <div class="report-hero-actions">
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                background: rgba(255, 255, 255, 0.12);
+                border-radius: 10px;
+                padding: 6px 14px;
+              "
+            >
+              <i class="fas fa-shield-check" style="font-size: 0.8rem"></i>
+              <span style="font-size: 0.75rem; font-weight: 700"
+                >Data is live from your database</span
+              >
+            </div>
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 6px;
+                background: rgba(255, 255, 255, 0.12);
+                border-radius: 10px;
+                padding: 6px 14px;
+              "
+            >
+              <i class="fas fa-file-pdf" style="font-size: 0.8rem"></i>
+              <span style="font-size: 0.75rem; font-weight: 700"
+                >PDF & Excel export</span
+              >
+            </div>
+          </div>
+        </div>
+
+        <div class="report-config">
+          <div class="report-field">
+            <div class="report-label">Report Type</div>
+            <select class="report-select" id="rpt-type">
+              <option value="overview">📊 Platform Overview</option>
+              <option value="revenue">💰 Revenue & Commissions</option>
+              <option value="users">👥 User Activity</option>
+              <option value="orders">🛍️ Orders Summary</option>
+              <option value="bookings">📅 Booking Analysis</option>
+              <option value="creators">🏆 Creator Performance</option>
+            </select>
+          </div>
+          <div class="report-field">
+            <div class="report-label">Group By</div>
+            <select class="report-select" id="rpt-group">
+              <option value="day">Day</option>
+              <option value="week">Week</option>
+              <option value="month" selected>Month</option>
+              <option value="year">Year</option>
+            </select>
+          </div>
+          <div class="report-field">
+            <div class="report-label">Date Range</div>
+            <select
+              class="report-select"
+              id="rpt-range"
+              onchange="updateReportDates()"
+            >
+              <option value="7d">Last 7 Days</option>
+              <option value="30d" selected>Last 30 Days</option>
+              <option value="90d">Last 3 Months</option>
+              <option value="6m">Last 6 Months</option>
+              <option value="1y">Last 1 Year</option>
+              <option value="custom">Custom Range</option>
+            </select>
+          </div>
+          <div class="report-field">
+            <div class="report-label">From</div>
+            <input type="date" class="report-input" id="rpt-from" />
+          </div>
+          <div style="display: flex; gap: 8px; align-items: flex-end">
+            <button
+              class="export-btn pdf"
+              id="rpt-pdf-btn"
+              onclick="generateReport('pdf')"
+              style="height: 40px"
+            >
+              <i class="fas fa-file-pdf"></i> PDF
+            </button>
+            <button
+              class="export-btn xls"
+              id="rpt-xls-btn"
+              onclick="generateReport('xls')"
+              style="height: 40px"
+            >
+              <i class="fas fa-file-excel"></i> Excel
+            </button>
+          </div>
+        </div>
+
+        <!-- Report Preview -->
+        <div class="report-preview" id="reportPreview">
+          <div class="report-preview-header">
+            <div class="report-preview-title">
+              <i class="fas fa-eye" style="color: var(--primary)"></i>
+              Report Preview
+              <span class="report-preview-badge" id="rpt-period-badge"
+                >Loading…</span
+              >
+            </div>
+            <div
+              style="
+                font-size: 0.72rem;
+                color: var(--text-secondary);
+                font-weight: 600;
+              "
+              id="rpt-generated-at"
+            ></div>
+          </div>
+          <div class="report-grid" id="rpt-kpi-row"></div>
+          <div class="report-table-wrap">
+            <table class="report-table">
+              <thead id="rpt-thead"></thead>
+              <tbody id="rpt-tbody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <div class="toast-wrap" id="toastWrap"></div>
+    <script src="../js/admin/analytics.js"></script>
+  </body>
+</html>

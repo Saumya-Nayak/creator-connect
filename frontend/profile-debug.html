@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile Debug Test</title>
+    <style>
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 30px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        border-bottom: 3px solid #e60aea;
+        padding-bottom: 10px;
+      }
+      .test-section {
+        margin: 30px 0;
+        padding: 20px;
+        background: #f9f9f9;
+        border-left: 4px solid #e60aea;
+      }
+      button {
+        background: #e60aea;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 5px;
+      }
+      button:hover {
+        background: #c008d4;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        background: #f0f0f0;
+        border-radius: 6px;
+        font-family: monospace;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .success {
+        border-left: 4px solid #28a745;
+      }
+      .error {
+        border-left: 4px solid #dc3545;
+      }
+      input {
+        padding: 10px;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        width: 300px;
+        font-size: 16px;
+      }
+      label {
+        display: block;
+        margin: 10px 0 5px;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔍 Profile Loading Debug Tool</h1>
+
+      <div class="test-section">
+        <h2>Test Configuration</h2>
+        <label for="apiUrl">API Base URL:</label>
+        <input type="text" id="apiUrl" value="http://localhost:3000/api" />
+
+        <label for="userId">User ID to Test:</label>
+        <input
+          type="number"
+          id="userId"
+          value="2"
+          placeholder="Enter user ID"
+        />
+      </div>
+
+      <div class="test-section">
+        <h2>Test 1: Profile API Direct Call</h2>
+        <button onclick="testProfileAPI()">
+          🚀 Test Profile View Endpoint
+        </button>
+        <div id="profileResult" class="result" style="display: none"></div>
+      </div>
+
+      <div class="test-section">
+        <h2>Test 2: Debug Info</h2>
+        <button onclick="testDebugEndpoint()">🔧 Get Debug Info</button>
+        <div id="debugResult" class="result" style="display: none"></div>
+      </div>
+
+      <div class="test-section">
+        <h2>Test 3: Posts API Call</h2>
+        <button onclick="testPostsAPI()">📝 Test Posts Endpoint</button>
+        <div id="postsResult" class="result" style="display: none"></div>
+      </div>
+
+      <div class="test-section">
+        <h2>Test 4: Auth Token Check</h2>
+        <button onclick="testAuthToken()">🔐 Check Current Auth</button>
+        <div id="authResult" class="result" style="display: none"></div>
+      </div>
+    </div>
+
+    <script>
+      function getApiBase() {
+        return document.getElementById("apiUrl").value;
+      }
+
+      function getUserId() {
+        return document.getElementById("userId").value;
+      }
+
+      function getAuthToken() {
+        return (
+          localStorage.getItem("authToken") ||
+          sessionStorage.getItem("authToken")
+        );
+      }
+
+      async function testProfileAPI() {
+        const result = document.getElementById("profileResult");
+        result.style.display = "block";
+        result.textContent = "Loading...";
+        result.className = "result";
+
+        try {
+          const apiBase = getApiBase();
+          const userId = getUserId();
+          const token = getAuthToken();
+
+          const headers = {
+            "Content-Type": "application/json",
+          };
+
+          if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+          }
+
+          console.log("📤 Request:", {
+            url: `${apiBase}/profile/view/${userId}`,
+            headers,
+          });
+
+          const response = await fetch(`${apiBase}/profile/view/${userId}`, {
+            method: "GET",
+            headers: headers,
+          });
+
+          console.log("📥 Response status:", response.status);
+
+          const text = await response.text();
+          console.log("📥 Response body:", text);
+
+          let data;
+          try {
+            data = JSON.parse(text);
+          } catch (e) {
+            result.className = "result error";
+            result.textContent = `❌ Failed to parse JSON:\n\nResponse: ${text}`;
+            return;
+          }
+
+          result.className = data.success ? "result success" : "result error";
+          result.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          result.className = "result error";
+          result.textContent = `❌ Error: ${error.message}\n\n${error.stack}`;
+        }
+      }
+
+      async function testDebugEndpoint() {
+        const result = document.getElementById("debugResult");
+        result.style.display = "block";
+        result.textContent = "Loading...";
+        result.className = "result";
+
+        try {
+          const apiBase = getApiBase();
+          const userId = getUserId();
+          const token = getAuthToken();
+
+          const headers = {
+            "Content-Type": "application/json",
+          };
+
+          if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+          }
+
+          const response = await fetch(`${apiBase}/debug/profile/${userId}`, {
+            method: "GET",
+            headers: headers,
+          });
+
+          const data = await response.json();
+
+          result.className = "result success";
+          result.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          result.className = "result error";
+          result.textContent = `❌ Error: ${error.message}`;
+        }
+      }
+
+      async function testPostsAPI() {
+        const result = document.getElementById("postsResult");
+        result.style.display = "block";
+        result.textContent = "Loading...";
+        result.className = "result";
+
+        try {
+          const apiBase = getApiBase();
+          const userId = getUserId();
+          const token = getAuthToken();
+
+          const headers = {
+            "Content-Type": "application/json",
+          };
+
+          if (token) {
+            headers["Authorization"] = `Bearer ${token}`;
+          }
+
+          const response = await fetch(`${apiBase}/posts/user/${userId}`, {
+            method: "GET",
+            headers: headers,
+          });
+
+          const data = await response.json();
+
+          result.className = data.success ? "result success" : "result error";
+          result.textContent = JSON.stringify(data, null, 2);
+        } catch (error) {
+          result.className = "result error";
+          result.textContent = `❌ Error: ${error.message}`;
+        }
+      }
+
+      function testAuthToken() {
+        const result = document.getElementById("authResult");
+        result.style.display = "block";
+
+        const token = getAuthToken();
+        const userData =
+          localStorage.getItem("userData") ||
+          sessionStorage.getItem("userData");
+
+        const info = {
+          hasToken: !!token,
+          token: token ? token.substring(0, 20) + "..." : "No token found",
+          hasUserData: !!userData,
+          userData: userData ? JSON.parse(userData) : null,
+        };
+
+        result.className = "result success";
+        result.textContent = JSON.stringify(info, null, 2);
+      }
+    </script>
+  </body>
+</html>

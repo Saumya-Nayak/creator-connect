@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Categories — CreatorConnect Admin</title>
+    <link rel="icon" type="image/png" href="../images/logo2.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/admin/categories.css" />
+  </head>
+  <body>
+    <!-- Auth Gate -->
+    <div id="authGate">
+      <div style="text-align: center">
+        <div class="auth-spin-ring"></div>
+        <div class="auth-spin-label">Verifying session…</div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <iframe
+      id="sidebarFrame"
+      src="admin-sidebar.html"
+      title="Admin Sidebar"
+      scrolling="no"
+      allowtransparency="true"
+      onload="syncSidebarState()"
+    ></iframe>
+
+    <!-- Logout Modal -->
+    <div class="logout-modal-backdrop" id="logoutModal">
+      <div class="logout-modal-box">
+        <div class="logout-glow"></div>
+        <div class="logout-modal-icon">
+          <i class="fas fa-right-from-bracket"></i>
+        </div>
+        <div class="logout-modal-title">Leaving so soon?</div>
+        <div class="logout-modal-desc">
+          You'll be signed out of the admin panel.<br />Any unsaved changes may
+          be lost.
+        </div>
+        <div class="logout-modal-actions">
+          <button class="logout-btn-cancel" id="logoutCancelBtn">
+            <i class="fas fa-xmark"></i> Stay
+          </button>
+          <button class="logout-btn-confirm" id="logoutConfirmBtn">
+            <i class="fas fa-right-from-bracket"></i> Yes, Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── EDIT CATEGORY MODAL ─── -->
+    <div class="modal-backdrop" id="editCatModal">
+      <div class="modal-box cat-modal">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon pink"><i class="fas fa-pen"></i></div>
+            <div class="modal-title" id="editCatModalTitle">Edit Category</div>
+          </div>
+          <button class="modal-close" onclick="closeEditCatModal()">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-form-grid">
+          <div class="modal-form-group">
+            <label class="modal-form-label">Post Type *</label>
+            <select class="modal-form-select" id="ec-type">
+              <option value="">Select type…</option>
+              <option value="showcase">📸 Showcase</option>
+              <option value="service">💼 Service</option>
+              <option value="product">🛍️ Product</option>
+            </select>
+          </div>
+          <div class="modal-form-group">
+            <label class="modal-form-label">Icon (Emoji)</label>
+            <div class="emoji-input-wrap" id="ecEmojiWrap">
+              <button
+                type="button"
+                class="emoji-input-btn"
+                id="ecEmojiBtn"
+                onclick="toggleEmojiPicker('ec')"
+              >
+                <span id="ecEmojiDisplay" class="emoji-placeholder"
+                  >Pick emoji…</span
+                >
+                <i
+                  class="fas fa-chevron-down"
+                  style="
+                    margin-left: auto;
+                    font-size: 0.7rem;
+                    color: var(--text-secondary);
+                  "
+                ></i>
+              </button>
+              <div class="emoji-picker-dropdown" id="ecEmojiPicker">
+                <input
+                  type="text"
+                  class="emoji-search"
+                  id="ecEmojiSearch"
+                  placeholder="Search emoji…"
+                  oninput="filterEmojis('ec')"
+                />
+                <div class="emoji-categories-tabs" id="ecEmojiTabs"></div>
+                <div class="emoji-grid" id="ecEmojiGrid"></div>
+                <div class="emoji-divider"></div>
+                <div
+                  style="
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    text-transform: uppercase;
+                    letter-spacing: 0.07em;
+                    color: var(--text-secondary);
+                    margin-bottom: 6px;
+                  "
+                >
+                  Custom (paste any emoji or text)
+                </div>
+                <div class="emoji-custom-row">
+                  <input
+                    type="text"
+                    class="emoji-custom-input"
+                    id="ecEmojiCustom"
+                    placeholder="🎨 or type anything…"
+                    maxlength="8"
+                  />
+                  <button
+                    class="emoji-custom-btn"
+                    onclick="applyCustomEmoji('ec')"
+                  >
+                    Use
+                  </button>
+                </div>
+              </div>
+            </div>
+            <input type="hidden" id="ec-icon" />
+          </div>
+          <div class="modal-form-group full">
+            <label class="modal-form-label">Category Name *</label>
+            <input
+              class="modal-form-input"
+              id="ec-name"
+              type="text"
+              placeholder="e.g. Photography"
+            />
+          </div>
+          <div class="modal-form-group full">
+            <label class="modal-form-label">Slug *</label>
+            <input
+              class="modal-form-input"
+              id="ec-slug"
+              type="text"
+              placeholder="e.g. photography"
+            />
+          </div>
+          <div class="modal-form-group">
+            <label class="modal-form-label">Display Order</label>
+            <input
+              class="modal-form-input"
+              id="ec-order"
+              type="number"
+              placeholder="0"
+              min="0"
+            />
+          </div>
+          <div class="modal-form-group">
+            <label class="modal-form-label">Status</label>
+            <select class="modal-form-select" id="ec-active">
+              <option value="1">✅ Active</option>
+              <option value="0">❌ Inactive</option>
+            </select>
+          </div>
+          <div class="modal-form-group full">
+            <label class="modal-form-label">Description</label>
+            <input
+              class="modal-form-input"
+              id="ec-desc"
+              type="text"
+              placeholder="Short description (optional)"
+            />
+          </div>
+
+          <!-- ── GST Rate (EDIT modal — uses ec- prefix IDs, NOT f- prefix) ── -->
+          <div class="modal-form-group full" id="ec-gst-wrap">
+            <label class="modal-form-label">
+              <i class="fas fa-file-invoice" style="color: var(--primary)"></i>
+              Default GST Rate
+            </label>
+            <!-- Showcase lock note -->
+            <div
+              id="ec-gst-lock-note"
+              style="
+                display: none;
+                align-items: center;
+                gap: 8px;
+                padding: 8px 12px;
+                background: rgba(16, 185, 129, 0.08);
+                border: 1px solid rgba(16, 185, 129, 0.25);
+                border-radius: 9px;
+                margin-bottom: 8px;
+              "
+            >
+              <i
+                class="fas fa-lock"
+                style="color: #10b981; font-size: 0.85rem"
+              ></i>
+              <span style="font-size: 0.78rem; color: #10b981; font-weight: 600"
+                >Showcase posts are always GST Exempt (0%). This cannot be
+                changed.</span
+              >
+            </div>
+            <div
+              style="
+                display: flex;
+                align-items: center;
+                gap: 10px;
+                flex-wrap: wrap;
+              "
+            >
+              <select
+                id="ec-gst-rate"
+                class="modal-form-select"
+                style="
+                  flex: 1;
+                  min-width: 180px;
+                  max-width: 340px;
+                  font-weight: 600;
+                "
+                onchange="refreshGSTBadge(this, document.getElementById('ec-gst-badge'))"
+              >
+                <option value="0">0% — Loading…</option>
+              </select>
+              <span
+                id="ec-gst-badge"
+                style="
+                  display: inline-block;
+                  padding: 5px 14px;
+                  border-radius: 20px;
+                  font-size: 0.75rem;
+                  font-weight: 800;
+                  background: var(--card-border);
+                  color: var(--text-secondary);
+                  white-space: nowrap;
+                  transition: 0.3s;
+                "
+                >—</span
+              >
+            </div>
+            <small
+              style="
+                color: var(--text-secondary);
+                font-size: 0.72rem;
+                margin-top: 4px;
+                display: block;
+              "
+            >
+              <i
+                class="fas fa-info-circle"
+                style="color: var(--primary); margin-right: 3px"
+              ></i>
+              Changes here also update the GST Rates tab for this category.
+            </small>
+          </div>
+        </div>
+        <!-- Hidden fields -->
+        <input type="hidden" id="ec-gst-id" value="" />
+        <input type="hidden" id="ec-id" />
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeEditCatModal()">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-save"
+            id="ecSaveBtn"
+            onclick="submitEditCatModal()"
+          >
+            <i class="fas fa-check"></i> Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── EDIT SUBCATEGORY MODAL ─── -->
+    <div class="modal-backdrop" id="editSubModal">
+      <div class="modal-box sub-modal">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon blue"><i class="fas fa-pen"></i></div>
+            <div class="modal-title" id="editSubModalTitle">
+              Edit Subcategory
+            </div>
+          </div>
+          <button class="modal-close" onclick="closeEditSubModal()">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-form-grid">
+          <div class="modal-form-group full">
+            <label class="modal-form-label">Parent Category *</label>
+            <select class="modal-form-select" id="es-category"></select>
+          </div>
+          <div class="modal-form-group full">
+            <label class="modal-form-label">Subcategory Name *</label>
+            <input
+              class="modal-form-input"
+              id="es-name"
+              type="text"
+              placeholder="e.g. Portraits"
+            />
+          </div>
+          <div class="modal-form-group full">
+            <label class="modal-form-label">Slug *</label>
+            <input
+              class="modal-form-input"
+              id="es-slug"
+              type="text"
+              placeholder="e.g. portraits"
+            />
+          </div>
+          <div class="modal-form-group">
+            <label class="modal-form-label">Display Order</label>
+            <input
+              class="modal-form-input"
+              id="es-order"
+              type="number"
+              placeholder="0"
+              min="0"
+            />
+          </div>
+          <div class="modal-form-group">
+            <label class="modal-form-label">Status</label>
+            <select class="modal-form-select" id="es-active">
+              <option value="1">✅ Active</option>
+              <option value="0">❌ Inactive</option>
+            </select>
+          </div>
+          <div class="modal-form-group full">
+            <label class="modal-form-label">Description</label>
+            <input
+              class="modal-form-input"
+              id="es-desc"
+              type="text"
+              placeholder="Short description (optional)"
+            />
+          </div>
+        </div>
+        <input type="hidden" id="es-id" />
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeEditSubModal()">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-save blue-btn"
+            id="esSaveBtn"
+            onclick="submitEditSubModal()"
+          >
+            <i class="fas fa-check"></i> Save Changes
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── CONFIRM DELETE MODAL ─── -->
+    <div class="modal-backdrop" id="confirmModal">
+      <div class="modal-box warn confirm-modal-box">
+        <div class="confirm-icon"><i class="fas fa-trash"></i></div>
+        <div class="confirm-title" id="confirmTitle">Delete?</div>
+        <div class="confirm-desc" id="confirmDesc">
+          This action cannot be undone.
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeConfirmModal()">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button class="modal-btn-danger" id="confirmActionBtn">
+            <i class="fas fa-trash"></i> Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main -->
+    <main class="main" id="mainContent">
+      <div class="page-header">
+        <div>
+          <div class="page-title">
+            Categories <span>&amp; Subcategories</span>
+          </div>
+          <div class="page-sub">
+            Manage platform taxonomy — organise posts by type, category and
+            subcategory.
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="scard c-pink">
+          <div class="scard-icon"><i class="fas fa-layer-group"></i></div>
+          <div class="scard-val" id="sv-total">—</div>
+          <div class="scard-label">Total Categories</div>
+          <div class="scard-badge pink">
+            <i class="fas fa-circle-check"></i> All Types
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-layer-group" style="color: rgb(203, 2, 190)"></i>
+          </div>
+        </div>
+        <div class="scard c-blue">
+          <div class="scard-icon"><i class="fas fa-images"></i></div>
+          <div class="scard-val" id="sv-showcase">—</div>
+          <div class="scard-label">Showcase</div>
+          <div class="scard-badge blue">
+            <i class="fas fa-eye"></i> Portfolio
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-images" style="color: rgb(203, 2, 190)"></i>
+          </div>
+        </div>
+        <div class="scard c-purple">
+          <div class="scard-icon"><i class="fas fa-briefcase"></i></div>
+          <div class="scard-val" id="sv-service">—</div>
+          <div class="scard-label">Service</div>
+          <div class="scard-badge purple">
+            <i class="fas fa-handshake"></i> Offerings
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-briefcase" style="color: rgb(203, 2, 190)"></i>
+          </div>
+        </div>
+        <div class="scard c-green">
+          <div class="scard-icon"><i class="fas fa-shopping-bag"></i></div>
+          <div class="scard-val" id="sv-product">—</div>
+          <div class="scard-label">Product</div>
+          <div class="scard-badge green">
+            <i class="fas fa-tag"></i> For Sale
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-shopping-bag" style="color: rgb(203, 2, 190)"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hover Panels Row -->
+      <div class="hover-panels-row" style="margin-bottom: 22px">
+        <!-- Chart Panel -->
+        <div class="hover-panel" id="chartPanel">
+          <div class="panel-trigger" onclick="togglePanel('chartPanel')">
+            <div class="panel-trigger-icon">
+              <i class="fas fa-chart-pie"></i>
+            </div>
+            <div class="panel-trigger-text">
+              <div class="panel-trigger-title">Distribution by Type</div>
+              <div class="panel-trigger-sub">
+                Hover to see category breakdown
+              </div>
+            </div>
+            <i class="fas fa-chevron-down panel-trigger-arrow"></i>
+          </div>
+          <div class="panel-content">
+            <div class="chart-card-title">
+              <i class="fas fa-chart-pie"></i> Distribution by Type
+            </div>
+            <div class="chart-sub">Category breakdown across post types</div>
+            <div class="chart-wrap"><canvas id="donutChart"></canvas></div>
+            <div class="chart-legend" id="chartLegend"></div>
+          </div>
+        </div>
+
+        <!-- Add Category Panel -->
+        <div class="hover-panel" id="addCatPanel">
+          <div class="panel-trigger" onclick="togglePanel('addCatPanel')">
+            <div class="panel-trigger-icon"><i class="fas fa-plus"></i></div>
+            <div class="panel-trigger-text">
+              <div class="panel-trigger-title">Add New Category</div>
+              <div class="panel-trigger-sub">Expand to add a new category</div>
+            </div>
+            <i class="fas fa-chevron-down panel-trigger-arrow"></i>
+          </div>
+          <div class="panel-content">
+            <div class="form-card-title">
+              <i class="fas fa-plus-circle"></i> Add New Category
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Post Type *</label>
+                <select class="form-select" id="f-type">
+                  <option value="">Select type…</option>
+                  <option value="showcase">📸 Showcase</option>
+                  <option value="service">💼 Service</option>
+                  <option value="product">🛍️ Product</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Icon (Emoji)</label>
+                <div class="emoji-input-wrap" id="fEmojiWrap">
+                  <button
+                    type="button"
+                    class="emoji-input-btn"
+                    id="fEmojiBtn"
+                    onclick="toggleEmojiPicker('f')"
+                  >
+                    <span id="fEmojiDisplay" class="emoji-placeholder"
+                      >Pick emoji…</span
+                    >
+                    <i
+                      class="fas fa-chevron-down"
+                      style="
+                        margin-left: auto;
+                        font-size: 0.7rem;
+                        color: var(--text-secondary);
+                      "
+                    ></i>
+                  </button>
+                  <div class="emoji-picker-dropdown" id="fEmojiPicker">
+                    <input
+                      type="text"
+                      class="emoji-search"
+                      id="fEmojiSearch"
+                      placeholder="Search emoji…"
+                      oninput="filterEmojis('f')"
+                    />
+                    <div class="emoji-categories-tabs" id="fEmojiTabs"></div>
+                    <div class="emoji-grid" id="fEmojiGrid"></div>
+                    <div class="emoji-divider"></div>
+                    <div
+                      style="
+                        font-size: 0.65rem;
+                        font-weight: 700;
+                        text-transform: uppercase;
+                        letter-spacing: 0.07em;
+                        color: var(--text-secondary);
+                        margin-bottom: 6px;
+                      "
+                    >
+                      Custom (paste any emoji or text)
+                    </div>
+                    <div class="emoji-custom-row">
+                      <input
+                        type="text"
+                        class="emoji-custom-input"
+                        id="fEmojiCustom"
+                        placeholder="🎨 or type anything…"
+                        maxlength="8"
+                      />
+                      <button
+                        class="emoji-custom-btn"
+                        onclick="applyCustomEmoji('f')"
+                      >
+                        Use
+                      </button>
+                    </div>
+                  </div>
+                </div>
+                <input type="hidden" id="f-icon" />
+              </div>
+              <div class="form-group">
+                <label class="form-label">Display Order</label>
+                <input
+                  class="form-input"
+                  id="f-order"
+                  type="number"
+                  placeholder="1"
+                  min="0"
+                />
+              </div>
+              <div class="form-group full">
+                <label class="form-label">Category Name *</label>
+                <input
+                  class="form-input"
+                  id="f-name"
+                  type="text"
+                  placeholder="e.g. Photography"
+                />
+              </div>
+              <div class="form-group full">
+                <label class="form-label">Slug *</label>
+                <input
+                  class="form-input"
+                  id="f-slug"
+                  type="text"
+                  placeholder="e.g. photography"
+                />
+              </div>
+              <div class="form-group full">
+                <label class="form-label">Description</label>
+                <input
+                  class="form-input"
+                  id="f-desc"
+                  type="text"
+                  placeholder="Short description (optional)"
+                />
+              </div>
+
+              <!-- ── GST Rate for ADD form (uses f- prefix IDs) ── -->
+              <div class="form-group full" id="f-gst-wrap">
+                <label class="form-label">
+                  <i
+                    class="fas fa-file-invoice"
+                    style="color: var(--primary)"
+                  ></i>
+                  Default GST Rate *
+                </label>
+                <!-- Showcase lock note -->
+                <div
+                  id="f-gst-lock-note"
+                  style="
+                    display: none;
+                    align-items: center;
+                    gap: 8px;
+                    padding: 8px 12px;
+                    background: rgba(16, 185, 129, 0.08);
+                    border: 1px solid rgba(16, 185, 129, 0.25);
+                    border-radius: 9px;
+                    margin-bottom: 8px;
+                  "
+                >
+                  <i
+                    class="fas fa-lock"
+                    style="color: #10b981; font-size: 0.85rem"
+                  ></i>
+                  <span
+                    style="font-size: 0.78rem; color: #10b981; font-weight: 600"
+                    >Showcase posts are always GST Exempt (0%). This cannot be
+                    changed.</span
+                  >
+                </div>
+                <div
+                  style="
+                    display: flex;
+                    align-items: center;
+                    gap: 10px;
+                    flex-wrap: wrap;
+                  "
+                >
+                  <select
+                    id="f-gst-rate"
+                    class="form-select"
+                    disabled
+                    style="
+                      flex: 1;
+                      min-width: 200px;
+                      max-width: 360px;
+                      font-weight: 600;
+                    "
+                    onchange="refreshGSTBadge(this, document.getElementById('f-gst-badge'))"
+                  >
+                    <option value="12">Select post type first…</option>
+                  </select>
+                  <span
+                    id="f-gst-badge"
+                    style="
+                      display: inline-block;
+                      padding: 5px 14px;
+                      border-radius: 20px;
+                      font-size: 0.75rem;
+                      font-weight: 800;
+                      background: var(--card-border);
+                      color: var(--text-secondary);
+                      white-space: nowrap;
+                      transition: 0.3s;
+                    "
+                    >Select type first</span
+                  >
+                </div>
+                <small
+                  style="
+                    color: var(--text-secondary);
+                    font-size: 0.72rem;
+                    margin-top: 4px;
+                    display: block;
+                  "
+                >
+                  <i
+                    class="fas fa-info-circle"
+                    style="color: var(--primary); margin-right: 3px"
+                  ></i>
+                  This rate is applied to orders in this category. You can edit
+                  individual rates later in the <strong>GST Rates</strong> tab.
+                </small>
+              </div>
+            </div>
+            <div class="form-actions">
+              <button
+                class="btn-primary"
+                id="f-submit-btn"
+                onclick="submitCategoryForm()"
+              >
+                <i class="fas fa-plus"></i> Add Category
+              </button>
+              <button class="btn-secondary" onclick="resetAddForm()">
+                <i class="fas fa-xmark"></i> Clear
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Subcategory Panel -->
+        <div class="hover-panel" id="addSubPanel" style="grid-column: 1/-1">
+          <div class="panel-trigger" onclick="togglePanel('addSubPanel')">
+            <div
+              class="panel-trigger-icon"
+              style="background: rgba(59, 130, 246, 0.12); color: var(--blue)"
+            >
+              <i class="fas fa-sitemap"></i>
+            </div>
+            <div class="panel-trigger-text">
+              <div class="panel-trigger-title">Add New Subcategory</div>
+              <div class="panel-trigger-sub">
+                Expand to add a subcategory to an existing category
+              </div>
+            </div>
+            <i class="fas fa-chevron-down panel-trigger-arrow"></i>
+          </div>
+          <div class="panel-content">
+            <div class="form-card-title" style="color: var(--text-secondary)">
+              <i class="fas fa-sitemap" style="color: var(--blue)"></i> Add New
+              Subcategory
+            </div>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Parent Category *</label>
+                <select class="form-select" id="sf-category">
+                  <option value="">Select category…</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Display Order</label>
+                <input
+                  class="form-input"
+                  id="sf-order"
+                  type="number"
+                  placeholder="1"
+                  min="0"
+                />
+              </div>
+              <div class="form-group full">
+                <label class="form-label">Subcategory Name *</label>
+                <input
+                  class="form-input"
+                  id="sf-name"
+                  type="text"
+                  placeholder="e.g. Portraits"
+                />
+              </div>
+              <div class="form-group full">
+                <label class="form-label">Slug *</label>
+                <input
+                  class="form-input"
+                  id="sf-slug"
+                  type="text"
+                  placeholder="e.g. portraits"
+                />
+              </div>
+              <div class="form-group full">
+                <label class="form-label">Description</label>
+                <input
+                  class="form-input"
+                  id="sf-desc"
+                  type="text"
+                  placeholder="Short description (optional)"
+                />
+              </div>
+            </div>
+            <div class="form-actions">
+              <button
+                class="btn-primary"
+                style="
+                  background: linear-gradient(135deg, var(--blue), #2563eb);
+                  box-shadow: 0 4px 14px rgba(59, 130, 246, 0.3);
+                "
+                id="sf-submit-btn"
+                onclick="submitSubcategoryForm()"
+              >
+                <i class="fas fa-plus"></i> Add Subcategory
+              </button>
+              <button class="btn-secondary" onclick="resetAddSubForm()">
+                <i class="fas fa-xmark"></i> Clear
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs">
+        <button
+          class="tab-btn active"
+          id="tab-categories"
+          onclick="switchTab('categories')"
+        >
+          <i class="fas fa-layer-group"></i> Categories
+          <span class="tab-count" id="tab-cat-count">—</span>
+        </button>
+        <button
+          class="tab-btn"
+          id="tab-subcategories"
+          onclick="switchTab('subcategories')"
+        >
+          <i class="fas fa-sitemap"></i> Subcategories
+          <span class="tab-count" id="tab-sub-count">—</span>
+        </button>
+        <button class="tab-btn" id="tab-gst" onclick="switchTab('gst')">
+          <i class="fas fa-file-invoice"></i> GST Rates
+          <span class="tab-count" id="tab-gst-count">—</span>
+        </button>
+      </div>
+
+      <!-- CATEGORIES TAB -->
+      <div id="panel-categories">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input
+              class="search-input"
+              id="catSearch"
+              type="text"
+              placeholder="Search categories…"
+              autocomplete="off"
+            />
+          </div>
+          <select class="filter-select" id="catTypeFilter">
+            <option value="">All Types</option>
+            <option value="showcase">Showcase</option>
+            <option value="service">Service</option>
+            <option value="product">Product</option>
+          </select>
+          <select class="filter-select" id="catStatusFilter">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <div class="view-toggle">
+            <button
+              class="vt-btn active"
+              id="catGridBtn"
+              title="Card view"
+              onclick="setCatView('grid')"
+            >
+              <i class="fas fa-grip"></i>
+            </button>
+            <button
+              class="vt-btn"
+              id="catListBtn"
+              title="Table view"
+              onclick="setCatView('list')"
+            >
+              <i class="fas fa-list"></i>
+            </button>
+          </div>
+        </div>
+        <div id="catGridView" class="cards-grid"></div>
+        <div id="catListView" style="display: none">
+          <div class="table-card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th onclick="sortCat('icon')">Icon</th>
+                    <th onclick="sortCat('category_name')">
+                      Name &amp; Slug <i class="fas fa-sort sort-icon"></i>
+                    </th>
+                    <th onclick="sortCat('post_type')">
+                      Type <i class="fas fa-sort sort-icon"></i>
+                    </th>
+                    <th onclick="sortCat('display_order')">
+                      Order <i class="fas fa-sort sort-icon"></i>
+                    </th>
+                    <th>Status</th>
+                    <th>Posts</th>
+                    <th>Subcats</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="catTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="pagination" id="catPagination"></div>
+      </div>
+
+      <!-- SUBCATEGORIES TAB -->
+      <div id="panel-subcategories" style="display: none">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input
+              class="search-input"
+              id="subSearch"
+              type="text"
+              placeholder="Search subcategories…"
+              autocomplete="off"
+            />
+          </div>
+          <select class="filter-select" id="subCatFilter">
+            <option value="">All Categories</option>
+          </select>
+          <select class="filter-select" id="subTypeFilter">
+            <option value="">All Types</option>
+            <option value="showcase">Showcase</option>
+            <option value="service">Service</option>
+            <option value="product">Product</option>
+          </select>
+          <select class="filter-select" id="subStatusFilter">
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <div class="view-toggle">
+            <button
+              class="vt-btn active"
+              id="subGridBtn"
+              title="Card view"
+              onclick="setSubView('grid')"
+            >
+              <i class="fas fa-grip"></i>
+            </button>
+            <button
+              class="vt-btn"
+              id="subListBtn"
+              title="Table view"
+              onclick="setSubView('list')"
+            >
+              <i class="fas fa-list"></i>
+            </button>
+          </div>
+        </div>
+        <div id="subGridView" class="subcat-cards-grid"></div>
+        <div id="subListView" style="display: none">
+          <div class="table-card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Slug</th>
+                    <th>Parent Category</th>
+                    <th>Type</th>
+                    <th>Order</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="subTableBody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <div class="pagination" id="subPagination"></div>
+      </div>
+
+      <!-- GST RATES TAB -->
+      <div id="panel-gst" style="display: none">
+        <!-- Bulk Update Banner -->
+        <div
+          style="
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 18px 22px;
+            margin-bottom: 18px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            flex-wrap: wrap;
+          "
+        >
+          <div style="flex: 1; min-width: 200px">
+            <div
+              style="
+                font-weight: 700;
+                font-size: 0.95rem;
+                color: var(--text-primary);
+                margin-bottom: 4px;
+              "
+            >
+              <i class="fas fa-bolt" style="color: var(--primary)"></i> Bulk
+              Update GST Rates
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-secondary)">
+              Update all categories of a type at once. Showcase is always locked
+              at 0%.
+            </div>
+          </div>
+          <div
+            style="
+              display: flex;
+              align-items: center;
+              gap: 10px;
+              flex-wrap: wrap;
+            "
+          >
+            <select
+              id="bulkGstType"
+              style="
+                padding: 8px 12px;
+                border-radius: 8px;
+                border: 1px solid var(--card-border);
+                background: var(--main-bg);
+                color: var(--text-primary);
+                font-size: 0.85rem;
+              "
+            >
+              <option value="product">🛍️ Product</option>
+              <option value="service">💼 Service</option>
+              <option value="showcase">📸 Showcase (0% only)</option>
+            </select>
+            <select
+              id="bulkGstRate"
+              style="
+                padding: 8px 12px;
+                border-radius: 8px;
+                border: 1px solid var(--card-border);
+                background: var(--main-bg);
+                color: var(--text-primary);
+                font-size: 0.85rem;
+              "
+            >
+              <option value="0">0% (Exempt)</option>
+              <option value="5">5%</option>
+              <option value="12" selected>12%</option>
+              <option value="18">18%</option>
+              <option value="28">28%</option>
+            </select>
+            <button
+              id="bulkGstApplyBtn"
+              onclick="bulkUpdateGST()"
+              style="
+                background: linear-gradient(135deg, var(--primary), #da00dd);
+                color: white;
+                border: none;
+                padding: 9px 18px;
+                border-radius: 8px;
+                font-weight: 700;
+                font-size: 0.85rem;
+                cursor: pointer;
+                transition: 0.3s;
+                box-shadow: 0 3px 10px rgba(230, 10, 234, 0.3);
+                display: inline-flex;
+                align-items: center;
+                gap: 8px;
+              "
+            >
+              <i class="fas fa-sync"></i> Apply Bulk Update
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter bar -->
+        <div class="toolbar" style="margin-bottom: 16px">
+          <select
+            class="filter-select"
+            id="gstTypeFilter"
+            onchange="gstState.page=1; loadGSTRates()"
+          >
+            <option value="">All Types</option>
+            <option value="product">🛍️ Product</option>
+            <option value="service">💼 Service</option>
+            <option value="showcase">📸 Showcase</option>
+          </select>
+          <div
+            style="
+              font-size: 0.78rem;
+              color: var(--text-secondary);
+              padding: 6px 12px;
+              background: var(--card-bg);
+              border-radius: 8px;
+              border: 1px solid var(--card-border);
+            "
+          >
+            <i class="fas fa-info-circle" style="color: var(--primary)"></i>
+            Showcase is always 0% (locked). Select rate for Service/Product —
+            saves automatically.
+          </div>
+        </div>
+
+        <!-- GST Rates Table -->
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th>Subcategory</th>
+                  <th>Type</th>
+                  <th>HSN / SAC Code</th>
+                  <th>GST Rate</th>
+                  <th>Active</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody id="gstRatesTableBody">
+                <tr>
+                  <td
+                    colspan="7"
+                    style="
+                      text-align: center;
+                      padding: 30px;
+                      color: var(--text-secondary);
+                    "
+                  >
+                    <i class="fas fa-spinner fa-spin"></i> Loading…
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="pagination" id="gstPagination"></div>
+      </div>
+    </main>
+
+    <div class="toast-wrap" id="toastWrap"></div>
+    <script src="../js/admin/categories.js"></script>
+  </body>
+</html>

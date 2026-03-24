@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <title>Create Your Account</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css"
+    />
+    <!-- ✅ ADD: Cropper.js CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css"
+    />
+    <link rel="stylesheet" href="css/registration.css" />
+    <link rel="stylesheet" href="css/registration-crop.css" />
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">
+        <div class="logo">
+          <img
+            src="images/logo2.png"
+            width="60"
+            height="70"
+            style="margin-top: -20px"
+          />
+        </div>
+      </div>
+      <h2>Create Your Account</h2>
+      <p class="subtitle">Join us and start your journey today</p>
+
+      <div class="progress-bar" id="progressBar">
+        <div class="progress-step">
+          <div class="step-circle active">1</div>
+          <span class="step-label active">Account</span>
+        </div>
+        <div class="progress-step">
+          <div class="step-circle">2</div>
+          <span class="step-label">Profile</span>
+        </div>
+        <div class="progress-step">
+          <div class="step-circle">3</div>
+          <span class="step-label">Details</span>
+        </div>
+        <div class="progress-step">
+          <div class="step-circle">4</div>
+          <span class="step-label">Preferences</span>
+        </div>
+      </div>
+
+      <form id="registrationForm">
+        <!-- Step 1: Account Information -->
+        <div class="form-step active" data-step="1" style="margin-top: 50px">
+          <div class="form-group">
+            <label for="email"
+              >Email Address <span class="required">*</span></label
+            >
+            <div class="input-icon">
+              <i class="fas fa-envelope"></i>
+              <input
+                type="email"
+                id="email"
+                name="email"
+                placeholder="abc@gmail.com"
+                required
+              />
+            </div>
+            <span class="error">Please enter a valid email address</span>
+          </div>
+
+          <div class="form-group">
+            <label for="username"
+              >Username <span class="required">*</span></label
+            >
+            <div class="input-icon">
+              <i class="fas fa-user"></i>
+              <input
+                type="text"
+                id="username"
+                name="username"
+                placeholder="artist_maya"
+                autocomplete="additional-name"
+                required
+              />
+            </div>
+            <span class="error"
+              >Username must be 3-50 characters (letters and numbers only, no
+              spaces or special characters except _(underscore))</span
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="password"
+              >Password <span class="required">*</span></label
+            >
+            <div class="input-icon">
+              <i class="fas fa-lock"></i>
+              <input
+                type="password"
+                id="password"
+                name="password"
+                placeholder="Enter strong password"
+                autocomplete="new-password"
+                required
+              />
+              <i
+                class="fas fa-eye password-toggle"
+                onclick="togglePassword('password')"
+              ></i>
+            </div>
+            <span class="error"
+              >Password must be 8-50 characters with at least one special
+              character and no spaces</span
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="confirmPassword"
+              >Confirm Password <span class="required">*</span></label
+            >
+            <div class="input-icon">
+              <i class="fas fa-lock"></i>
+              <input
+                type="password"
+                id="confirmPassword"
+                name="confirmPassword"
+                placeholder="Re-enter password"
+                autocomplete="new-password"
+                required
+              />
+              <i
+                class="fas fa-eye password-toggle"
+                onclick="togglePassword('confirmPassword')"
+              ></i>
+            </div>
+            <span class="error">Passwords do not match</span>
+          </div>
+
+          <div class="btn-group">
+            <button type="button" class="btn-primary" onclick="nextStep()">
+              Next Step
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 2: Profile Information -->
+        <div class="form-step" data-step="2">
+          <div class="form-group">
+            <label for="fullName">Full Name</label>
+            <div class="input-icon">
+              <i class="fas fa-id-card"></i>
+              <input
+                type="text"
+                id="fullName"
+                name="fullName"
+                placeholder="Name Surname"
+              />
+            </div>
+            <span class="error"
+              >Full name should only contain letters and spaces</span
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="phone">Phone Number</label>
+            <div style="display: flex; gap: 10px">
+              <div class="input-icon" style="flex: 0 0 140px">
+                <i class="fas fa-flag"></i>
+                <select
+                  id="countryCode"
+                  name="countryCode"
+                  onchange="updatePhoneValidation()"
+                >
+                  <option value="+91" data-length="10">🇮🇳 +91</option>
+                  <option value="+1" data-length="10">🇺🇸 +1</option>
+                  <option value="+86" data-length="11">🇨🇳 +86</option>
+                  <option value="+81" data-length="10">🇯🇵 +81</option>
+                  <option value="+49" data-length="10,11">🇩🇪 +49</option>
+                  <option value="+33" data-length="9">🇫🇷 +33</option>
+                  <option value="+61" data-length="9">🇦🇺 +61</option>
+                  <option value="+971" data-length="9">🇦🇪 +971</option>
+                  <option value="+966" data-length="9">🇸🇦 +966</option>
+                  <option value="+7" data-length="10">🇷🇺 +7</option>
+                  <option value="+82" data-length="10,11">🇰🇷 +82</option>
+                  <option value="+55" data-length="11">🇧🇷 +55</option>
+                  <option value="+31" data-length="9">🇳🇱 +31</option>
+                </select>
+              </div>
+              <div class="input-icon" style="flex: 1">
+                <i class="fas fa-phone"></i>
+                <input
+                  type="tel"
+                  id="phone"
+                  name="phone"
+                  placeholder="Enter phone number"
+                />
+              </div>
+            </div>
+            <span class="error" id="phoneError"
+              >Please enter a valid phone number</span
+            >
+          </div>
+
+          <!-- ✅ UPDATED: Profile Picture with Crop -->
+          <div class="form-group">
+            <label>Profile Picture</label>
+            <input
+              type="file"
+              id="profilePicInput"
+              name="profilePic"
+              accept="image/*"
+              style="display: none"
+              onchange="handleRegistrationProfilePicChange(event)"
+            />
+            <div
+              class="profile-pic-upload"
+              onclick="document.getElementById('profilePicInput').click()"
+            >
+              <img
+                id="regPreview"
+                class="profile-preview"
+                alt="Profile Preview"
+              />
+              <div id="regUploadPlaceholder">
+                <i class="fas fa-cloud-upload-alt"></i>
+                <p>Click to upload profile picture</p>
+                <small>JPG, PNG or GIF (max 5MB)</small>
+              </div>
+              <button
+                type="button"
+                id="regCancelProfilePicBtn"
+                class="cancel-pic-btn"
+                onclick="removeRegistrationProfilePic(event)"
+                style="display: none"
+                title="Remove profile picture"
+              >
+                <i class="fas fa-times" style="height: 29px"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="btn-group">
+            <button type="button" class="btn-secondary" onclick="prevStep()">
+              Back
+            </button>
+            <button type="button" class="btn-primary" onclick="nextStep()">
+              Next Step
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Personal Details -->
+        <div class="form-step" data-step="3">
+          <div class="form-row location-row">
+            <div class="form-group">
+              <label for="country">Country</label>
+              <div class="input-icon">
+                <i class="fas fa-globe"></i>
+                <select
+                  id="country"
+                  name="country"
+                  onchange="updateStates()"
+                  style="font-size: 12px"
+                >
+                  <option value="">Select Country</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="state">State</label>
+              <div class="input-icon">
+                <i class="fas fa-map"></i>
+                <select
+                  id="state"
+                  name="state"
+                  onchange="updateCities()"
+                  style="font-size: 12px"
+                >
+                  <option value="">Select Country First</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label for="city">City</label>
+              <div class="input-icon">
+                <i class="fas fa-map-marker-alt"></i>
+                <select id="city" name="city" style="font-size: 12px">
+                  <option value="">Select City</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Gender</label>
+            <div class="radio-group">
+              <div class="radio-option">
+                <input type="radio" id="female" name="gender" value="Female" />
+                <label for="female" class="radio-label"> Female </label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="male" name="gender" value="Male" />
+                <label for="male" class="radio-label"> Male </label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="other" name="gender" value="Other" />
+                <label for="other" class="radio-label"> Other </label>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="dob">Date of Birth</label>
+            <div class="input-icon">
+              <i class="fas fa-calendar"></i>
+              <input
+                type="date"
+                id="dob"
+                name="dob"
+                placeholder="Month Day,Year"
+              />
+            </div>
+            <span class="error">Please select a valid birth date </span>
+          </div>
+
+          <div class="form-group">
+            <label for="aboutMe">About Me</label>
+            <textarea
+              id="aboutMe"
+              name="aboutMe"
+              placeholder="Digital artist passionate about creating unique visual experiences..."
+              maxlength="250"
+              style="height: 90px"
+            ></textarea>
+            <small style="color: #999; display: block; margin-top: 5px">
+              <span id="charCount">0</span>/250 characters
+            </small>
+            <span class="error">About Me should not exceed 250 characters</span>
+          </div>
+
+          <div class="btn-group">
+            <button type="button" class="btn-secondary" onclick="prevStep()">
+              Back
+            </button>
+            <button type="button" class="btn-primary" onclick="nextStep()">
+              Next Step
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 4: Preferences -->
+        <div class="form-step" data-step="4">
+          <div class="form-group">
+            <label>Account Privacy</label>
+            <div class="radio-group">
+              <div class="radio-option">
+                <input
+                  type="radio"
+                  id="public"
+                  name="privacy"
+                  value="0"
+                  checked
+                />
+                <label for="public" class="radio-label">
+                  <i class="fas fa-globe"></i> Public
+                </label>
+              </div>
+              <div class="radio-option">
+                <input type="radio" id="private" name="privacy" value="1" />
+                <label for="private" class="radio-label">
+                  <i class="fas fa-lock"></i> Private
+                </label>
+              </div>
+            </div>
+            <small style="color: #999; display: block; margin-top: 10px">
+              Private accounts require approval for followers
+            </small>
+          </div>
+
+          <div class="form-group">
+            <label>Verification<span class="required">*</span></label>
+            <div class="radio-group"></div>
+            <small style="color: #999; display: block; margin-top: 10px">
+              We'll send a verification code to your email address
+            </small>
+          </div>
+
+          <div id="otpVerificationSection" class="form-group">
+            <button
+              type="button"
+              class="btn-primary"
+              id="sendOtpBtn"
+              onclick="sendOTP()"
+              style="width: 100%; margin-bottom: 15px"
+            >
+              Send OTP
+            </button>
+
+            <div id="otpInputSection" style="display: none">
+              <label for="otpCode"
+                >Enter OTP Code <span class="required">*</span></label
+              >
+              <div class="input-icon">
+                <i class="fas fa-key"></i>
+                <input
+                  type="text"
+                  id="otpCode"
+                  name="otpCode"
+                  placeholder="Enter 6-digit code"
+                  maxlength="6"
+                  pattern="[0-9]{6}"
+                />
+              </div>
+              <div style="display: flex; gap: 10px; margin-top: 10px">
+                <button
+                  type="button"
+                  class="btn-primary"
+                  id="verifyOtpBtn"
+                  onclick="verifyOTP()"
+                  style="flex: 1"
+                >
+                  Verify OTP
+                </button>
+                <button
+                  type="button"
+                  class="btn-secondary"
+                  id="resendOtpBtn"
+                  onclick="resendOTP()"
+                  disabled
+                  style="flex: 1"
+                >
+                  Resend OTP (60s)
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div
+            id="otpSuccessMessage"
+            style="
+              display: none;
+              padding: 15px;
+              background-color: #d4edda;
+              border: 1px solid #c3e6cb;
+              border-radius: 8px;
+              color: #155724;
+              margin-bottom: 20px;
+            "
+          >
+            <i class="fas fa-check-circle"></i> OTP Verified Successfully!
+          </div>
+
+          <div class="checkbox-group">
+            <input type="checkbox" id="terms" name="terms" required />
+            <label for="terms"
+              >I agree to the Terms of Service and Privacy Policy
+              <span class="required">*</span></label
+            >
+          </div>
+
+          <div class="checkbox-group">
+            <input type="checkbox" id="newsletter" name="newsletter" />
+            <label for="newsletter">Send me updates and newsletters</label>
+          </div>
+
+          <div class="btn-group">
+            <button type="button" class="btn-secondary" onclick="prevStep()">
+              Back
+            </button>
+            <button type="submit" class="btn-primary">Create Account</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="login-link">
+        Already have an account?
+        <a href="#" onclick="switchToLogin(); return false;">Sign In</a>
+      </div>
+    </div>
+
+    <!-- ✅ ADD: Crop Modal for Registration -->
+    <div class="reg-crop-modal" id="regCropModal">
+      <div class="reg-crop-overlay" onclick="closeRegCropModal()">
+        <div class="reg-crop-content" onclick="event.stopPropagation()">
+          <div class="reg-crop-header">
+            <h3><i class="fas fa-crop-alt"></i> Crop Profile Picture</h3>
+            <button class="reg-crop-close-btn" onclick="closeRegCropModal()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="reg-crop-body">
+            <div class="reg-crop-container">
+              <img id="regCropImage" src="" alt="Crop" />
+            </div>
+          </div>
+
+          <!-- ✅ UPDATED: Crop Controls with Visible Labels -->
+          <div class="reg-crop-controls">
+            <button
+              type="button"
+              onclick="rotateRegCropLeft()"
+              title="Rotate Left"
+              class="crop-control-btn"
+            >
+              <i class="fas fa-undo"></i>
+              <span class="control-label">Rotate Left</span>
+            </button>
+
+            <button
+              type="button"
+              onclick="rotateRegCropRight()"
+              title="Rotate Right"
+              class="crop-control-btn"
+            >
+              <i class="fas fa-redo"></i>
+              <span class="control-label">Rotate Right</span>
+            </button>
+
+            <button
+              type="button"
+              onclick="flipRegCropHorizontal()"
+              title="Flip Horizontal"
+              class="crop-control-btn"
+            >
+              <i class="fas fa-arrows-alt-h"></i>
+              <span class="control-label">Horizontal</span>
+            </button>
+
+            <button
+              type="button"
+              onclick="flipRegCropVertical()"
+              title="Flip Vertical"
+              class="crop-control-btn"
+            >
+              <i class="fas fa-arrows-alt-v"></i>
+              <span class="control-label">Vertical</span>
+            </button>
+
+            <button
+              type="button"
+              onclick="resetRegCrop()"
+              title="Reset"
+              class="crop-control-btn"
+            >
+              <i class="fas fa-sync-alt"></i>
+              <span class="control-label">Reset</span>
+            </button>
+          </div>
+
+          <div class="reg-crop-footer">
+            <button
+              type="button"
+              class="btn-secondary"
+              onclick="closeRegCropModal()"
+            >
+              Cancel
+            </button>
+            <button type="button" class="btn-primary" onclick="applyRegCrop()">
+              <i class="fas fa-check"></i> Apply Crop
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <!-- ✅ ADD: Cropper.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+    <script src="js/registration.js"></script>
+    <script src="js/registration-crop.js"></script>
+  </body>
+</html>

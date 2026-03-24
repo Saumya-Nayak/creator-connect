@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <title>Explore - Creator Connect</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/sidebar.css" />
+    <link rel="stylesheet" href="css/explorer.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Preloader -->
+    <div id="preloader">
+      <div class="preloader-content">
+        <img
+          src="images/logo2.png"
+          alt="Creator Connect Logo"
+          class="preloader-logo"
+        />
+        <h1 class="preloader-title">Creator Connect</h1>
+      </div>
+    </div>
+
+    <!-- Header Component -->
+    <div id="header"></div>
+
+    <!-- Sidebar Component -->
+    <div id="sidebar"></div>
+
+    <!-- Main Explorer Content -->
+    <main class="explorer-container">
+      <!-- Guest Login Banner -->
+      <div class="guest-login-banner">
+        <div class="guest-login-banner-content">
+          <i class="fas fa-info-circle"></i>
+          <div class="guest-login-banner-text">
+            <h3>Welcome, Guest! 👋</h3>
+            <p>Sign in to like, comment, and connect with creators</p>
+          </div>
+        </div>
+        <button class="btn-guest-login" onclick="openLoginModal()">
+          <i class="fas fa-sign-in-alt"></i> Sign In
+        </button>
+      </div>
+
+      <!-- Filter Section (LEFT SIDEBAR) -->
+      <aside class="filter-section">
+        <div class="filter-header">
+          <h2><i class="fas fa-filter"></i> Filters</h2>
+          <button class="btn-reset-filters" id="btnResetFilters">
+            <i class="fas fa-redo"></i>
+            Reset
+          </button>
+        </div>
+
+        <!-- ✅ NEW: Main Tab Switcher (Posts / Creators) -->
+        <div class="filter-group">
+          <label class="filter-label">Explore</label>
+          <div class="main-tab-buttons">
+            <button class="main-tab-btn active" data-main-tab="posts">
+              <i class="fas fa-th"></i>
+              Posts
+            </button>
+            <button class="main-tab-btn" data-main-tab="creators">
+              <i class="fas fa-users"></i>
+              Creators
+            </button>
+          </div>
+        </div>
+
+        <!-- ✅ Posts Filters (shown when Posts tab is active) -->
+        <div id="postsFilters" class="filters-container">
+          <!-- Post Type & Sort By - Side by Side -->
+          <div class="filter-row">
+            <!-- Post Type Filter -->
+            <div class="filter-group">
+              <label class="filter-label">Post Type</label>
+              <div class="filter-buttons">
+                <button class="filter-btn active" data-type="all">
+                  <i class="fas fa-th"></i>
+                  All
+                </button>
+                <button class="filter-btn" data-type="showcase">
+                  <i class="fas fa-images"></i>
+                  Showcase
+                </button>
+                <button class="filter-btn" data-type="service">
+                  <i class="fas fa-briefcase"></i>
+                  Services
+                </button>
+                <button class="filter-btn" data-type="product">
+                  <i class="fas fa-shopping-bag"></i>
+                  Products
+                </button>
+              </div>
+            </div>
+
+            <!-- Sort By Filter -->
+            <div class="filter-group">
+              <label class="filter-label">Sort By</label>
+              <div class="sort-buttons">
+                <button class="sort-btn active" data-sort="latest">
+                  <i class="fas fa-clock"></i>
+                  Latest
+                </button>
+                <button class="sort-btn" data-sort="popular">
+                  <i class="fas fa-fire"></i>
+                  Popular
+                </button>
+                <button class="sort-btn" data-sort="trending">
+                  <i class="fas fa-chart-line"></i>
+                  Trending
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Category Filter -->
+          <div class="filter-group" id="categoryFilterGroup">
+            <label class="filter-label">Category</label>
+
+            <!-- Category Search Bar -->
+            <div class="category-search-container">
+              <input
+                type="text"
+                id="categorySearchInput"
+                class="category-search-input"
+                placeholder="Search categories..."
+              />
+              <i class="fas fa-search category-search-icon"></i>
+            </div>
+
+            <!-- Category Grid -->
+            <div class="category-grid" id="categoryGrid">
+              <div class="loading-skeleton">
+                <div class="skeleton-category"></div>
+                <div class="skeleton-category"></div>
+                <div class="skeleton-category"></div>
+              </div>
+            </div>
+
+            <!-- No Results Message -->
+            <div
+              class="category-no-results"
+              id="categoryNoResults"
+              style="display: none"
+            >
+              <i class="fas fa-search"></i>
+              <p>No categories found</p>
+            </div>
+          </div>
+
+          <!-- Subcategory Filter -->
+          <div
+            class="filter-group"
+            id="subcategoryFilterGroup"
+            style="display: none"
+          >
+            <label class="filter-label">
+              Subcategory
+              <button class="btn-clear-subcategory" id="btnClearSubcategory">
+                <i class="fas fa-times"></i>
+              </button>
+            </label>
+            <div class="subcategory-list" id="subcategoryList"></div>
+          </div>
+        </div>
+
+        <!-- ✅ NEW: Creators Filters (shown when Creators tab is active) -->
+        <!-- ✅ NEW: Creators Filters (shown when Creators tab is active) -->
+        <div
+          id="creatorsFilters"
+          class="filters-container"
+          style="display: none"
+        >
+          <!-- Creator Search Bar -->
+          <div class="filter-group">
+            <label class="filter-label">Search Creators</label>
+            <div class="creator-search-container">
+              <input
+                type="text"
+                id="creatorSearchInput"
+                class="creator-search-input"
+                placeholder="Search by name or username..."
+              />
+              <i class="fas fa-search creator-search-icon"></i>
+              <button
+                class="btn-clear-creator-search"
+                id="btnClearCreatorSearch"
+                title="Clear search"
+              >
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Sort By -->
+          <div class="filter-group">
+            <label class="filter-label">Sort By</label>
+            <div class="creator-sort-buttons">
+              <button
+                class="creator-sort-btn active"
+                data-creator-sort="followers"
+              >
+                <i class="fas fa-user-friends"></i>
+                Most Followers
+              </button>
+              <button class="creator-sort-btn" data-creator-sort="new">
+                <i class="fas fa-star"></i>
+                New Creators
+              </button>
+              <button class="creator-sort-btn" data-creator-sort="active">
+                <i class="fas fa-fire"></i>
+                Most Active
+              </button>
+              <button class="creator-sort-btn" data-creator-sort="my_followers">
+                <i class="fas fa-heart"></i>
+                My Followers
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Content Area (CENTER) -->
+      <div class="main-content-area">
+        <h2 class="head">
+          <center>
+            Explore Creator Connect<br />
+            Discover amazing content from talented creators
+          </center>
+        </h2>
+
+        <!-- Results Section -->
+        <section class="results-section">
+          <div class="results-header">
+            <h2 id="resultsTitle">All Posts</h2>
+            <span class="results-count" id="resultsCount">Loading...</span>
+          </div>
+
+          <!-- ✅ Posts Grid -->
+          <div class="posts-grid" id="postsGrid">
+            <div class="loading-skeleton" id="postsLoading">
+              <div class="skeleton-post"></div>
+              <div class="skeleton-post"></div>
+              <div class="skeleton-post"></div>
+              <div class="skeleton-post"></div>
+              <div class="skeleton-post"></div>
+              <div class="skeleton-post"></div>
+            </div>
+          </div>
+
+          <!-- ✅ NEW: Creators Grid -->
+          <div class="creators-grid" id="creatorsGrid" style="display: none">
+            <div class="loading-skeleton" id="creatorsLoading">
+              <div class="skeleton-creator"></div>
+              <div class="skeleton-creator"></div>
+              <div class="skeleton-creator"></div>
+              <div class="skeleton-creator"></div>
+              <div class="skeleton-creator"></div>
+              <div class="skeleton-creator"></div>
+            </div>
+          </div>
+
+          <!-- Load More Button -->
+          <div
+            class="load-more-container"
+            id="loadMoreContainer"
+            style="display: none"
+          >
+            <button class="btn-load-more" id="btnLoadMore">
+              <i class="fas fa-chevron-down"></i>
+              Load More
+            </button>
+          </div>
+
+          <!-- No Results Message -->
+          <div class="no-results" id="noResults" style="display: none">
+            <i class="fas fa-search"></i>
+            <h3>No results found</h3>
+            <p>Try adjusting your filters</p>
+          </div>
+        </section>
+      </div>
+    </main>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-to-top" id="scrollToTop">
+      <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Post Detail Modal -->
+    <div class="post-detail-modal" id="postDetailModal">
+      <div class="post-detail-modal-overlay" onclick="closePostDetailModal()">
+        <div
+          class="post-detail-modal-content"
+          onclick="event.stopPropagation()"
+        >
+          <button
+            class="modal-close-btn"
+            onclick="closePostDetailModal()"
+            title="Close"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+          <iframe src="" frameborder="0" id="postDetailIframe"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="login-modal" id="loginModal">
+      <div class="login-modal-overlay" onclick="closeLoginModal()">
+        <div class="login-modal-content" onclick="event.stopPropagation()">
+          <button
+            class="modal-close-btn"
+            onclick="closeLoginModal()"
+            title="Close"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+          <iframe src="" frameborder="0" id="loginIframe"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth-guard.js"></script>
+    <script src="js/explorer.js"></script>
+    <script src="js/explorer-mobile-filter.js"></script>
+  </body>
+</html>

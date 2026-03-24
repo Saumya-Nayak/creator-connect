@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <title>Creator Bazaar - Buy & Sell Services & Products</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/sidebar.css" />
+    <link rel="stylesheet" href="css/bazaar.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Preloader -->
+    <div id="preloader">
+      <div class="preloader-content">
+        <img
+          src="images/logo2.png"
+          alt="Creator Connect Logo"
+          class="preloader-logo"
+        />
+        <h1 class="preloader-title">Creator Bazaar</h1>
+        <p class="preloader-subtitle">Loading marketplace...</p>
+      </div>
+    </div>
+
+    <!-- Header Component -->
+    <div id="header"></div>
+
+    <!-- Sidebar Component -->
+    <div id="sidebar"></div>
+
+    <!-- Main Bazaar Content -->
+    <main class="bazaar-container">
+      <!-- Guest Login Banner -->
+      <div class="guest-login-banner">
+        <div class="guest-login-banner-content">
+          <i class="fas fa-store"></i>
+          <div class="guest-login-banner-text">
+            <h3>Welcome to Creator Bazaar! 🛍️</h3>
+            <p>Sign in to buy services, products, and connect with sellers</p>
+          </div>
+        </div>
+        <button class="btn-guest-login" onclick="openLoginModal()">
+          <i class="fas fa-sign-in-alt"></i> Sign In
+        </button>
+      </div>
+
+      <!-- Hero Section -->
+      <!-- Hero Section -->
+      <section class="bazaar-hero">
+        <!-- Background Video -->
+        <video class="bazaar-hero-video" autoplay loop muted playsinline>
+          <source src="images/bgvideoofcreatorbazaar.mp4" type="video/mp4" />
+          Your browser does not support the video tag.
+        </video>
+
+        <div class="hero-content">
+          <h1 class="hero-title">
+            <i class="fas fa-shopping-cart"></i>
+            Creator Bazaar
+          </h1>
+          <p class="hero-subtitle">
+            Hire talented creators or sell your products & services
+          </p>
+
+          <!-- Quick Action Buttons -->
+          <div class="hero-actions">
+            <button
+              class="btn-hero-action btn-sell-service"
+              id="btnSellService"
+            >
+              <i class="fas fa-briefcase"></i>
+              <span>Sell a Service</span>
+            </button>
+            <button
+              class="btn-hero-action btn-sell-product"
+              id="btnSellProduct"
+            >
+              <i class="fas fa-shopping-bag"></i>
+              <span>Sell a Product</span>
+            </button>
+          </div>
+        </div>
+      </section>
+      <!-- Filters Bar -->
+      <section class="filters-bar">
+        <div class="filters-container">
+          <!-- Type Filter -->
+          <div class="filter-group-inline">
+            <label class="filter-label-inline">Type:</label>
+            <div class="type-buttons-inline">
+              <button class="type-btn-inline active" data-type="all">
+                All
+              </button>
+              <button class="type-btn-inline" data-type="service">
+                Services
+              </button>
+              <button class="type-btn-inline" data-type="product">
+                Products
+              </button>
+            </div>
+          </div>
+
+          <!-- Sort Filter -->
+          <div class="filter-group-inline">
+            <label class="filter-label-inline">Sort:</label>
+            <select class="sort-select" id="sortSelect">
+              <option value="latest">Latest</option>
+              <option value="price_low">Price: Low to High</option>
+              <option value="price_high">Price: High to Low</option>
+              <option value="popular">Popular</option>
+            </select>
+          </div>
+
+          <!-- Price Range -->
+          <div class="filter-group-inline">
+            <label class="filter-label-inline">Price:</label>
+            <div class="price-inputs-inline">
+              <input
+                type="number"
+                id="minPrice"
+                class="price-input-inline"
+                placeholder="Min"
+                min="0"
+              />
+              <span>-</span>
+              <input
+                type="number"
+                id="maxPrice"
+                class="price-input-inline"
+                placeholder="Max"
+                min="0"
+              />
+              <button class="btn-apply-inline" id="btnApplyPrice">
+                <i class="fas fa-check"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Category Filter -->
+          <div class="filter-group-inline filter-category">
+            <label class="filter-label-inline">Category:</label>
+            <select class="category-select" id="categorySelect">
+              <option value="">All Categories</option>
+            </select>
+          </div>
+
+          <!-- Reset Button -->
+          <button class="btn-reset-inline" id="btnResetFilters">
+            <i class="fas fa-redo"></i>
+            Reset
+          </button>
+        </div>
+      </section>
+
+      <!-- Main Content Area -->
+      <div class="bazaar-main-content">
+        <!-- Results Header -->
+        <div class="results-header">
+          <div class="results-title-section">
+            <h2 id="resultsTitle">All Items</h2>
+            <span class="results-count" id="resultsCount">Loading...</span>
+          </div>
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="grid" title="Grid View">
+              <i class="fas fa-th"></i>
+            </button>
+            <button class="view-btn" data-view="list" title="List View">
+              <i class="fas fa-list"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Items Grid -->
+        <div class="items-grid" id="itemsGrid">
+          <!-- Loading skeleton -->
+          <div class="loading-skeleton" id="itemsLoading">
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+            <div class="skeleton-item"></div>
+          </div>
+        </div>
+
+        <!-- Load More -->
+        <div
+          class="load-more-container"
+          id="loadMoreContainer"
+          style="display: none"
+        >
+          <button class="btn-load-more" id="btnLoadMore">
+            <i class="fas fa-chevron-down"></i>
+            Load More
+          </button>
+        </div>
+
+        <!-- No Results -->
+        <div class="no-results" id="noResults" style="display: none">
+          <i class="fas fa-shopping-basket"></i>
+          <h3>No items found</h3>
+          <p>Try adjusting your filters or search criteria</p>
+        </div>
+      </div>
+    </main>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-to-top" id="scrollToTop">
+      <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Post Detail Modal -->
+    <div class="post-detail-modal" id="postDetailModal">
+      <div class="post-detail-modal-overlay" onclick="closePostDetailModal()">
+        <div
+          class="post-detail-modal-content"
+          onclick="event.stopPropagation()"
+        >
+          <button
+            class="modal-close-btn"
+            onclick="closePostDetailModal()"
+            title="Close"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+          <iframe src="" frameborder="0" id="postDetailIframe"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="login-modal" id="loginModal">
+      <div class="login-modal-overlay" onclick="closeLoginModal()">
+        <div class="login-modal-content" onclick="event.stopPropagation()">
+          <button
+            class="modal-close-btn"
+            onclick="closeLoginModal()"
+            title="Close"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+          <iframe src="" frameborder="0" id="loginIframe"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth-guard.js"></script>
+    <script src="js/bazaar.js"></script>
+  </body>
+</html>

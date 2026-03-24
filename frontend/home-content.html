@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Home Feed - Creator Connect</title>
+    <link rel="stylesheet" href="css/home-content.css" />
+  </head>
+  <body>
+    <!-- Main Feed Container -->
+    <div class="home-feed-container">
+      <!-- Left Sidebar - Suggested Users -->
+      <aside class="left-sidebar">
+        <div class="sidebar-card notifications-card">
+          <div class="notifications-header">
+            <h2>
+              <i class="fas fa-bell"></i>
+              Notifications
+            </h2>
+            <span class="notification-badge" id="notificationBadge">3</span>
+          </div>
+
+          <div class="notifications-list" id="notificationsList">
+            <!-- Sample notifications (these will be replaced with real data) -->
+
+            <!-- Like Notification -->
+            <div
+              class="notification-item unread"
+              onclick="handleNotificationClick('post', 123)"
+            >
+              <div class="notification-icon like">
+                <i class="fas fa-heart"></i>
+              </div>
+              <div class="notification-content">
+                <span class="notification-user">Saumya</span>
+                <p class="notification-text">
+                  liked your post "Amazing Sunset Photography"
+                </p>
+                <div class="notification-time">
+                  <i class="far fa-clock"></i>
+                  <span>2 minutes ago</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Follow Notification -->
+            <div
+              class="notification-item unread"
+              onclick="handleNotificationClick('profile', 456)"
+            >
+              <img
+                src="images/default-avatar.png"
+                alt="User"
+                class="notification-avatar"
+              />
+              <div class="notification-content">
+                <span class="notification-user">Binita</span>
+                <p class="notification-text">started following you</p>
+                <div class="notification-time">
+                  <i class="far fa-clock"></i>
+                  <span>15 minutes ago</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Comment Notification -->
+            <div
+              class="notification-item unread"
+              onclick="handleNotificationClick('post', 789)"
+            >
+              <div class="notification-icon comment">
+                <i class="fas fa-comment"></i>
+              </div>
+              <div class="notification-content">
+                <span class="notification-user">Krishna</span>
+                <p class="notification-text">
+                  commented on your post: "This is absolutely stunning! What
+                  camera did you use?"
+                </p>
+                <div class="notification-time">
+                  <i class="far fa-clock"></i>
+                  <span>1 hour ago</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Share Notification -->
+            <div
+              class="notification-item"
+              onclick="handleNotificationClick('post', 234)"
+            >
+              <div class="notification-icon share">
+                <i class="fas fa-share"></i>
+              </div>
+              <div class="notification-content">
+                <span class="notification-user">Mamta</span>
+                <p class="notification-text">
+                  shared your post with their followers
+                </p>
+                <div class="notification-time">
+                  <i class="far fa-clock"></i>
+                  <span>3 hours ago</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Mention Notification -->
+            <div
+              class="notification-item"
+              onclick="handleNotificationClick('post', 567)"
+            >
+              <div class="notification-icon mention">
+                <i class="fas fa-at"></i>
+              </div>
+              <div class="notification-content">
+                <span class="notification-user">Saumya</span>
+                <p class="notification-text">mentioned you in a comment</p>
+                <div class="notification-time">
+                  <i class="far fa-clock"></i>
+                  <span>5 hours ago</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <button
+            class="view-all-notifications-btn"
+            onclick="viewAllNotifications()"
+          >
+            <span>View All Notifications</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- Empty State (use this when no notifications) -->
+        <!-- 
+        <div class="notifications-list" id="notificationsList">
+          <div class="notifications-empty">
+            <i class="fas fa-bell-slash"></i>
+            <p>No notifications yet<br/>We'll notify you when something happens!</p>
+          </div>
+        </div>
+        -->
+
+        <!-- Loading State (use this while loading) -->
+        <!--
+        <div class="notifications-list notifications-loading">
+          <div class="notification-skeleton">
+            <div class="skeleton-circle"></div>
+            <div class="skeleton-text">
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line short"></div>
+            </div>
+          </div>
+          <div class="notification-skeleton">
+            <div class="skeleton-circle"></div>
+            <div class="skeleton-text">
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line short"></div>
+            </div>
+          </div>
+          <div class="notification-skeleton">
+            <div class="skeleton-circle"></div>
+            <div class="skeleton-text">
+              <div class="skeleton-line"></div>
+              <div class="skeleton-line short"></div>
+            </div>
+          </div>
+        </div>
+        -->
+        <div class="sidebar-card suggestions-card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <i class="fas fa-user-plus"></i>
+              Suggested Creators
+            </h2>
+          </div>
+
+          <div class="suggestions-list" id="suggestedUsersList">
+            <!-- Suggested users will be loaded here -->
+            <div class="loading-skeleton">
+              <div class="skeleton-item"></div>
+              <div class="skeleton-item"></div>
+              <div class="skeleton-item"></div>
+              <div class="skeleton-item"></div>
+              <div class="skeleton-item"></div>
+            </div>
+          </div>
+
+          <button
+            class="see-all-btn"
+            onclick="window.location.href='explore.html?tab=creators'"
+          >
+            <span>See All Creators</span>
+            <i class="fas fa-arrow-right"></i>
+          </button>
+        </div>
+
+        <!-- Quick Stats Card -->
+
+        <!-- Wave Animation Card -->
+        <div class="sidebar-card wave-animation-card">
+          <div class="wave-container">
+            <svg
+              class="waves"
+              viewBox="0 0 1200 120"
+              preserveAspectRatio="none"
+            >
+              <path
+                class="wave-path wave1"
+                d="M0,50 C300,100 600,0 900,50 C1050,75 1200,50 1200,50 L1200,120 L0,120 Z"
+              ></path>
+              <path
+                class="wave-path wave2"
+                d="M0,70 C300,20 600,120 900,70 C1050,45 1200,70 1200,70 L1200,120 L0,120 Z"
+              ></path>
+              <path
+                class="wave-path wave3"
+                d="M0,90 C300,140 600,40 900,90 C1050,115 1200,90 1200,90 L1200,120 L0,120 Z"
+              ></path>
+            </svg>
+          </div>
+          <div class="wave-content">
+            <i class="fas fa-heart pulse-icon"></i>
+            <p>Made with love by creators</p>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Center Feed - Posts -->
+      <main class="center-feed">
+        <!-- ❌ CREATE POST SECTION REMOVED -->
+
+        <!-- Feed Header -->
+        <div class="feed-header">
+          <h2 class="feed-title">
+            <i class="fas fa-home"></i>
+            Latest Posts
+          </h2>
+          <div class="feed-filters">
+            <button class="filter-btn active" data-filter="all">
+              <i class="fas fa-globe"></i>
+              All Posts
+            </button>
+            <button class="filter-btn" data-filter="showcase">
+              <i class="fas fa-images"></i>
+              Showcase
+            </button>
+            <button class="filter-btn" data-filter="selling">
+              <i class="fas fa-shopping-bag"></i>
+              Marketplace
+            </button>
+          </div>
+        </div>
+
+        <!-- Posts Feed -->
+        <div class="posts-feed" id="postsFeed">
+          <!-- Loading skeleton -->
+          <div class="loading-skeleton" id="postsLoading">
+            <div class="skeleton-post"></div>
+            <div class="skeleton-post"></div>
+            <div class="skeleton-post"></div>
+          </div>
+
+          <!-- Posts will be dynamically loaded here -->
+        </div>
+
+        <!-- Load More Button -->
+        <div
+          class="load-more-container"
+          style="display: none"
+          id="loadMoreContainer"
+        >
+          <button class="load-more-btn" id="loadMoreBtn">
+            <span class="btn-shimmer"></span>
+            <i class="fas fa-chevron-down"></i>
+            Load More Posts
+            <span class="remaining-badge" id="remainingBadge"></span>
+          </button>
+        </div>
+
+        <!-- No Posts Message -->
+        <div class="no-posts-message" id="noPostsMessage" style="display: none">
+          <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h3>No Posts Yet</h3>
+            <p>Be the first to share something amazing!</p>
+            <button class="btn btn-primary" onclick="handleCreatePostClick()">
+              <i class="fas fa-plus"></i>
+              Create Post
+            </button>
+          </div>
+        </div>
+      </main>
+
+      <!-- Right Sidebar - Animations & Trending -->
+      <aside class="right-sidebar">
+        <!-- Animated Banner Card -->
+
+        <div class="sidebar-card banner-card">
+          <div class="animated-banner">
+            <div class="banner-content">
+              <div class="floating-icon">
+                <i class="fas fa-rocket"></i>
+              </div>
+              <h3>Start Creating Today!</h3>
+              <p>Share your creativity with the world</p>
+
+              <!-- ✅ CHANGED: Replace onclick with handleCreatePostClick() -->
+              <button class="banner-btn" onclick="handleCreatePostClick()">
+                <i class="fas fa-plus-circle"></i>
+                Create Post
+              </button>
+            </div>
+
+            <!-- Floating particles animation -->
+            <div class="particles">
+              <div class="particle"></div>
+              <div class="particle"></div>
+              <div class="particle"></div>
+              <div class="particle"></div>
+              <div class="particle"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sidebar-card stats-card">
+          <div class="card-header">
+            <h2 class="card-title" style="font-size: 20px">
+              <i class="fas fa-chart-line"></i>
+
+              Creator Snapshot
+            </h2>
+          </div>
+          <div class="stat-item">
+            <i class="fas fa-users"></i>
+            <div class="stat-info">
+              <span class="stat-number" id="totalUsers">---</span>
+              <span class="stat-label">Total Users</span>
+            </div>
+          </div>
+          <div class="stat-item">
+            <i class="fas fa-image"></i>
+            <div class="stat-info">
+              <span class="stat-number" id="totalPosts">---</span>
+              <span class="stat-label">Posts Today</span>
+            </div>
+          </div>
+          <!-- ✅ CHANGED: Active Now → Total Posts -->
+          <div class="stat-item">
+            <i class="fas fa-chart-line"></i>
+            <div class="stat-info">
+              <span class="stat-number" id="allPosts">---</span>
+              <span class="stat-label">Total Posts</span>
+            </div>
+          </div>
+        </div>
+        <!-- Trending Tags -->
+        <!-- Trending Tags -->
+        <div class="sidebar-card trending-card">
+          <div class="card-header">
+            <h2 class="card-title">
+              <i class="fas fa-fire"></i>
+              Trending Now
+            </h2>
+          </div>
+          <div class="trending-list" id="trendingList">
+            <!-- populated dynamically by loadTrendingCategories() -->
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Scroll to Top Button -->
+    <button class="scroll-to-top" id="scrollToTop">
+      <i class="fas fa-arrow-up"></i>
+    </button>
+
+    <!-- Toast Notification Styles -->
+    <style>
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        padding: 15px 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 10000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+      }
+
+      .toast.show {
+        transform: translateX(0);
+      }
+
+      .toast-error {
+        background: #fee;
+        color: #c33;
+        border-left: 4px solid #c33;
+      }
+
+      .toast-success {
+        background: #efe;
+        color: #3c3;
+        border-left: 4px solid #3c3;
+      }
+
+      .toast i {
+        font-size: 1.2rem;
+      }
+
+      [data-theme="dark"] .toast {
+        background: #27272a;
+        color: #e4e4e7;
+      }
+
+      [data-theme="dark"] .toast-error {
+        background: #3f1f1f;
+        color: #ff6b6b;
+        border-left-color: #ff6b6b;
+      }
+
+      [data-theme="dark"] .toast-success {
+        background: #1f3f1f;
+        color: #51cf66;
+        border-left-color: #51cf66;
+      }
+    </style>
+
+    <!-- ✅ CRITICAL: Add JavaScript file -->
+    <script src="js/home-content.js"></script>
+    <!-- Clear All Notifications Confirmation Modal -->
+    <div
+      class="clear-notifications-modal-overlay"
+      id="clearNotificationsModalOverlay"
+    >
+      <div class="clear-notifications-modal">
+        <div class="clear-notifications-modal-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 class="clear-notifications-modal-title">
+          Clear All Notifications?
+        </h3>
+        <p class="clear-notifications-modal-text">
+          Are you sure you want to delete all notifications? This action cannot
+          be undone.
+        </p>
+        <div class="clear-notifications-modal-actions">
+          <button class="btn-cancel-clear" id="btnCancelClear">
+            <i class="fas fa-times"></i>
+            Cancel
+          </button>
+          <button class="btn-confirm-clear" id="btnConfirmClear">
+            <i class="fas fa-trash"></i>
+            Clear All
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Mobile Floating Notification Button (Hidden on desktop) -->
+    <button
+      class="mobile-notifications-btn"
+      id="mobileNotificationsBtn"
+      onclick="openMobileNotifications()"
+    >
+      <i class="fas fa-bell"></i>
+      <span class="mobile-notification-badge" id="mobileNotificationBadge"
+        >0</span
+      >
+    </button>
+
+    <!-- Mobile Notifications Panel Modal -->
+    <div class="mobile-notifications-modal" id="mobileNotificationsModal">
+      <div
+        class="mobile-notifications-overlay"
+        onclick="closeMobileNotifications()"
+      >
+        <div
+          class="mobile-notifications-panel"
+          onclick="event.stopPropagation()"
+        >
+          <!-- Header -->
+          <div class="mobile-notifications-header">
+            <h3>
+              <i class="fas fa-bell"></i>
+              Notifications
+            </h3>
+            <button
+              class="mobile-notifications-close"
+              onclick="closeMobileNotifications()"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Notifications List -->
+          <div class="mobile-notifications-list" id="mobileNotificationsList">
+            <!-- Will be populated with notifications -->
+            <div class="notifications-loading">
+              <i class="fas fa-spinner fa-spin"></i>
+              <p>Loading notifications...</p>
+            </div>
+          </div>
+
+          <!-- Footer Actions -->
+          <div class="mobile-notifications-footer">
+            <button
+              class="mobile-notification-action-btn"
+              onclick="markAllNotificationsAsRead(); closeMobileNotifications();"
+            >
+              <i class="fas fa-check-double"></i>
+              Mark All Read
+            </button>
+            <button
+              class="mobile-notification-action-btn clear-btn"
+              onclick="clearAllNotifications()"
+            >
+              <i class="fas fa-trash"></i>
+              Clear All
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>

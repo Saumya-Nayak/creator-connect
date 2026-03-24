@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login - Creator Connect</title>
+    <link rel="icon" type="image/png" href="../images/logo2.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+
+    <link rel="stylesheet" href="../css/admin/admin-auth.css" />
+  </head>
+  <body>
+    <div class="login-container">
+      <!-- Left Panel - Image -->
+      <div class="left-panel">
+        <div class="image-wrapper">
+          <img
+            src="../images/loginbeside.jpg"
+            alt="Login Illustration"
+            class="login-illustration"
+          />
+        </div>
+      </div>
+
+      <!-- Right Panel - Login Form -->
+      <div class="right-panel">
+        <div class="login-box">
+          <!-- Logo Section -->
+          <div class="logo-section">
+            <img
+              src="../images/logo2.png"
+              alt="Creator Connect Logo"
+              class="logo"
+            />
+          </div>
+
+          <!-- Form Header -->
+          <div class="form-header">
+            <h2 class="form-title">Login as a Admin User</h2>
+          </div>
+
+          <!-- Alert Container -->
+          <div id="alertContainer"></div>
+
+          <!-- Login Form -->
+          <form id="adminLoginForm">
+            <!-- Email -->
+            <div class="form-group">
+              <div class="input-wrapper">
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  class="form-control"
+                  placeholder="Email"
+                  required
+                  autocomplete="email"
+                />
+                <i class="fas fa-user input-icon"></i>
+              </div>
+            </div>
+
+            <!-- Password -->
+            <div class="form-group">
+              <div class="input-wrapper">
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  class="form-control"
+                  placeholder="Password"
+                  required
+                  autocomplete="current-password"
+                />
+                <i class="fas fa-eye input-icon" onclick="togglePassword()"></i>
+              </div>
+            </div>
+
+            <!-- Options -->
+            <div class="form-options">
+              <label class="remember-me">
+                <input type="checkbox" id="rememberMe" name="rememberMe" />
+                <span>Remember me</span>
+              </label>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="login-btn" id="loginBtn">LOGIN</button>
+          </form>
+
+          <!-- Back Link -->
+          <div class="back-link">
+            <a href="../home.html">
+              <i class="fas fa-arrow-left"></i>
+              get back to home page?
+            </a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="loading-spinner">
+        <div class="spinner"></div>
+        <p>Authenticating...</p>
+      </div>
+    </div>
+
+    <script src="../js/admin/admin-auth.js">
+      // ===== ADMIN AUTHENTICATION =====
+    </script>
+  </body>
+</html>

@@ -1,0 +1,80 @@
+<nav class="navbar">
+  <!-- Logo -->
+  <div class="logo">
+    <img src="images/logo2.png" width="60" />
+    <span class="logo-text">Creator Connect</span>
+  </div>
+
+  <!-- Desktop nav links -->
+  <div class="nav-center">
+    <a href="home.html" class="nav-item active"
+      ><i class="fas fa-home"></i> Home</a
+    >
+    <a href="explore.html" class="nav-item"
+      ><i class="fas fa-compass"></i> Explore</a
+    >
+    <a href="CreatorBazaar.html" class="nav-item"
+      ><i class="fas fa-users"></i> Creator Bazaar</a
+    >
+  </div>
+
+  <!-- Actions -->
+  <div class="nav-actions">
+    <!-- Mobile-only hamburger dropdown -->
+    <div class="mobile-menu-wrapper" id="mobileMenuWrapper">
+      <button
+        class="icon-btn mobile-menu-trigger"
+        id="mobileMenuTrigger"
+        aria-label="Navigation menu"
+      >
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="mobile-nav-dropdown" id="mobileNavDropdown">
+        <a href="home.html" class="mobile-nav-link"
+          ><i class="fas fa-home"></i> Home</a
+        >
+        <a href="explore.html" class="mobile-nav-link"
+          ><i class="fas fa-compass"></i> Explore</a
+        >
+        <a href="CreatorBazaar.html" class="mobile-nav-link"
+          ><i class="fas fa-users"></i> Creator Bazaar</a
+        >
+      </div>
+    </div>
+
+    <!-- Search (desktop only) -->
+    <div class="search-box">
+      <i class="fas fa-search search-icon"></i>
+      <input
+        type="text"
+        class="search-input"
+        placeholder="Search creator or post..."
+      />
+    </div>
+
+    <button class="nav-btn" id="loginBtn">
+      <i class="fas fa-sign-in-alt"></i>
+      <span>Login</span>
+    </button>
+
+    <button class="icon-btn" id="themeToggle">
+      <i class="fas fa-moon" id="themeIcon"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- LOGIN MODAL -->
+<div id="loginModal" class="modal-overlay">
+  <button class="close-modal" onclick="closeLoginModal()">
+    <i class="fas fa-times"></i>
+  </button>
+  <iframe src="login.html"></iframe>
+</div>
+
+<!-- SIGNUP MODAL -->
+<div id="signupModal" class="modal-overlay">
+  <button class="close-modal" onclick="closeSignupModal()">
+    <i class="fas fa-times"></i>
+  </button>
+  <iframe src="registration.html"></iframe>
+</div>

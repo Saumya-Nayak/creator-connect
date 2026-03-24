@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Post Moderation — CreatorConnect Admin</title>
+    <link rel="icon" type="image/png" href="../images/logo2.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/admin/admin-posts.css" />
+  </head>
+  <body>
+    <!-- ── Auth Gate ── -->
+    <div id="authGate">
+      <div style="text-align: center">
+        <div class="auth-spin-ring"></div>
+        <div class="auth-spin-label">Verifying session…</div>
+      </div>
+    </div>
+
+    <!-- ── Sidebar ── -->
+    <iframe
+      id="sidebarFrame"
+      src="admin-sidebar.html"
+      title="Admin Sidebar"
+      scrolling="no"
+      allowtransparency="true"
+      onload="syncSidebarState()"
+    ></iframe>
+
+    <!-- ── Logout Modal (in parent window = center of page) ── -->
+    <div class="logout-modal-backdrop" id="logoutModal">
+      <div class="logout-modal-box">
+        <div class="logout-glow"></div>
+        <div class="logout-modal-icon">
+          <i class="fas fa-right-from-bracket"></i>
+        </div>
+        <div class="logout-modal-title">Leaving so soon?</div>
+        <div class="logout-modal-desc">
+          You'll be signed out of the admin panel.<br />Any unsaved changes may
+          be lost.
+        </div>
+        <div class="logout-modal-actions">
+          <button class="logout-btn-cancel" id="logoutCancelBtn">
+            <i class="fas fa-xmark"></i> Stay
+          </button>
+          <button class="logout-btn-confirm" id="logoutConfirmBtn">
+            <i class="fas fa-right-from-bracket"></i> Yes, Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Main ── -->
+    <main class="main" id="mainContent">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Post <span>Moderation</span></div>
+          <div class="page-sub">
+            Review, filter and moderate all platform posts across types and
+            categories.
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="scard c-pink">
+          <div class="scard-icon"><i class="fas fa-photo-film"></i></div>
+          <div class="scard-val" id="sv-total">—</div>
+          <div class="scard-label">Total Posts</div>
+          <div class="scard-badge up">
+            <i class="fas fa-circle-check"></i> All Types
+          </div>
+          <div class="scard-bg"><i class="fas fa-photo-film"></i></div>
+        </div>
+        <div class="scard c-blue">
+          <div class="scard-icon"><i class="fas fa-images"></i></div>
+          <div class="scard-val" id="sv-showcase">—</div>
+          <div class="scard-label">Showcase</div>
+          <div class="scard-badge info">
+            <i class="fas fa-eye"></i> Portfolio
+          </div>
+          <div class="scard-bg"><i class="fas fa-images"></i></div>
+        </div>
+        <div class="scard c-purple">
+          <div class="scard-icon"><i class="fas fa-briefcase"></i></div>
+          <div class="scard-val" id="sv-service">—</div>
+          <div class="scard-label">Services</div>
+          <div class="scard-badge purple">
+            <i class="fas fa-handshake"></i> Offerings
+          </div>
+          <div class="scard-bg"><i class="fas fa-briefcase"></i></div>
+        </div>
+        <div class="scard c-orange">
+          <div class="scard-icon"><i class="fas fa-shopping-bag"></i></div>
+          <div class="scard-val" id="sv-product">—</div>
+          <div class="scard-label">Products</div>
+          <div class="scard-badge warn">
+            <i class="fas fa-tag"></i> For Sale
+          </div>
+          <div class="scard-bg"><i class="fas fa-shopping-bag"></i></div>
+        </div>
+        <div class="scard c-red">
+          <div class="scard-icon"><i class="fas fa-eye-slash"></i></div>
+          <div class="scard-val" id="sv-inactive">—</div>
+          <div class="scard-label">Deactivated</div>
+          <div class="scard-badge danger">
+            <i class="fas fa-ban"></i> Hidden
+          </div>
+          <div class="scard-bg"><i class="fas fa-eye-slash"></i></div>
+        </div>
+        <div class="scard c-green">
+          <div class="scard-icon"><i class="fas fa-calendar-plus"></i></div>
+          <div class="scard-val" id="sv-new">—</div>
+          <div class="scard-label">New This Month</div>
+          <div class="scard-badge up">
+            <i class="fas fa-calendar"></i> 30 Days
+          </div>
+          <div class="scard-bg"><i class="fas fa-calendar-plus"></i></div>
+        </div>
+      </div>
+
+      <!-- Charts — collapsed by default, click to expand -->
+      <div class="charts-section" id="chartsSection">
+        <div class="charts-toggle-hint" id="chartsToggle">
+          <i class="fas fa-chevron-down"></i>
+          <span>Analytics Charts — click to expand</span>
+          <div class="hint-bar"></div>
+        </div>
+        <div class="charts-row" id="chartsRow">
+          <div class="chart-card">
+            <div class="chart-card-title">
+              <i class="fas fa-chart-pie"></i> Posts by Type
+            </div>
+            <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
+          </div>
+          <div class="chart-card">
+            <div class="chart-card-title">
+              <i class="fas fa-chart-line"></i> Posts Created per Week
+            </div>
+            <div class="chart-wrap"><canvas id="lineChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input
+            class="search-input"
+            id="searchInput"
+            type="text"
+            placeholder="Search by title, caption, creator…"
+            autocomplete="off"
+          />
+        </div>
+        <select class="filter-select" id="typeFilter">
+          <option value="">All Types</option>
+          <option value="showcase">Showcase</option>
+          <option value="service">Service</option>
+          <option value="product">Product</option>
+        </select>
+        <select class="filter-select" id="privacyFilter">
+          <option value="">All Privacy</option>
+          <option value="public">Public</option>
+          <option value="followers">Followers Only</option>
+        </select>
+        <select class="filter-select" id="categoryFilter">
+          <option value="">All Categories</option>
+        </select>
+        <select class="filter-select" id="statusFilter">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Deactivated</option>
+        </select>
+        <select class="filter-select" id="limitSelect">
+          <option value="15" selected>15 / page</option>
+          <option value="30">30 / page</option>
+          <option value="50">50 / page</option>
+        </select>
+        <div class="view-toggle">
+          <button
+            class="vt-btn active"
+            id="gridViewBtn"
+            title="Card view"
+            onclick="setView('grid')"
+          >
+            <i class="fas fa-grip"></i>
+          </button>
+          <button
+            class="vt-btn"
+            id="listViewBtn"
+            title="Table view"
+            onclick="setView('list')"
+          >
+            <i class="fas fa-list"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Card View -->
+      <div class="posts-grid" id="postsGrid"></div>
+
+      <!-- Table View -->
+      <div class="table-mode" id="tableMode">
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Thumbnail & Title</th>
+                  <th>Creator</th>
+                  <th>Type</th>
+                  <th>Privacy</th>
+                  <th>Category</th>
+                  <th>Likes</th>
+                  <th>Comments</th>
+                  <th>Date</th>
+                  <th>Status</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="postsTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="pagination" id="pagination"></div>
+    </main>
+
+    <!-- ── Detail Drawer ── -->
+    <div
+      class="drawer-backdrop"
+      id="drawerBackdrop"
+      onclick="closeDrawer()"
+    ></div>
+    <div class="drawer" id="drawer">
+      <div class="drawer-header">
+        <div class="drawer-title">Post Details</div>
+        <button class="drawer-close" onclick="closeDrawer()">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+      <div class="drawer-body" id="drawerBody"></div>
+      <div class="drawer-footer" id="drawerFooter"></div>
+    </div>
+
+    <!-- ── Confirm Modal ── -->
+    <div class="modal-backdrop" id="confirmModal">
+      <div class="modal-box" id="confirmModalBox">
+        <div class="modal-icon" id="confirmIcon">
+          <i class="fas fa-eye-slash"></i>
+        </div>
+        <div class="modal-title" id="confirmTitle">Deactivate Post</div>
+        <div class="modal-desc" id="confirmDesc">
+          This post will be hidden from the platform. You can reactivate it
+          anytime.
+        </div>
+        <div class="modal-actions">
+          <button
+            class="modal-btn modal-btn-cancel"
+            onclick="closeConfirmModal()"
+          >
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button class="modal-btn modal-btn-warn" id="confirmActionBtn">
+            <i class="fas fa-eye-slash"></i> Deactivate
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <script src="../js/admin/admin-posts.js"></script>
+  </body>
+</html>

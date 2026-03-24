@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Management — CreatorConnect Admin</title>
+    <link rel="icon" type="image/png" href="../images/logo2.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/admin/users.css" />
+  </head>
+  <body>
+    <!-- ══ AUTH GATE ══ -->
+    <div id="authGate">
+      <div style="text-align: center">
+        <div class="auth-spin-ring" style="margin: 0 auto"></div>
+        <div class="auth-spin-label">Verifying session…</div>
+      </div>
+    </div>
+
+    <!-- ══ SIDEBAR ══ -->
+    <iframe
+      id="sidebarFrame"
+      src="admin-sidebar.html"
+      title="Admin Sidebar"
+      scrolling="no"
+      allowtransparency="true"
+      onload="syncSidebarState()"
+    ></iframe>
+
+    <!-- ══ MAIN ══ -->
+    <main class="main" id="mainContent">
+      <!-- Header -->
+      <div class="page-header">
+        <div>
+          <div class="page-title">User <span>Management</span></div>
+          <div class="page-sub">
+            View, search, filter and manage all platform users.
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="scard c-pink">
+          <div class="scard-icon"><i class="fas fa-users"></i></div>
+          <div class="scard-val" id="sv-total">—</div>
+          <div class="scard-label">Total Users</div>
+          <div class="scard-badge up">
+            <i class="fas fa-circle-check"></i> All Roles
+          </div>
+          <div class="scard-bg"><i class="fas fa-users"></i></div>
+        </div>
+        <div class="scard c-blue">
+          <div class="scard-icon"><i class="fas fa-user-tie"></i></div>
+          <div class="scard-val" id="sv-admins">—</div>
+          <div class="scard-label">Admins</div>
+          <div class="scard-badge info">
+            <i class="fas fa-shield-halved"></i> Full Access
+          </div>
+          <div class="scard-bg"><i class="fas fa-user-tie"></i></div>
+        </div>
+        <div class="scard c-green">
+          <div class="scard-icon"><i class="fas fa-paintbrush"></i></div>
+          <div class="scard-val" id="sv-creators">—</div>
+          <div class="scard-label">Creators</div>
+          <div class="scard-badge up"><i class="fas fa-star"></i> Active</div>
+          <div class="scard-bg"><i class="fas fa-paintbrush"></i></div>
+        </div>
+        <div class="scard c-red">
+          <div class="scard-icon"><i class="fas fa-lock"></i></div>
+          <div class="scard-val" id="sv-locked">—</div>
+          <div class="scard-label">Locked Accounts</div>
+          <div class="scard-badge danger">
+            <i class="fas fa-triangle-exclamation"></i> Suspended
+          </div>
+          <div class="scard-bg"><i class="fas fa-lock"></i></div>
+        </div>
+        <div class="scard c-orange">
+          <div class="scard-icon"><i class="fas fa-signal"></i></div>
+          <div class="scard-val" id="sv-active">—</div>
+          <div class="scard-label">Active This Week</div>
+          <div class="scard-badge warn">
+            <i class="fas fa-clock"></i> 7 Days
+          </div>
+          <div class="scard-bg"><i class="fas fa-signal"></i></div>
+        </div>
+        <div class="scard c-yellow">
+          <div class="scard-icon"><i class="fas fa-user-plus"></i></div>
+          <div class="scard-val" id="sv-new">—</div>
+          <div class="scard-label">New This Month</div>
+          <div class="scard-badge info">
+            <i class="fas fa-calendar"></i> 30 Days
+          </div>
+          <div class="scard-bg"><i class="fas fa-user-plus"></i></div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input
+            class="search-input"
+            id="searchInput"
+            type="text"
+            placeholder="Search by name, username or email…"
+            autocomplete="off"
+          />
+        </div>
+        <select class="filter-select" id="roleFilter">
+          <option value="">All Roles</option>
+          <option value="0">Creators</option>
+          <option value="1">Admins</option>
+        </select>
+        <select class="filter-select" id="statusFilter">
+          <option value="">All Status</option>
+          <option value="active">Active</option>
+          <option value="locked">Locked</option>
+        </select>
+        <select class="filter-select" id="limitSelect">
+          <option value="12">12 / page</option>
+          <option value="24" selected>24 / page</option>
+          <option value="48">48 / page</option>
+        </select>
+        <div class="view-toggle">
+          <button
+            class="vt-btn active"
+            id="gridViewBtn"
+            title="Grid view"
+            onclick="setView('grid')"
+          >
+            <i class="fas fa-grip"></i>
+          </button>
+          <button
+            class="vt-btn"
+            id="listViewBtn"
+            title="List view"
+            onclick="setView('list')"
+          >
+            <i class="fas fa-list"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Users container -->
+      <div class="users-grid" id="usersGrid"></div>
+
+      <!-- Pagination -->
+      <div class="pagination" id="pagination"></div>
+      <div class="logout-modal-backdrop" id="logoutModal">
+        <div class="logout-modal-box">
+          <div class="logout-glow"></div>
+          <div class="logout-modal-icon">
+            <i class="fas fa-right-from-bracket"></i>
+          </div>
+          <div class="logout-modal-title">Leaving so soon?</div>
+          <div class="logout-modal-desc">
+            You'll be signed out of the admin panel.<br />Any unsaved changes
+            may be lost.
+          </div>
+          <div class="logout-modal-actions">
+            <button class="logout-btn-cancel" id="logoutCancelBtn">
+              <i class="fas fa-xmark"></i> Stay
+            </button>
+            <button class="logout-btn-confirm" id="logoutConfirmBtn">
+              <i class="fas fa-right-from-bracket"></i> Yes, Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ══ DETAIL DRAWER ══ -->
+    <div
+      class="drawer-backdrop"
+      id="drawerBackdrop"
+      onclick="closeDrawer()"
+    ></div>
+    <div class="drawer" id="drawer">
+      <div class="drawer-header">
+        <div class="drawer-title">User Details</div>
+        <button class="drawer-close" onclick="closeDrawer()">
+          <i class="fas fa-xmark"></i>
+        </button>
+      </div>
+      <div class="drawer-body" id="drawerBody">
+        <!-- injected dynamically -->
+      </div>
+      <div class="drawer-footer" id="drawerFooter">
+        <!-- injected dynamically -->
+      </div>
+    </div>
+
+    <!-- ══ SUSPEND MODAL ══ -->
+    <div class="modal-backdrop" id="suspendModal">
+      <div class="modal-box">
+        <div class="modal-icon"><i class="fas fa-ban"></i></div>
+        <div class="modal-title">Suspend User</div>
+        <div class="modal-desc">
+          This will lock the account and prevent login until the specified time.
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Duration</label>
+          <select class="modal-select" id="suspendDuration">
+            <option value="1">1 Hour</option>
+            <option value="6">6 Hours</option>
+            <option value="24" selected>24 Hours (1 Day)</option>
+            <option value="72">72 Hours (3 Days)</option>
+            <option value="168">1 Week</option>
+            <option value="720">30 Days</option>
+            <option value="8760">1 Year</option>
+          </select>
+        </div>
+        <div class="modal-field">
+          <label class="modal-label">Reason (internal note)</label>
+          <input
+            class="modal-input"
+            id="suspendReason"
+            type="text"
+            placeholder="e.g. Violation of community guidelines"
+          />
+        </div>
+        <div class="modal-actions">
+          <button
+            class="modal-btn modal-btn-cancel"
+            onclick="closeSuspendModal()"
+          >
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button class="modal-btn modal-btn-confirm" id="suspendConfirmBtn">
+            <i class="fas fa-ban"></i> Suspend
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TOAST CONTAINER ══ -->
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <script src="../js/admin/users.js"></script>
+  </body>
+</html>

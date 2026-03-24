@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Sidebar — Creator Connect</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="icon" type="image/png" href="../images/logo2.png" />
+    <link rel="stylesheet" href="../css/admin/admin-sidebar.css" />
+  </head>
+  <body>
+    <aside class="sidebar" id="sidebar">
+      <a class="brand" href="#" id="brandLink">
+        <div class="brand-logo">
+          <img
+            src="../images/logo2.png"
+            alt="Logo"
+            onerror="this.style.display='none';this.parentElement.innerHTML='<i class=\'fas fa-shield-halved\' style=\'font-size:1.1rem;color:#fff;\'></i>';"
+          />
+        </div>
+        <div class="brand-copy">
+          <span class="brand-name">CreatorConnect</span>
+          <span class="brand-tag">Admin Panel</span>
+          <span class="brand-live"
+            ><span class="brand-live-dot"></span>Live</span
+          >
+        </div>
+      </a>
+
+      <div class="nav-body">
+        <span class="nav-label">Main</span>
+        <a class="nav-item" href="dashboard.html" data-page="dashboard">
+          <div class="ni"><i class="fas fa-chart-pie"></i></div>
+          <span class="nl">Dashboard</span><span class="nt">Dashboard</span>
+        </a>
+        <div class="nav-sep"></div>
+        <span class="nav-label">Management</span>
+        <a class="nav-item" href="users.html" data-page="users">
+          <div class="ni"><i class="fas fa-users"></i></div>
+          <span class="nl">User Management</span
+          ><span class="nb purple" id="badge-users">—</span
+          ><span class="nt">Users</span>
+        </a>
+        <a class="nav-item" href="admin-posts.html" data-page="admin-posts">
+          <div class="ni"><i class="fas fa-photo-film"></i></div>
+          <span class="nl">Post Moderation</span><span class="nt">Posts</span>
+        </a>
+        <a class="nav-item" href="categories.html" data-page="categories">
+          <div class="ni"><i class="fas fa-layer-group"></i></div>
+          <span class="nl">Categories</span
+          ><span class="nb blue" id="badge-categories">—</span
+          ><span class="nt">Categories</span>
+        </a>
+        <div class="nav-sep"></div>
+        <span class="nav-label">Commerce</span>
+        <a class="nav-item" href="admin-orders.html" data-page="orders">
+          <div class="ni"><i class="fas fa-bag-shopping"></i></div>
+          <span class="nl">Orders</span
+          ><span class="nb orange" id="badge-orders">—</span
+          ><span class="nt">Orders</span>
+        </a>
+        <a class="nav-item" href="admin-bookings.html" data-page="bookings">
+          <div class="ni"><i class="fas fa-calendar-check"></i></div>
+          <span class="nl">Bookings</span
+          ><span class="nb orange" id="badge-bookings">—</span
+          ><span class="nt">Bookings</span>
+        </a>
+        <a class="nav-item" href="financial.html" data-page="financial">
+          <div class="ni"><i class="fas fa-wallet"></i></div>
+          <span class="nl">Financial / Payouts</span
+          ><span class="nb red" id="badge-withdrawals">—</span
+          ><span class="nt">Financial</span>
+        </a>
+        <div class="nav-sep"></div>
+        <span class="nav-label">Platform</span>
+        <a class="nav-item" href="support.html" data-page="support">
+          <div class="ni"><i class="fas fa-headset"></i></div>
+          <span class="nl">Support &amp; Help</span
+          ><span class="nb red" id="badge-tickets">—</span
+          ><span class="nt">Support</span>
+        </a>
+        <a
+          class="nav-item"
+          href="knowledge-base.html"
+          data-page="knowledge-base"
+        >
+          <div class="ni"><i class="fas fa-book-open"></i></div>
+          <span class="nl">Knowledge Base</span
+          ><span class="nb green" id="badge-articles">—</span
+          ><span class="nt">Knowledge Base</span>
+        </a>
+        <a class="nav-item" href="analytics.html" data-page="analytics">
+          <div class="ni"><i class="fas fa-chart-line"></i></div>
+          <span class="nl">Analytics &amp; Reports</span
+          ><span class="nt">Analytics</span>
+        </a>
+        <a class="nav-item" href="settings.html" data-page="settings">
+          <div class="ni"><i class="fas fa-gear"></i></div>
+          <span class="nl">Admin Settings</span><span class="nt">Settings</span>
+        </a>
+      </div>
+
+      <div class="sb-footer">
+        <div class="footer-row">
+          <div class="theme-pill">
+            <button class="tp-btn" id="lightBtn" title="Light">☀️</button>
+            <button class="tp-btn on" id="darkBtn" title="Dark">🌙</button>
+          </div>
+          <button class="logout-btn" id="logoutBtn">
+            <i class="fas fa-arrow-right-from-bracket"></i>
+            <span class="lbl-txt">Logout</span>
+          </button>
+        </div>
+        <button class="collapse-btn" id="collapseBtn">
+          <i class="fas fa-chevron-left"></i>
+          <span class="cb-txt">Collapse Sidebar</span>
+        </button>
+      </div>
+    </aside>
+
+    <script src="../js/admin/admin-sidebar.js"></script>
+  </body>
+</html>

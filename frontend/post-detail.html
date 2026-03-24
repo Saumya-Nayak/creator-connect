@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Post Details - Creator Connect</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link rel="stylesheet" href="css/post-detail.css" />
+  </head>
+  <body>
+    <!-- Loading State -->
+    <div class="loading-overlay" id="loadingOverlay">
+      <div class="spinner"></div>
+      <p>Loading post...</p>
+    </div>
+
+    <!-- Error State -->
+    <div class="error-container" id="errorContainer" style="display: none">
+      <div class="error-content">
+        <i class="fas fa-exclamation-circle"></i>
+        <h2>Post Not Found</h2>
+        <p>The post you're looking for doesn't exist or has been removed.</p>
+        <button
+          class="btn-primary"
+          onclick="window.parent.postMessage({action: 'closeModal'}, '*')"
+        >
+          <i class="fas fa-times"></i> Close
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div
+      class="post-detail-container"
+      id="postDetailContainer"
+      style="display: none"
+    >
+      <!-- Header -->
+      <div class="post-detail-header">
+        <div class="post-author-info">
+          <img src="" alt="Profile" class="author-avatar" id="authorAvatar" />
+          <div class="author-details">
+            <h3 class="author-name" id="authorName">Loading...</h3>
+            <p class="author-username" id="authorUsername">@username</p>
+            <span class="post-time" id="postTime">Just now</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content Area -->
+      <div class="post-detail-body">
+        <!-- Left: Media -->
+        <div class="post-media-section">
+          <div class="media-container" id="mediaContainer">
+            <!-- Media will be loaded here -->
+          </div>
+
+          <!-- Category Badge -->
+          <div
+            class="category-badge"
+            id="categoryBadge"
+            style="display: none"
+          ></div>
+        </div>
+
+        <!-- Right: Details -->
+        <div class="post-details-section">
+          <!-- Post Type Badge -->
+          <div class="post-type-badge" id="postTypeBadge"></div>
+
+          <!-- Caption -->
+          <div class="post-caption-section" id="captionSection">
+            <p class="post-caption" id="postCaption"></p>
+          </div>
+
+          <!-- Tags (Showcase) -->
+          <div class="post-tags-section" id="tagsSection" style="display: none">
+            <div class="tags-container" id="tagsContainer"></div>
+          </div>
+
+          <!-- Product/Service Details -->
+          <div
+            class="selling-details"
+            id="sellingDetails"
+            style="display: none"
+          >
+            <h2 class="item-title" id="itemTitle"></h2>
+            <div class="price-section">
+              <span class="price-amount" id="priceAmount"></span>
+              <span class="price-currency" id="priceCurrency"></span>
+            </div>
+
+            <!-- Description -->
+            <div class="description-section" id="descriptionSection">
+              <h4><i class="fas fa-info-circle"></i> Description</h4>
+              <p id="itemDescription"></p>
+            </div>
+
+            <!-- Features -->
+            <div
+              class="features-section"
+              id="featuresSection"
+              style="display: none"
+            >
+              <h4><i class="fas fa-check-circle"></i> Features</h4>
+              <ul id="featuresList"></ul>
+            </div>
+
+            <!-- Service-specific Info -->
+            <div class="service-info" id="serviceInfo" style="display: none">
+              <div class="info-grid">
+                <div class="info-item" id="durationInfo" style="display: none">
+                  <i class="fas fa-clock"></i>
+                  <div>
+                    <span class="info-label">Duration</span>
+                    <span class="info-value" id="serviceDuration"></span>
+                  </div>
+                </div>
+                <div class="info-item" id="deliveryInfo" style="display: none">
+                  <i class="fas fa-shipping-fast"></i>
+                  <div>
+                    <span class="info-label">Delivery Time</span>
+                    <span class="info-value" id="serviceDelivery"></span>
+                  </div>
+                </div>
+                <div class="info-item" id="revisionsInfo" style="display: none">
+                  <i class="fas fa-redo"></i>
+                  <div>
+                    <span class="info-label">Revisions</span>
+                    <span class="info-value" id="serviceRevisions"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product-specific Info -->
+            <div class="product-info" id="productInfo" style="display: none">
+              <div class="info-grid">
+                <div class="info-item" id="stockInfo" style="display: none">
+                  <i class="fas fa-box"></i>
+                  <div>
+                    <span class="info-label">Stock</span>
+                    <span class="info-value" id="productStock"></span>
+                  </div>
+                </div>
+                <div class="info-item" id="conditionInfo" style="display: none">
+                  <i class="fas fa-star"></i>
+                  <div>
+                    <span class="info-label">Condition</span>
+                    <span class="info-value" id="productCondition"></span>
+                  </div>
+                </div>
+                <div class="info-item" id="shippingInfo" style="display: none">
+                  <i class="fas fa-truck"></i>
+                  <div>
+                    <span class="info-label">Shipping</span>
+                    <span class="info-value" id="productShipping"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Payment Methods -->
+            <div
+              class="payment-methods-section"
+              id="paymentMethodsSection"
+              style="display: none"
+            >
+              <h4><i class="fas fa-credit-card"></i> Payment Methods</h4>
+              <div class="payment-badges" id="paymentBadges"></div>
+            </div>
+
+            <!-- Contact Seller -->
+            <div
+              class="contact-section"
+              id="contactSection"
+              style="display: none"
+            >
+              <h4><i class="fas fa-phone"></i> Contact Seller</h4>
+              <div class="contact-buttons" id="contactButtons"></div>
+            </div>
+          </div>
+
+          <!-- Engagement Stats -->
+          <div class="engagement-stats">
+            <div class="stat-item">
+              <i class="fas fa-heart"></i>
+              <span id="likesCount">0</span>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-comment"></i>
+              <span id="commentsCount">0</span>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-share"></i>
+              <span id="sharesCount">0</span>
+            </div>
+            <div class="stat-item" id="viewsCount" style="display: none">
+              <i class="fas fa-eye"></i>
+              <span id="viewsNumber">0</span>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="action-buttons-section">
+            <button class="action-btn like-btn" id="likeBtn">
+              <i class="far fa-heart"></i>
+              <span>Like</span>
+            </button>
+            <button class="action-btn comment-btn" id="commentBtn">
+              <i class="far fa-comment"></i>
+              <span>Comment</span>
+            </button>
+            <button class="action-btn share-btn" id="shareBtn">
+              <i class="fas fa-share"></i>
+              <span>Share</span>
+            </button>
+            <!-- In post-detail.html, add this button in the action-buttons-section -->
+            <button class="action-btn save-btn" id="saveBtn">
+              <i class="far fa-bookmark"></i>
+              <span>Save</span>
+            </button>
+          </div>
+
+          <!-- Buy/Book Button for Selling Posts -->
+          <div
+            class="purchase-section"
+            id="purchaseSection"
+            style="display: none"
+          >
+            <button class="btn-purchase" id="purchaseBtn">
+              <i class="fas fa-shopping-cart"></i>
+              <span id="purchaseText">Buy Now</span>
+            </button>
+          </div>
+
+          <!-- ✅ NEW: Comments Section -->
+          <!-- ✅ NEW: Comments Section -->
+          <div class="comments-section" id="commentsSection">
+            <div class="comments-header">
+              <div class="comments-header-left">
+                <h3>
+                  <i class="fas fa-comments"></i>
+                  Comments
+                  <span class="comments-count-badge" id="commentsBadge">0</span>
+                </h3>
+              </div>
+
+              <!-- ✅ Filter Dropdown -->
+              <div class="comment-filter">
+                <button class="filter-btn" id="filterBtn">
+                  <i class="fas fa-sort"></i>
+                  <span id="filterText">Newest</span>
+                  <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="filter-dropdown" id="filterDropdown">
+                  <div class="filter-option active" data-sort="newest">
+                    <span>Newest First</span>
+                    <i class="fas fa-check"></i>
+                  </div>
+                  <div class="filter-option" data-sort="oldest">
+                    <span>Oldest First</span>
+                    <i class="fas fa-check"></i>
+                  </div>
+                  <div class="filter-option" data-sort="most_liked">
+                    <span>Most Liked</span>
+                    <i class="fas fa-check"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <!-- Add Comment Form -->
+            <div class="add-comment-form" id="addCommentForm">
+              <div class="comment-input-wrapper">
+                <img
+                  src=""
+                  alt="Your avatar"
+                  class="comment-user-avatar"
+                  id="commentUserAvatar"
+                />
+                <textarea
+                  id="commentInput"
+                  placeholder="Write a comment..."
+                  rows="1"
+                  maxlength="1000"
+                ></textarea>
+              </div>
+              <div class="comment-actions">
+                <span class="char-count" id="charCount">0/1000</span>
+                <button class="btn-post-comment" id="postCommentBtn" disabled>
+                  <i class="fas fa-paper-plane"></i>
+                  Post
+                </button>
+              </div>
+            </div>
+
+            <!-- Comments List -->
+            <div class="comments-list" id="commentsList">
+              <!-- Loading state -->
+              <div class="comments-loading" id="commentsLoading">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading comments...</p>
+              </div>
+
+              <!-- Empty state -->
+              <div
+                class="comments-empty"
+                id="commentsEmpty"
+                style="display: none"
+              >
+                <i class="far fa-comments"></i>
+                <p>No comments yet</p>
+                <span>Be the first to comment!</span>
+              </div>
+
+              <!-- Comments will be loaded here -->
+            </div>
+
+            <!-- Load More Button -->
+            <div
+              class="load-more-comments"
+              id="loadMoreComments"
+              style="display: none"
+            >
+              <button class="btn-load-more" id="loadMoreBtn">
+                <i class="fas fa-chevron-down"></i>
+                Load More Comments
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Delete Confirmation Modal -->
+    <div class="delete-modal-overlay" id="deleteModalOverlay">
+      <div class="delete-modal">
+        <div class="delete-modal-icon">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <h3 class="delete-modal-title">Delete Comment?</h3>
+        <p class="delete-modal-text">
+          Are you sure you want to delete this comment? This action cannot be
+          undone.
+        </p>
+        <div class="delete-modal-actions">
+          <button class="btn-cancel-delete" id="btnCancelDelete">
+            <i class="fas fa-times"></i>
+            Cancel
+          </button>
+          <button class="btn-confirm-delete" id="btnConfirmDelete">
+            <i class="fas fa-trash"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+    </div>
+    <!-- Share Modal (Add before </body>) -->
+    <div class="share-modal" id="shareModal">
+      <div class="share-modal-overlay" onclick="closeShareModal()">
+        <div class="share-modal-content" onclick="event.stopPropagation()">
+          <div class="share-modal-header">
+            <h3><i class="fas fa-share"></i> Share Post</h3>
+            <button class="share-modal-close" onclick="closeShareModal()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <div class="share-options">
+            <button class="share-option-btn" onclick="shareViaLink()">
+              <i class="fas fa-link"></i>
+              <span>Copy Link</span>
+            </button>
+
+            <button class="share-option-btn" onclick="shareViaWhatsApp()">
+              <i class="fab fa-whatsapp"></i>
+              <span>WhatsApp</span>
+            </button>
+
+            <button class="share-option-btn" onclick="shareViaFacebook()">
+              <i class="fab fa-facebook"></i>
+              <span>Facebook</span>
+            </button>
+
+            <button class="share-option-btn" onclick="shareViaTwitter()">
+              <i class="fab fa-twitter"></i>
+              <span>Twitter</span>
+            </button>
+          </div>
+
+          <div class="share-creators-section">
+            <h4><i class="fas fa-paper-plane"></i> Send via Message</h4>
+            <div class="share-creators-search">
+              <i class="fas fa-search"></i>
+              <input
+                type="text"
+                placeholder="Search people you follow..."
+                id="shareSearchInput"
+                oninput="searchUsersForShare(this.value)"
+              />
+            </div>
+
+            <div
+              class="selected-users"
+              id="selectedUsers"
+              style="display: none"
+            >
+              <div class="selected-users-header">
+                <span class="selected-count">0 selected</span>
+                <button
+                  class="clear-selection-btn"
+                  onclick="clearSelectedUsers()"
+                >
+                  <i class="fas fa-times"></i> Clear
+                </button>
+              </div>
+              <div class="selected-users-list" id="selectedUsersList"></div>
+            </div>
+
+            <div class="share-creators-list" id="shareCreatorsList">
+              <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Loading people...</p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="share-modal-footer"
+            id="shareFooter"
+            style="display: none"
+          >
+            <button class="btn-cancel" onclick="closeShareModal()">
+              Cancel
+            </button>
+            <button
+              class="btn-send-share"
+              onclick="sendSharedPost()"
+              id="sendShareBtn"
+            >
+              <i class="fas fa-paper-plane"></i>
+              <span>Send to <span id="shareCount">0</span> people</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script src="js/post-detail.js"></script>
+  </body>
+</html>

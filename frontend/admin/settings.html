@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Settings — CreatorConnect Admin</title>
+    <link rel="icon" type="image/png" href="../images/logo2.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/admin/settings.css" />
+  </head>
+  <body>
+    <div id="authGate">
+      <div style="text-align: center">
+        <div class="auth-spin-ring"></div>
+        <div class="auth-spin-label">Verifying session…</div>
+      </div>
+    </div>
+
+    <iframe
+      id="sidebarFrame"
+      src="admin-sidebar.html"
+      title="Admin Sidebar"
+      scrolling="no"
+      allowtransparency="true"
+      onload="syncSidebarState()"
+    ></iframe>
+
+    <!-- Logout Modal -->
+    <div class="logout-modal-backdrop" id="logoutModal">
+      <div class="logout-modal-box">
+        <div class="logout-modal-icon">
+          <i class="fas fa-right-from-bracket"></i>
+        </div>
+        <div class="logout-modal-title">Leaving so soon?</div>
+        <div class="logout-modal-desc">
+          You'll be signed out of the admin panel.<br />Any unsaved changes may
+          be lost.
+        </div>
+        <div class="logout-modal-actions">
+          <button class="logout-btn-cancel" id="logoutCancelBtn">
+            <i class="fas fa-xmark"></i> Stay
+          </button>
+          <button class="logout-btn-confirm" id="logoutConfirmBtn">
+            <i class="fas fa-right-from-bracket"></i> Yes, Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revoke Session Modal -->
+    <div class="modal-backdrop" id="revokeModal">
+      <div class="modal-box red-top">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon red">
+              <i class="fas fa-shield-xmark"></i>
+            </div>
+            <div class="modal-title">Revoke Session</div>
+          </div>
+          <button class="modal-close" onclick="closeModal('revokeModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <input type="hidden" id="revoke-session-id" />
+        <div
+          style="
+            padding: 14px 16px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 10px;
+            margin-bottom: 16px;
+          "
+        >
+          <div
+            style="
+              font-size: 0.74rem;
+              color: var(--text-secondary);
+              margin-bottom: 5px;
+            "
+          >
+            Session to revoke:
+          </div>
+          <div
+            id="revoke-session-info"
+            style="font-weight: 700; font-size: 0.88rem"
+          >
+            —
+          </div>
+        </div>
+        <div
+          style="
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+          "
+        >
+          This will immediately invalidate the token. The admin will be signed
+          out on their next request.
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('revokeModal')">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-reject"
+            id="revokeConfirmBtn"
+            onclick="confirmRevoke()"
+          >
+            <i class="fas fa-shield-xmark"></i> Revoke Session
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revoke Admin Modal -->
+    <div class="modal-backdrop" id="revokeAdminModal">
+      <div class="modal-box red-top">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon red">
+              <i class="fas fa-user-minus"></i>
+            </div>
+            <div class="modal-title">Remove Admin Access</div>
+          </div>
+          <button class="modal-close" onclick="closeModal('revokeAdminModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <input type="hidden" id="revoke-admin-id" />
+        <div
+          style="
+            padding: 14px 16px;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 10px;
+            margin-bottom: 16px;
+          "
+        >
+          <div
+            style="
+              font-size: 0.74rem;
+              color: var(--text-secondary);
+              margin-bottom: 5px;
+            "
+          >
+            Admin to demote:
+          </div>
+          <div
+            id="revoke-admin-info"
+            style="font-weight: 700; font-size: 0.88rem"
+          >
+            —
+          </div>
+        </div>
+        <div
+          style="
+            font-size: 0.82rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+          "
+        >
+          This will set their role back to a regular user and immediately sign
+          them out of all active sessions.
+        </div>
+        <div class="modal-actions">
+          <button
+            class="modal-btn-cancel"
+            onclick="closeModal('revokeAdminModal')"
+          >
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-reject"
+            id="revokeAdminConfirmBtn"
+            onclick="confirmRevokeAdmin()"
+          >
+            <i class="fas fa-user-minus"></i> Remove Admin
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assign Admin Modal -->
+    <div class="modal-backdrop" id="assignAdminModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div
+              class="modal-title-icon"
+              style="background: var(--primary-light); color: var(--primary)"
+            >
+              <i class="fas fa-user-shield"></i>
+            </div>
+            <div class="modal-title">Assign New Admin</div>
+          </div>
+          <button class="modal-close" onclick="closeModal('assignAdminModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-fg">
+          <label>Search User</label>
+          <div style="position: relative">
+            <input
+              type="text"
+              id="assignSearchInput"
+              placeholder="Type username, name or email…"
+              oninput="onAssignSearch()"
+              autocomplete="off"
+            />
+            <div id="assignSearchResults" class="assign-dropdown"></div>
+          </div>
+        </div>
+        <div
+          id="assignSelectedUser"
+          class="assign-selected-card"
+          style="display: none"
+        ></div>
+        <input type="hidden" id="assignUserId" />
+        <div
+          style="
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            line-height: 1.5;
+          "
+        >
+          <i class="fas fa-info-circle" style="color: var(--blue)"></i>
+          The selected user will gain full admin panel access. This action is
+          logged.
+        </div>
+        <div class="modal-actions">
+          <button
+            class="modal-btn-cancel"
+            onclick="closeModal('assignAdminModal')"
+          >
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-approve"
+            id="assignConfirmBtn"
+            onclick="confirmAssignAdmin()"
+            disabled
+          >
+            <i class="fas fa-user-shield"></i> Assign Admin
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div class="modal-backdrop" id="pwModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div
+              class="modal-title-icon"
+              style="background: var(--primary-light); color: var(--primary)"
+            >
+              <i class="fas fa-key"></i>
+            </div>
+            <div class="modal-title">Change Password</div>
+          </div>
+          <button class="modal-close" onclick="closeModal('pwModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="modal-fg">
+          <label>Current Password *</label>
+          <div class="pw-wrap">
+            <input
+              type="password"
+              id="pw-current"
+              placeholder="Your current password"
+            />
+            <button
+              class="pw-eye"
+              type="button"
+              onclick="togglePw('pw-current',this)"
+            >
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="modal-fg">
+          <label>New Password *</label>
+          <div class="pw-wrap">
+            <input
+              type="password"
+              id="pw-new"
+              placeholder="At least 8 characters"
+            />
+            <button
+              class="pw-eye"
+              type="button"
+              onclick="togglePw('pw-new',this)"
+            >
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="modal-fg">
+          <label>Confirm New Password *</label>
+          <div class="pw-wrap">
+            <input
+              type="password"
+              id="pw-confirm"
+              placeholder="Repeat new password"
+            />
+            <button
+              class="pw-eye"
+              type="button"
+              onclick="togglePw('pw-confirm',this)"
+            >
+              <i class="fas fa-eye"></i>
+            </button>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('pwModal')">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-approve"
+            id="pwSaveBtn"
+            onclick="submitChangePassword()"
+          >
+            <i class="fas fa-key"></i> Update Password
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN -->
+    <main class="main" id="mainContent">
+      <div class="page-header">
+        <div class="page-header-left">
+          <div class="page-title">Admin <span>Settings</span></div>
+          <div class="page-sub">
+            Manage your profile, control admin sessions and assign new
+            administrators.
+          </div>
+        </div>
+      </div>
+
+      <!-- ACCOUNT SECTION -->
+      <div class="account-section">
+        <div class="account-avatar-col">
+          <div class="account-avatar" id="accountAvatarEl">AD</div>
+          <div class="account-name" id="accountAvatarName">Admin</div>
+          <div class="account-role">
+            <i class="fas fa-shield-halved"></i> Administrator
+          </div>
+          <button class="btn-change-pw" onclick="openModal('pwModal')">
+            <i class="fas fa-key"></i> Change Password
+          </button>
+        </div>
+        <div class="account-form-col">
+          <div class="section-label-bar">
+            <i class="fas fa-user-gear"></i> Edit Admin Profile
+          </div>
+          <div class="form-grid-2">
+            <div class="fg">
+              <label>Full Name</label>
+              <input
+                type="text"
+                id="acc-fullname"
+                placeholder="Your full name"
+                oninput="onAccountEdit()"
+              />
+            </div>
+            <div class="fg">
+              <label>Username</label>
+              <input
+                type="text"
+                id="acc-username"
+                placeholder="username"
+                oninput="onAccountEdit()"
+              />
+            </div>
+            <div class="fg">
+              <label>Email Address</label>
+              <input
+                type="email"
+                id="acc-email"
+                placeholder="admin@example.com"
+                oninput="onAccountEdit()"
+              />
+            </div>
+            <div class="fg">
+              <label>Phone</label>
+              <input
+                type="text"
+                id="acc-phone"
+                placeholder="+91 XXXXXXXXXX"
+                oninput="onAccountEdit()"
+              />
+            </div>
+            <div class="fg fg-full">
+              <label>Website URL</label>
+              <input
+                type="text"
+                id="acc-website"
+                placeholder="https://yoursite.com"
+                oninput="onAccountEdit()"
+              />
+            </div>
+          </div>
+          <div class="save-row">
+            <button
+              class="btn-save"
+              id="accountSaveBtn"
+              onclick="saveAccount()"
+              disabled
+            >
+              <i class="fas fa-floppy-disk"></i> Save Profile
+              <span class="unsaved-dot" id="accountDot"></span>
+            </button>
+            <span class="saved-at-label" id="accountSavedAt"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tab-nav">
+        <button class="tab-btn active" onclick="switchTab('sessions',this)">
+          <i class="fas fa-desktop"></i> Admin Sessions
+        </button>
+        <button class="tab-btn" onclick="switchTab('admins',this)">
+          <i class="fas fa-user-shield"></i> Manage Admins
+        </button>
+      </div>
+
+      <!-- ADMIN SESSIONS TAB -->
+      <div class="tab-content active" id="tab-sessions">
+        <div class="info-banner orange" style="margin-bottom: 16px">
+          <i class="fas fa-triangle-exclamation"></i>
+          Revoking a session immediately signs that admin out. Your current
+          session is highlighted in green.
+        </div>
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input
+              class="search-input"
+              id="sessSearch"
+              type="text"
+              placeholder="Search by admin name or IP address…"
+              autocomplete="off"
+            />
+          </div>
+          <select class="filter-select" id="sessStatusFilter">
+            <option value="">All Sessions</option>
+            <option value="active">🟢 Active</option>
+            <option value="expired">⚫ Expired / Inactive</option>
+          </select>
+          <button class="btn-reset" onclick="resetSessFilters()">
+            <i class="fas fa-rotate-left"></i> Reset
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="no-sort">#ID</th>
+                  <th class="no-sort">Admin</th>
+                  <th class="no-sort">IP Address</th>
+                  <th class="no-sort">Browser / Device</th>
+                  <th class="no-sort">Created</th>
+                  <th class="no-sort">Expires</th>
+                  <th class="no-sort">Status</th>
+                  <th class="no-sort">Action</th>
+                </tr>
+              </thead>
+              <tbody id="sessTableBody">
+                <tr>
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <i class="fas fa-hourglass-half"></i>
+                      <p>Loading sessions…</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="pagination" id="sessPagination"></div>
+      </div>
+
+      <!-- MANAGE ADMINS TAB -->
+      <div class="tab-content" id="tab-admins">
+        <div class="info-banner blue" style="margin-bottom: 16px">
+          <i class="fas fa-info-circle"></i>
+          All admin users are listed below. You can assign new admins or remove
+          existing ones. You cannot remove your own admin role.
+        </div>
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input
+              class="search-input"
+              id="adminSearch"
+              type="text"
+              placeholder="Search admins by name, username or email…"
+              autocomplete="off"
+            />
+          </div>
+          <button class="btn-assign" onclick="openModal('assignAdminModal')">
+            <i class="fas fa-user-shield"></i> Assign New Admin
+          </button>
+          <button class="btn-reset" onclick="resetAdminFilters()">
+            <i class="fas fa-rotate-left"></i> Reset
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th class="no-sort">#ID</th>
+                  <th class="no-sort">Admin</th>
+                  <th class="no-sort">Email</th>
+                  <th class="no-sort">Phone</th>
+                  <th class="no-sort">Role</th>
+                  <th class="no-sort">Joined</th>
+                  <th class="no-sort">Last Login</th>
+                  <th class="no-sort">Action</th>
+                </tr>
+              </thead>
+              <tbody id="adminTableBody">
+                <tr>
+                  <td colspan="8">
+                    <div class="empty-state">
+                      <i class="fas fa-hourglass-half"></i>
+                      <p>Loading admins…</p>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="pagination" id="adminPagination"></div>
+      </div>
+    </main>
+
+    <div class="toast-wrap" id="toastWrap"></div>
+    <script src="../js/admin/settings.js"></script>
+  </body>
+</html>

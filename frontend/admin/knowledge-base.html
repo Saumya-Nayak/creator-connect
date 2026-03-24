@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+    <title>Knowledge Base — CreatorConnect Admin</title>
+    <link rel="icon" type="image/png" href="../images/logo2.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/admin/knowledge-base.css" />
+  </head>
+  <body>
+    <!-- Auth Gate -->
+    <div id="authGate">
+      <div>
+        <div class="auth-spin-ring"></div>
+        <div class="auth-spin-label">Verifying session…</div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <iframe
+      id="sidebarFrame"
+      src="admin-sidebar.html"
+      title="Admin Sidebar"
+      scrolling="no"
+      allowtransparency="true"
+      onload="syncSidebarState()"
+    ></iframe>
+
+    <!-- Logout Modal -->
+    <div class="logout-modal-backdrop" id="logoutModal">
+      <div class="logout-modal-box">
+        <div class="logout-modal-icon">
+          <i class="fas fa-right-from-bracket"></i>
+        </div>
+        <div class="logout-modal-title">Leaving so soon?</div>
+        <div class="logout-modal-desc">
+          You'll be signed out of the admin panel.<br />Any unsaved changes may
+          be lost.
+        </div>
+        <div class="logout-modal-actions">
+          <button class="logout-btn-cancel" id="logoutCancelBtn">
+            <i class="fas fa-xmark"></i> Stay
+          </button>
+          <button class="logout-btn-confirm" id="logoutConfirmBtn">
+            <i class="fas fa-right-from-bracket"></i> Yes, Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ ARTICLE MODAL (Add/Edit) ══ -->
+    <div class="modal-backdrop" id="articleModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon pink">
+              <i class="fas fa-newspaper"></i>
+            </div>
+            <div>
+              <div class="modal-title" id="am-title-label">Add Article</div>
+            </div>
+          </div>
+          <button class="modal-close" onclick="closeModal('articleModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <input type="hidden" id="am-id" />
+        <div class="modal-fg">
+          <label>Title *</label
+          ><input id="am-title" placeholder="Article title…" />
+        </div>
+        <div class="modal-row">
+          <div class="modal-fg">
+            <label>Category</label>
+            <select id="am-category">
+              <option value="">— None —</option>
+            </select>
+          </div>
+          <div class="modal-fg">
+            <label>Slug</label
+            ><input id="am-slug" placeholder="auto-generated-from-title" />
+          </div>
+        </div>
+        <div class="modal-fg">
+          <label>Content *</label
+          ><textarea
+            id="am-content"
+            style="min-height: 140px"
+            placeholder="Article content (HTML supported)…"
+          ></textarea>
+        </div>
+        <div class="modal-check-row">
+          <label class="toggle-switch">
+            <input type="checkbox" id="am-featured" />
+            <div class="toggle-track"></div>
+          </label>
+          <label
+            for="am-featured"
+            style="font-size: 0.84rem; font-weight: 600; cursor: pointer"
+            >⭐ Mark as Featured</label
+          >
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('articleModal')">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-primary"
+            id="amSaveBtn"
+            onclick="submitArticle()"
+          >
+            <i class="fas fa-check"></i> Save Article
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ FAQ MODAL (Add/Edit) ══ -->
+    <div class="modal-backdrop" id="faqModal">
+      <div class="modal-box blue-top">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon blue">
+              <i class="fas fa-circle-question"></i>
+            </div>
+            <div>
+              <div class="modal-title" id="fm-title-label">Add FAQ</div>
+            </div>
+          </div>
+          <button class="modal-close" onclick="closeModal('faqModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <input type="hidden" id="fm-id" />
+        <div class="modal-fg">
+          <label>Question *</label
+          ><input id="fm-question" placeholder="What is the question?" />
+        </div>
+        <div class="modal-fg">
+          <label>Answer *</label
+          ><textarea
+            id="fm-answer"
+            style="min-height: 110px"
+            placeholder="Provide a clear, helpful answer…"
+          ></textarea>
+        </div>
+        <div class="modal-row">
+          <div class="modal-fg">
+            <label>Category</label>
+            <select id="fm-category">
+              <option value="">— None —</option>
+            </select>
+          </div>
+          <div class="modal-fg">
+            <label>Display Order</label
+            ><input id="fm-order" type="number" min="0" placeholder="0" />
+          </div>
+        </div>
+        <div class="modal-check-row">
+          <label class="toggle-switch">
+            <input type="checkbox" id="fm-popular" />
+            <div class="toggle-track"></div>
+          </label>
+          <label
+            for="fm-popular"
+            style="font-size: 0.84rem; font-weight: 600; cursor: pointer"
+            >🔥 Mark as Popular</label
+          >
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('faqModal')">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-primary"
+            id="fmSaveBtn"
+            onclick="submitFaq()"
+          >
+            <i class="fas fa-check"></i> Save FAQ
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ CATEGORY MODAL (Add/Edit) ══ -->
+    <div class="modal-backdrop" id="catModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon pink">
+              <i class="fas fa-folder-plus"></i>
+            </div>
+            <div>
+              <div class="modal-title" id="cm-title-label">Add Category</div>
+            </div>
+          </div>
+          <button class="modal-close" onclick="closeModal('catModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <input type="hidden" id="cm-id" />
+        <div class="modal-fg">
+          <label>Category Name *</label
+          ><input id="cm-name" placeholder="e.g. Getting Started" />
+        </div>
+        <div class="modal-row">
+          <div class="modal-fg">
+            <label>Icon (Font Awesome class)</label
+            ><input id="cm-icon" placeholder="fas fa-rocket" />
+          </div>
+          <div class="modal-fg">
+            <label>Display Order</label
+            ><input id="cm-order" type="number" min="0" placeholder="0" />
+          </div>
+        </div>
+        <div class="modal-fg">
+          <label>Description</label
+          ><textarea
+            id="cm-desc"
+            style="min-height: 70px"
+            placeholder="Short description of this category…"
+          ></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('catModal')">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-primary"
+            id="cmSaveBtn"
+            onclick="submitCategory()"
+          >
+            <i class="fas fa-check"></i> Save Category
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ DELETE CONFIRM MODAL ══ -->
+    <div class="modal-backdrop" id="deleteModal">
+      <div class="modal-box red-top" style="max-width: 440px">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon red"><i class="fas fa-trash"></i></div>
+            <div><div class="modal-title">Confirm Delete</div></div>
+          </div>
+          <button class="modal-close" onclick="closeModal('deleteModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="del-confirm-msg" id="del-msg">
+          Are you sure you want to delete this item?
+          <strong>This cannot be undone.</strong>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('deleteModal')">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button class="modal-btn-red" id="delConfirmBtn">
+            <i class="fas fa-trash"></i> Yes, Delete
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <!-- ══ MAIN ══ -->
+    <main class="main" id="mainContent">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Knowledge <span>Base</span></div>
+          <div class="page-sub">
+            Manage help articles, FAQs, and help categories for your users.
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="scard c-purple">
+          <div class="scard-icon"><i class="fas fa-newspaper"></i></div>
+          <div class="scard-val" id="sv-articles">—</div>
+          <div class="scard-label">Total Articles</div>
+          <div class="scard-sub" id="sv-featured-count">— featured</div>
+          <div class="scard-bg">
+            <i class="fas fa-newspaper" style="color: var(--primary)"></i>
+          </div>
+        </div>
+        <div class="scard c-blue">
+          <div class="scard-icon"><i class="fas fa-circle-question"></i></div>
+          <div class="scard-val" id="sv-faqs">—</div>
+          <div class="scard-label">Total FAQs</div>
+          <div class="scard-sub" id="sv-popular-count">— popular</div>
+          <div class="scard-bg">
+            <i class="fas fa-circle-question" style="color: var(--blue)"></i>
+          </div>
+        </div>
+        <div class="scard c-green">
+          <div class="scard-icon"><i class="fas fa-folder-open"></i></div>
+          <div class="scard-val" id="sv-cats">—</div>
+          <div class="scard-label">Help Categories</div>
+          <div class="scard-sub">Active categories</div>
+          <div class="scard-bg">
+            <i class="fas fa-folder-open" style="color: var(--green)"></i>
+          </div>
+        </div>
+        <div class="scard c-orange">
+          <div class="scard-icon"><i class="fas fa-fire"></i></div>
+          <div class="scard-val" id="sv-top-views">—</div>
+          <div class="scard-label">Most Viewed</div>
+          <div class="scard-sub" id="sv-top-title">—</div>
+          <div class="scard-bg">
+            <i class="fas fa-fire" style="color: var(--orange)"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs-row">
+        <button
+          class="tab-btn active"
+          id="tab-articles"
+          onclick="switchTab('articles')"
+        >
+          <i class="fas fa-newspaper"></i> Articles
+          <span class="tab-count" id="tc-articles">0</span>
+        </button>
+        <button class="tab-btn" id="tab-faqs" onclick="switchTab('faqs')">
+          <i class="fas fa-circle-question"></i> FAQs
+          <span class="tab-count" id="tc-faqs">0</span>
+        </button>
+        <button
+          class="tab-btn"
+          id="tab-categories"
+          onclick="switchTab('categories')"
+        >
+          <i class="fas fa-folder"></i> Help Categories
+          <span class="tab-count" id="tc-cats">0</span>
+        </button>
+      </div>
+
+      <!-- ══ ARTICLES TAB ══ -->
+      <div id="panel-articles">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              class="search-input"
+              id="a-search"
+              placeholder="Search articles…"
+              oninput="onASearch()"
+            />
+          </div>
+          <select
+            class="filter-select"
+            id="a-cat-filter"
+            onchange="loadArticles()"
+          >
+            <option value="">All Categories</option>
+          </select>
+          <select
+            class="filter-select"
+            id="a-feat-filter"
+            onchange="loadArticles()"
+          >
+            <option value="">All Articles</option>
+            <option value="1">⭐ Featured only</option>
+            <option value="0">Not featured</option>
+          </select>
+          <button class="btn-reset" onclick="resetAFilters()">
+            <i class="fas fa-rotate-left"></i> Reset
+          </button>
+          <div class="view-toggle">
+            <button
+              class="vt-btn active"
+              id="a-gridBtn"
+              onclick="setAView('grid')"
+              title="Card view"
+            >
+              <i class="fas fa-grip"></i>
+            </button>
+            <button
+              class="vt-btn"
+              id="a-listBtn"
+              onclick="setAView('list')"
+              title="Table view"
+            >
+              <i class="fas fa-list"></i>
+            </button>
+          </div>
+          <button class="btn-add" onclick="openArticleModal()">
+            <i class="fas fa-plus"></i> Add Article
+          </button>
+        </div>
+
+        <!-- Card View -->
+        <div id="a-grid-view">
+          <div class="card-grid" id="articleCardGrid"></div>
+          <div id="a-card-skel" class="card-grid" style="display: none">
+            <div class="card-skel">
+              <div
+                class="skel-line"
+                style="height: 24px; width: 70%; margin-bottom: 12px"
+              ></div>
+              <div class="skel-line" style="height: 13px; width: 85%"></div>
+              <div class="skel-line" style="height: 13px; width: 55%"></div>
+            </div>
+            <div class="card-skel">
+              <div
+                class="skel-line"
+                style="height: 24px; width: 60%; margin-bottom: 12px"
+              ></div>
+              <div class="skel-line" style="height: 13px; width: 75%"></div>
+              <div class="skel-line" style="height: 13px; width: 60%"></div>
+            </div>
+            <div class="card-skel">
+              <div
+                class="skel-line"
+                style="height: 24px; width: 65%; margin-bottom: 12px"
+              ></div>
+              <div class="skel-line" style="height: 13px; width: 80%"></div>
+              <div class="skel-line" style="height: 13px; width: 50%"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Table View -->
+        <div id="a-list-view" style="display: none">
+          <div class="table-card">
+            <div class="table-wrap">
+              <table>
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Title</th>
+                    <th>Category</th>
+                    <th>Views</th>
+                    <th>Featured</th>
+                    <th>Created</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="articleTableBody"></tbody>
+              </table>
+            </div>
+            <div id="a-table-empty" class="empty-state" style="display: none">
+              <i class="fas fa-newspaper"></i>
+              <p>No articles found.</p>
+            </div>
+          </div>
+        </div>
+        <div class="pagination" id="a-pagination">
+          <div class="pag-info" id="a-pag-info">—</div>
+          <div class="pag-btns" id="a-pag-btns"></div>
+        </div>
+      </div>
+
+      <!-- ══ FAQs TAB ══ -->
+      <div id="panel-faqs" style="display: none">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              class="search-input"
+              id="f-search"
+              placeholder="Search FAQs…"
+              oninput="onFSearch()"
+            />
+          </div>
+          <select class="filter-select" id="f-cat-filter" onchange="loadFaqs()">
+            <option value="">All Categories</option>
+          </select>
+          <select class="filter-select" id="f-pop-filter" onchange="loadFaqs()">
+            <option value="">All FAQs</option>
+            <option value="1">🔥 Popular only</option>
+            <option value="0">Not popular</option>
+          </select>
+          <button class="btn-reset" onclick="resetFFilters()">
+            <i class="fas fa-rotate-left"></i> Reset
+          </button>
+          <button class="btn-add" onclick="openFaqModal()">
+            <i class="fas fa-plus"></i> Add FAQ
+          </button>
+        </div>
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Question</th>
+                  <th>Category</th>
+                  <th>Popular</th>
+                  <th>Order</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="faqTableBody"></tbody>
+            </table>
+          </div>
+          <div id="f-table-empty" class="empty-state" style="display: none">
+            <i class="fas fa-circle-question"></i>
+            <p>No FAQs found.</p>
+          </div>
+        </div>
+        <div class="pagination" id="f-pagination">
+          <div class="pag-info" id="f-pag-info">—</div>
+          <div class="pag-btns" id="f-pag-btns"></div>
+        </div>
+      </div>
+
+      <!-- ══ CATEGORIES TAB ══ -->
+      <div id="panel-categories" style="display: none">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              class="search-input"
+              id="c-search"
+              placeholder="Search categories…"
+              oninput="onCSearch()"
+            />
+          </div>
+          <button class="btn-reset" onclick="resetCFilters()">
+            <i class="fas fa-rotate-left"></i> Reset
+          </button>
+          <button class="btn-add" onclick="openCatModal()">
+            <i class="fas fa-plus"></i> Add Category
+          </button>
+        </div>
+        <div class="cat-list" id="catList"></div>
+        <div id="c-empty" class="empty-state" style="display: none">
+          <i class="fas fa-folder-open"></i>
+          <p>No categories found.</p>
+        </div>
+      </div>
+    </main>
+
+    <script src="../js/admin/knowledge-base.js"></script>
+  </body>
+</html>

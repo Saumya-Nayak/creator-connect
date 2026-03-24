@@ -1,0 +1,298 @@
+/* ============================
+   Side Menu Styles (cleaned)
+   ============================ */
+
+/* Base side menu */
+.side-menu {
+    position: fixed;
+    left: -240px;
+    top: 0px;
+    width: 240px;
+    height: 112vh;
+    background: #ffffff;
+    color: #18181b;
+    transition: left 0.3s ease, background 0.3s ease;
+    z-index: 1100;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    border-radius: 0px 35px 35px 0px;
+}
+
+/* Reveal on hover */
+.side-menu:hover {
+    left: 0;
+}
+
+/* Content area (give extra bottom padding so footer doesn't overlap) */
+.side-menu-content {
+    padding: 20px;
+    padding-bottom: 110px;
+    /* leaves room for footer */
+    height: 100%;
+    overflow-y: auto;
+    margin-top: -20px;
+}
+
+/* Header */
+.side-menu-header {
+    font-weight: 500;
+    font-size: 25px;
+    padding: 20px 10px;
+    border-bottom: 2px solid #e60aea;
+    margin-bottom: 20px;
+    transition: border-color 0.3s ease;
+}
+
+.side-menu-header h3 {
+    color: #e60aea;
+    font-size: 30px;
+    font-family: Allura;
+    font-weight: 500;
+    /* simplified duplicate */
+    margin: 0;
+}
+
+/* Items container */
+.side-menu-items {
+    margin-top: -20px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+/* Each item */
+.side-menu-item {
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    padding: 15px 10px;
+    color: rgb(0, 0, 0);
+    text-decoration: none;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    font-size: 17px;
+}
+
+.side-menu-item i {
+    width: 30px;
+    font-size: 18px;
+    margin-right: 15px;
+}
+
+/* Active & hover states */
+.side-menu-item.active {
+    background: rgba(255, 0, 191, 0.1);
+    border-left: 4px solid #e60aea;
+    padding-left: 10px;
+}
+
+.side-menu-item:hover {
+    border-left: 4px solid #e60aea;
+    border-radius: 20px;
+    background: rgba(246, 195, 252, 0.2);
+    transform: translateX(5px);
+}
+
+/* Hover indicator button on edge */
+.side-menu::after {
+    content: '☰';
+    position: absolute;
+    right: -30px;
+    top: 45%;
+    transform: translateY(-50%);
+    width: 30px;
+    height: 60px;
+    background: linear-gradient(135deg, #e901c2 0%, #f703d6 15%, #f407cc 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 20px;
+    border-radius: 0 10px 10px 0;
+    cursor: pointer;
+    transition: background 0.3s ease;
+}
+
+/* ============================
+   Footer (background image + layout)
+   ============================ */
+
+.side-menu-footer {
+
+    position: absolute;
+    bottom: -9px;
+    left: 20px;
+    right: 20px;
+    padding: 20px;
+    text-align: center;
+    transition: border-color 0.3s ease;
+    border-top: 2.3px solid #e60aea;
+    /* background image for footer only 
+    background-image: url("../images/menuimg.png");
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;*/
+}
+
+/* Footer brand / text */
+.footer-brand {
+    font-size: 18px;
+    font-weight: bold;
+    color: #e60aea;
+    margin-bottom: 80px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Footer small version text */
+.footer-version {
+    margin-top: -12px;
+    font-size: 11px;
+    color: #000000;
+    opacity: 0.7;
+}
+
+[data-theme="dark"] .footer-brand {
+    color: #ffffff;
+}
+
+[data-theme="dark"] .footer-version {
+    color: #ffffff;
+}
+
+/* Floating animation container you added */
+
+.floating-footer i,
+.floating-footer span {
+    display: inline-block;
+}
+
+/* heartbeat icon animation (kept) */
+.footer-brand i {
+    font-size: 14px;
+    animation: heartbeat 1.5s ease-in-out infinite;
+}
+
+/* ============================
+   Animations
+   ============================ */
+
+@keyframes floatUpDown {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-6px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+@keyframes heartbeat {
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.1);
+    }
+}
+
+/* ============================
+   Scrollbar styling (WebKit)
+   ============================ */
+
+.side-menu-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.side-menu-content::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.03);
+    border-radius: 10px;
+}
+
+.side-menu-content::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+}
+
+.side-menu-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.25);
+}
+
+/* ============================
+   Responsive
+   ============================ */
+
+@media (max-width: 768px) {
+    .side-menu {
+        left: -250px;
+        width: 250px;
+    }
+}
+
+/* ============================
+   Dark theme overrides
+   (using html[data-theme="dark"])
+   ============================ */
+
+html[data-theme="dark"] .side-menu {
+    background: linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.3);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .side-menu-header {
+    border-bottom: 2px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .side-menu-header h3 {
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .side-menu-item {
+    color: #ffffff;
+}
+
+html[data-theme="dark"] .side-menu-item.active {
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 4px solid #e60aea;
+    /* keep accent color */
+}
+
+html[data-theme="dark"] .side-menu-item:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: #ffffff;
+}
+
+/* dark hover indicator background */
+html[data-theme="dark"] .side-menu::after {
+    background: linear-gradient(135deg, #18181b 0%, #27272a 50%, #3f3f46 100%);
+}
+
+/* dark footer adjustments */
+html[data-theme="dark"] .side-menu-footer {
+    border-top: 2px solid rgba(255, 255, 255, 0.15);
+
+    /* fallback tint if image missing */
+}
+
+/* dark scrollbar tweaks */
+html[data-theme="dark"] .side-menu-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+html[data-theme="dark"] .side-menu-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.25);
+}
+
+html[data-theme="dark"] .side-menu-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.4);
+}

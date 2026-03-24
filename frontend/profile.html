@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <title>Profile - Creator Connect</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- ✅ ADD: Cropper.js CSS -->
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"
+    />
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/sidebar.css" />
+    <link rel="stylesheet" href="css/profile.css" />
+  </head>
+  <body>
+    <!-- Auth Guard -->
+    <script src="js/auth-guard.js"></script>
+    <div id="header"></div>
+    <div id="sidebar"></div>
+
+    <!-- Main Content -->
+    <main class="profile-container">
+      <!-- Profile Card with 3-Column Layout -->
+      <div class="profile-card">
+        <!-- LEFT COLUMN: Avatar & Actions -->
+        <div class="profile-left">
+          <div class="avatar-section">
+            <div class="profile-avatar" id="profileAvatar">
+              <i class="fas fa-user"></i>
+            </div>
+            <button class="edit-avatar-btn" id="editAvatarBtn">
+              <i class="fas fa-camera"></i>
+            </button>
+            <button
+              class="remove-avatar-btn"
+              id="removeAvatarBtn"
+              style="display: none"
+              title="Remove profile picture"
+            >
+              <i class="fas fa-trash"></i>
+            </button>
+            <input
+              type="file"
+              id="profilePicInput"
+              accept="image/*"
+              style="display: none"
+            />
+          </div>
+
+          <div class="action-buttons">
+            <button class="btn-primary" id="editProfileBtn">
+              <i class="fas fa-edit"></i> Edit Profile
+            </button>
+            <!-- ✅ MESSAGE BUTTON (shows for other users) -->
+            <button class="btn-message" id="messageBtn" style="display: none">
+              <i class="fas fa-comment"></i> Message
+            </button>
+            <button class="btn-secondary" id="shareProfileBtn">
+              <i class="fas fa-share-alt"></i> Share
+            </button>
+          </div>
+        </div>
+
+        <!-- MIDDLE COLUMN: User Info -->
+        <div class="profile-middle">
+          <div class="user-header">
+            <h1 class="profile-name" id="profileName">Loading...</h1>
+            <p class="profile-username" id="profileUsername">@username</p>
+          </div>
+
+          <!-- Stats Row -->
+          <div class="stats-row">
+            <div class="stat-box" data-tab="posts">
+              <div class="stat-number" id="postsCount">0</div>
+              <div class="stat-label">Posts</div>
+            </div>
+            <div class="stat-box" data-tab="followers">
+              <div class="stat-number" id="followersCount">0</div>
+              <div class="stat-label">Followers</div>
+            </div>
+            <div class="stat-box" data-tab="following">
+              <div class="stat-number" id="followingCount">0</div>
+              <div class="stat-label">Following</div>
+            </div>
+          </div>
+
+          <!-- About Preview -->
+          <div class="about-preview">
+            <span class="info-label">About me</span>
+            <p id="aboutMePreview">No bio available</p>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: Quick Info Cards -->
+        <div class="profile-right">
+          <div class="info-card">
+            <i class="fas fa-map-marker-alt"></i>
+            <div class="info-content">
+              <span class="info-label">Location</span>
+              <span class="info-value" id="locationQuick">Not specified</span>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <i class="fas fa-calendar"></i>
+            <div class="info-content">
+              <span class="info-label">Joined</span>
+              <span class="info-value" id="joinedQuick">-</span>
+            </div>
+          </div>
+
+          <div class="info-card">
+            <i class="fas fa-link"></i>
+            <div class="info-content">
+              <span class="info-label">Website</span>
+              <span class="info-value" id="websiteQuick">Not specified</span>
+            </div>
+          </div>
+          <div class="info-card">
+            <i class="fas fa-birthday-cake"></i>
+            <div class="info-content">
+              <span class="info-label">Date of Birth</span>
+              <span class="info-value" id="dobQuick">Not specified</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="profile-tabs">
+        <button class="tab-btn active" data-tab="posts">
+          <i class="fas fa-th"></i>
+          <span>Posts</span>
+        </button>
+        <button class="tab-btn" data-tab="followers">
+          <i class="fas fa-users"></i>
+          <span>Followers</span>
+        </button>
+        <button class="tab-btn" data-tab="following">
+          <i class="fas fa-user-friends"></i>
+          <span>Following</span>
+        </button>
+        <button class="tab-btn" data-tab="about">
+          <i class="fas fa-info-circle"></i>
+          <span>About</span>
+        </button>
+      </div>
+
+      <!-- Tab Contents -->
+      <div class="tab-content">
+        <div class="tab-pane active" id="postsTab">
+          <div class="posts-grid" id="postsGrid">
+            <p class="empty-state">No posts yet</p>
+          </div>
+        </div>
+        <!-- About Tab -->
+        <div class="tab-pane" id="aboutTab">
+          <div class="about-grid">
+            <!-- Personal Info -->
+            <div class="about-section">
+              <div class="section-header">
+                <i class="fas fa-id-card"></i>
+                <h3>Personal Information</h3>
+              </div>
+              <div class="info-list">
+                <div class="info-item">
+                  <i class="fas fa-envelope"></i>
+                  <div>
+                    <span class="info-label">Email</span>
+                    <span class="info-value" id="emailText">Not specified</span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-phone"></i>
+                  <div>
+                    <span class="info-label">Phone</span>
+                    <span class="info-value" id="phoneText">Not specified</span>
+                  </div>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-venus-mars"></i>
+                  <div>
+                    <span class="info-label">Gender</span>
+                    <span class="info-value" id="genderText"
+                      >Not specified</span
+                    >
+                  </div>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-birthday-cake"></i>
+                  <div>
+                    <span class="info-label">Date of Birth</span>
+                    <span class="info-value" id="dobText">Not specified</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Location & Links -->
+            <div class="about-section">
+              <div class="section-header">
+                <i class="fas fa-map-pin"></i>
+                <h3>Location & Links</h3>
+              </div>
+              <div class="info-list">
+                <div class="info-item">
+                  <i class="fas fa-map-marker-alt"></i>
+                  <div>
+                    <span class="info-label">Location</span>
+                    <span class="info-value" id="locationText"
+                      >Not specified</span
+                    >
+                  </div>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-link"></i>
+                  <div>
+                    <span class="info-label">Website</span>
+                    <span class="info-value" id="websiteText"
+                      >Not specified</span
+                    >
+                  </div>
+                </div>
+                <div class="info-item">
+                  <i class="fas fa-calendar"></i>
+                  <div>
+                    <span class="info-label">Joined</span>
+                    <span class="info-value" id="joinedText">-</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Social Links -->
+            <div
+              class="about-section full-width"
+              id="socialLinksSection"
+              style="display: none"
+            >
+              <div class="section-header">
+                <i class="fas fa-share-alt"></i>
+                <h3>Social Links</h3>
+              </div>
+              <div id="socialLinksList" class="social-links-grid"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Posts Tab -->
+        <div class="tab-pane" id="postsTab">
+          <div class="posts-grid" id="postsGrid">
+            <p class="empty-state">No posts yet</p>
+          </div>
+        </div>
+
+        <!-- Followers Tab -->
+        <div class="tab-pane" id="followersTab">
+          <div class="users-list" id="followersList">
+            <p class="empty-state">No followers yet</p>
+          </div>
+        </div>
+
+        <!-- Following Tab -->
+        <div class="tab-pane" id="followingTab">
+          <div class="users-list" id="followingList">
+            <p class="empty-state">Not following anyone yet</p>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- ✅ CROP MODAL FOR PROFILE PICTURE -->
+    <div id="cropModal" class="crop-modal">
+      <div class="crop-modal-content">
+        <div class="crop-header">
+          <h3><i class="fas fa-crop"></i> Crop Profile Picture</h3>
+          <button class="crop-close-btn" onclick="closeCropModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+
+        <div class="crop-body">
+          <div class="crop-container">
+            <img id="cropImage" src="" alt="Image to crop" />
+          </div>
+        </div>
+
+        <div class="crop-controls">
+          <button class="crop-btn-control" onclick="rotateCropLeft()">
+            <i class="fas fa-undo"></i> Rotate Left
+          </button>
+          <button class="crop-btn-control" onclick="rotateCropRight()">
+            <i class="fas fa-redo"></i> Rotate Right
+          </button>
+          <button class="crop-btn-control" onclick="flipCropHorizontal()">
+            <i class="fas fa-arrows-alt-h"></i> Flip H
+          </button>
+          <button class="crop-btn-control" onclick="flipCropVertical()">
+            <i class="fas fa-arrows-alt-v"></i> Flip V
+          </button>
+          <button class="crop-btn-control" onclick="resetCrop()">
+            <i class="fas fa-sync"></i> Reset
+          </button>
+        </div>
+
+        <div class="crop-footer">
+          <button class="btn-secondary" onclick="closeCropModal()">
+            Cancel
+          </button>
+          <button class="btn-primary" onclick="applyCrop()">
+            <i class="fas fa-check"></i> Apply & Upload
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Edit Profile Modal -->
+    <div id="editProfileModal" class="modal-overlay">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2><i class="fas fa-edit"></i> Edit Profile</h2>
+          <button class="close-modal" onclick="closeEditModal()">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div class="modal-body">
+          <form id="editProfileForm">
+            <!-- Basic Info -->
+            <div class="form-section">
+              <h4><i class="fas fa-user"></i> Basic Information</h4>
+              <div class="form-group">
+                <label>Full Name</label>
+                <input
+                  type="text"
+                  id="editFullName"
+                  placeholder="Enter your full name"
+                />
+              </div>
+
+              <div class="form-group">
+                <label>About Me</label>
+                <textarea
+                  id="editAboutMe"
+                  placeholder="Tell us about yourself"
+                  rows="4"
+                ></textarea>
+              </div>
+            </div>
+
+            <!-- Personal Details -->
+            <div class="form-section">
+              <h4><i class="fas fa-id-card"></i> Personal Details</h4>
+              <div class="form-row-2">
+                <div class="form-group">
+                  <label>Phone Number</label>
+                  <input type="tel" id="editPhone" placeholder="+1234567890" />
+                </div>
+                <div class="form-group">
+                  <label>Gender</label>
+                  <select id="editGender">
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label>Date of Birth</label>
+                <input type="date" id="editDOB" />
+              </div>
+
+              <div class="form-group">
+                <label>Website URL</label>
+                <input
+                  type="url"
+                  id="editWebsite"
+                  placeholder="https://yourwebsite.com"
+                />
+              </div>
+            </div>
+
+            <!-- Location -->
+            <div class="form-section">
+              <h4><i class="fas fa-map-marker-alt"></i> Location</h4>
+              <div class="form-row-3">
+                <div class="form-group">
+                  <label>Country</label>
+                  <select
+                    id="editCountry"
+                    name="country"
+                    style="font-size: 15px"
+                    onchange="updateEditStates()"
+                  >
+                    <option value="">Select Country</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>State</label>
+                  <select
+                    id="editState"
+                    name="state"
+                    style="font-size: 15px"
+                    onchange="updateEditCities()"
+                  >
+                    <option value="">Select Country First</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>City</label>
+                  <select id="editCity" name="city" style="font-size: 15px">
+                    <option value="">Select State First</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <!-- Privacy -->
+            <div class="form-section">
+              <h4><i class="fas fa-lock"></i> Privacy</h4>
+              <div class="form-group checkbox-group">
+                <label class="checkbox-label">
+                  <input type="checkbox" id="editIsPrivate" />
+                  <span>Make profile private</span>
+                </label>
+              </div>
+            </div>
+
+            <div class="modal-actions">
+              <button
+                type="button"
+                class="btn-secondary"
+                onclick="closeEditModal()"
+              >
+                Cancel
+              </button>
+              <button type="submit" class="btn-primary">
+                <i class="fas fa-save"></i> Save Changes
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay" style="display: none">
+      <div class="spinner"></div>
+    </div>
+
+    <!-- ✅ ADD: Cropper.js Script -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"></script>
+    <script src="js/profile.js"></script>
+  </body>
+</html>

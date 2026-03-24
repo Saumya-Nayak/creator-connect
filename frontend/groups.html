@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <title>Groups - Creator Connect</title>
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/sidebar.css" />
+    <link rel="stylesheet" href="css/messages.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <style>
+      .groups-tab-bar {
+        display: flex;
+        gap: 0;
+        border-bottom: 2px solid var(--border-purple, #f889e5);
+        margin-bottom: 0;
+      }
+      .groups-tab {
+        flex: 1;
+        padding: 12px;
+        text-align: center;
+        font-size: 0.88rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border: none;
+        background: transparent;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.2s;
+        position: relative;
+      }
+      .groups-tab.active {
+        color: var(--primary-purple);
+        border-bottom-color: var(--primary-purple);
+      }
+      .groups-tab .tab-badge {
+        position: absolute;
+        top: 6px;
+        right: 20%;
+        background: #ef4444;
+        color: #fff;
+        font-size: 0.6rem;
+        font-weight: 700;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .tab-panel {
+        display: none;
+      }
+      .tab-panel.active {
+        display: block;
+      }
+
+      /* Reuse messages.css layout but scoped */
+      .groups-container {
+        display: flex;
+        height: calc(100vh - 70px);
+        margin-left: 80px;
+      }
+      @media (max-width: 768px) {
+        .groups-container {
+          margin-left: 0;
+        }
+      }
+      .group-chat-header {
+        display: flex;
+        align-items: center;
+        padding: 14px 20px;
+        border-bottom: 2px solid var(--border-purple, #f889e5);
+        background: var(--card-bg);
+        gap: 12px;
+      }
+      .empty-state {
+        text-align: center;
+        padding: 60px 20px;
+        color: var(--text-secondary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Header -->
+    <div id="header"></div>
+
+    <!-- Sidebar -->
+    <div id="sidebar"></div>
+
+    <!-- Main Container -->
+    <div class="groups-container messages-container">
+      <!-- LEFT SIDEBAR: Group List + Invites -->
+      <div class="conversations-sidebar" id="groupsSidebar">
+        <div class="conversations-header">
+          <h2><i class="fas fa-users"></i> Groups</h2>
+          <button class="new-message-btn" onclick="openCreateGroupModal()">
+            <i class="fas fa-plus"></i>
+            <span>New Group</span>
+          </button>
+
+          <!-- Tabs: Chats | Invitations -->
+          <div class="groups-tab-bar">
+            <button
+              class="groups-tab active"
+              onclick="switchGroupTab('chats', this)"
+            >
+              Chats
+            </button>
+            <button
+              class="groups-tab"
+              onclick="switchGroupTab('invites', this)"
+            >
+              Invitations
+              <span class="tab-badge" id="groupInviteBadge"></span>
+            </button>
+          </div>
+
+          <!-- Search (only shown in chats tab) -->
+          <div class="message-search" id="groupSearchBox">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              placeholder="Search groups..."
+              id="groupSearch"
+            />
+          </div>
+        </div>
+
+        <!-- Chats Tab -->
+        <div id="groupsChatsPanel" class="tab-panel active">
+          <div class="conversations-list" id="groupsList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+
+        <!-- Invitations Tab -->
+        <div id="groupsInvitesPanel" class="tab-panel">
+          <div class="conversations-list" id="groupInvitesList">
+            <!-- Rendered by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: Chat Area -->
+      <div class="chat-area" id="groupChatArea">
+        <!-- Empty State -->
+        <div class="empty-chat-state" id="groupEmptyState">
+          <i class="fas fa-users empty-chat-icon"></i>
+          <h3>Select a group</h3>
+          <p>Choose a group from the left or create a new one</p>
+          <button
+            onclick="openCreateGroupModal()"
+            style="
+              margin-top: 16px;
+              padding: 10px 24px;
+              border-radius: 20px;
+              border: none;
+              cursor: pointer;
+              background: linear-gradient(
+                135deg,
+                var(--primary-purple),
+                var(--accent-pink)
+              );
+              color: #fff;
+              font-weight: 700;
+            "
+          >
+            <i class="fas fa-plus"></i> Create Group
+          </button>
+        </div>
+
+        <!-- Active Group Chat -->
+        <div
+          id="groupActiveChat"
+          style="display: none; flex-direction: column; height: 100%"
+        >
+          <!-- Group Chat Header -->
+          <div class="group-chat-header">
+            <!-- Populated by updateGroupChatHeader() -->
+          </div>
+
+          <!-- Messages -->
+          <div class="messages-wrapper" id="groupMessagesWrapper">
+            <!-- Populated by JS -->
+          </div>
+
+          <!-- Input -->
+          <div class="message-input-container">
+            <div class="message-input-wrapper">
+              <div class="message-input">
+                <textarea
+                  id="groupMessageInput"
+                  placeholder="Message group..."
+                  rows="1"
+                ></textarea>
+              </div>
+              <button class="send-button" id="groupSendButton" disabled>
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast styles (reuse from messages.html) -->
+    <style>
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        padding: 14px 18px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 10000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+      }
+      .toast.show {
+        transform: translateX(0);
+      }
+      .toast-error {
+        background: #fee;
+        color: #c33;
+        border-left: 4px solid #c33;
+      }
+      .toast-success {
+        background: #efe;
+        color: #3c3;
+        border-left: 4px solid #3c3;
+      }
+    </style>
+
+    <script src="js/messages-init.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script src="js/groups.js"></script>
+
+    <script>
+      function switchGroupTab(tab, btn) {
+        document
+          .querySelectorAll(".groups-tab")
+          .forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+
+        document
+          .getElementById("groupsChatsPanel")
+          .classList.toggle("active", tab === "chats");
+        document
+          .getElementById("groupsInvitesPanel")
+          .classList.toggle("active", tab === "invites");
+        document.getElementById("groupSearchBox").style.display =
+          tab === "chats" ? "flex" : "none";
+
+        if (tab === "invites") loadGroupInvites();
+      }
+    </script>
+  </body>
+</html>

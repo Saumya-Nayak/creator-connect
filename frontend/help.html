@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <title>Help Center - Creator Connect</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/sidebar.css" />
+    <link rel="stylesheet" href="css/help.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <div
+      id="audio-activator"
+      style="position: fixed; inset: 0; z-index: 9999; pointer-events: none"
+    ></div>
+
+    <!-- Header Component -->
+    <div id="header"></div>
+
+    <!-- Sidebar Component -->
+    <div id="sidebar"></div>
+    <audio id="bg-audio" preload="auto" src="images/help-bg.mp3"></audio>
+    <!-- Main Content -->
+    <main class="help-container">
+      <!-- Hero Section -->
+      <section class="help-hero">
+        <!-- Background Video -->
+        <video class="hero-bg-video" autoplay muted loop playsinline>
+          <source src="images/bgvideoofhowcanihelpyou2.mp4" type="video/mp4" />
+          <source
+            src="images/bgvideoofhowcanihelpyou2.webm"
+            type="video/webm"
+          />
+          Your browser does not support the video tag.
+        </video>
+
+        <!-- Video Overlay -->
+        <div class="hero-video-overlay"></div>
+
+        <div class="hero-content">
+          <div class="hero-icon">
+            <i class="fas fa-question-circle"></i>
+          </div>
+          <h1 class="hero-title">How can we help you?</h1>
+          <p class="hero-subtitle">
+            Search for answers or browse our help topics
+          </p>
+
+          <!-- Search Bar -->
+          <div class="help-search-bar">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              id="helpSearch"
+              placeholder="Search for help articles, FAQs, guides..."
+              class="help-search-input"
+            />
+            <button
+              class="btn-clear-search"
+              id="btnClearSearch"
+              style="display: none"
+            >
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+
+          <!-- Quick Stats -->
+          <div class="help-stats">
+            <div class="stat-item">
+              <i class="fas fa-book"></i>
+              <span id="articlesCount">Loading...</span>
+              <span>Articles</span>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-question"></i>
+              <span id="faqsCount">Loading...</span>
+              <span>FAQs</span>
+            </div>
+            <div class="stat-item">
+              <i class="fas fa-users"></i>
+              <span>24/7</span>
+              <span>Support</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Horizontal Tabs Navigation -->
+      <section class="help-tabs-section">
+        <div class="help-tabs-nav">
+          <button class="help-tab-btn active" data-tab="popular">
+            <i class="fas fa-fire"></i>
+            <span>Popular Topics</span>
+          </button>
+          <button class="help-tab-btn" data-tab="categories">
+            <i class="fas fa-th-large"></i>
+            <span>Categories</span>
+          </button>
+          <button class="help-tab-btn" data-tab="faqs">
+            <i class="fas fa-comments"></i>
+            <span>FAQs</span>
+          </button>
+          <button class="help-tab-btn" data-tab="support">
+            <i class="fas fa-headset"></i>
+            <span>Support</span>
+          </button>
+          <button class="help-tab-btn" data-tab="resources">
+            <i class="fas fa-book-open"></i>
+            <span>Resources</span>
+          </button>
+        </div>
+
+        <!-- Tab Content Container -->
+        <div class="help-tabs-content">
+          <!-- Popular Topics Tab -->
+          <div class="help-tab-pane active" id="tab-popular">
+            <div class="tab-header">
+              <h2><i class="fas fa-fire"></i> Popular Topics</h2>
+              <p>Quick answers to common questions</p>
+            </div>
+            <div class="topics-grid" id="popularTopics">
+              <div class="loading-skeleton">
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Categories Tab -->
+          <div class="help-tab-pane" id="tab-categories">
+            <div class="tab-header">
+              <h2><i class="fas fa-th-large"></i> Browse by Category</h2>
+              <p>Find help articles organized by topic</p>
+            </div>
+            <div class="categories-grid" id="categoriesGrid">
+              <div class="loading-skeleton">
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+                <div class="skeleton-card"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- FAQs Tab -->
+          <div class="help-tab-pane" id="tab-faqs">
+            <div class="tab-header">
+              <h2>
+                <i class="fas fa-comments"></i> Frequently Asked Questions
+              </h2>
+              <p>Get instant answers to common questions</p>
+            </div>
+            <div class="faq-filters">
+              <button class="faq-filter-btn active" data-category="all">
+                <i class="fas fa-star"></i> All FAQs
+              </button>
+              <button class="faq-filter-btn" data-category="popular">
+                <i class="fas fa-fire"></i> Popular
+              </button>
+            </div>
+            <div class="faqs-container" id="faqsContainer">
+              <div class="loading-skeleton">
+                <div class="skeleton-faq"></div>
+                <div class="skeleton-faq"></div>
+                <div class="skeleton-faq"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Support Tab -->
+          <div class="help-tab-pane" id="tab-support">
+            <div class="tab-header">
+              <h2><i class="fas fa-headset"></i> Contact Support</h2>
+              <p>Our support team is here to help you 24/7</p>
+            </div>
+            <div class="support-content-wrapper">
+              <div class="support-card">
+                <div class="support-icon">
+                  <i class="fas fa-envelope"></i>
+                </div>
+                <div class="support-content">
+                  <h3>Still need help?</h3>
+                  <p>
+                    Can't find what you're looking for? Our support team is here
+                    to help!
+                  </p>
+                  <button
+                    class="btn-contact-support"
+                    id="btnContactSupport"
+                    type="button"
+                  >
+                    <i class="fas fa-paper-plane"></i>
+                    Submit Support Ticket
+                  </button>
+                </div>
+              </div>
+
+              <!-- Support Stats -->
+              <div class="support-stats-grid">
+                <div class="support-stat-card">
+                  <i class="fas fa-clock"></i>
+                  <h4>Response Time</h4>
+                  <p>Within 24 hours</p>
+                </div>
+                <div class="support-stat-card">
+                  <i class="fas fa-users"></i>
+                  <h4>Active Support</h4>
+                  <p>24/7 Availability</p>
+                </div>
+                <div class="support-stat-card">
+                  <i class="fas fa-star"></i>
+                  <h4>Satisfaction Rate</h4>
+                  <p>98% Happy Users</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Resources Tab -->
+          <div class="help-tab-pane" id="tab-resources">
+            <div class="tab-header">
+              <h2><i class="fas fa-book-open"></i> Quick Resources</h2>
+              <p>Important links and documentation</p>
+            </div>
+            <div class="quick-links-grid">
+              <a href="terms_and_conditions.html" class="quick-link-card">
+                <i class="fas fa-file-alt"></i>
+                <h4>Terms of Service</h4>
+                <p>Read our terms and conditions</p>
+              </a>
+              <a href="privacy.html" class="quick-link-card">
+                <i class="fas fa-shield-alt"></i>
+                <h4>Privacy Policy</h4>
+                <p>Learn how we protect your data</p>
+              </a>
+              <a href="community.html" class="quick-link-card">
+                <i class="fas fa-book"></i>
+                <h4>Community Guidelines</h4>
+                <p>Rules for a safe community</p>
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Search Results (Hidden by default) -->
+      <section class="search-results" id="searchResults" style="display: none">
+        <div class="section-header">
+          <h2><i class="fas fa-search"></i> Search Results</h2>
+          <p id="searchResultsText">Found 0 results</p>
+        </div>
+        <div class="search-results-container" id="searchResultsContainer"></div>
+      </section>
+    </main>
+
+    <!-- Article Detail Modal -->
+    <div class="article-modal" id="articleModal">
+      <div class="article-modal-overlay">
+        <div class="article-modal-content" onclick="event.stopPropagation()">
+          <button class="modal-close-btn" id="btnCloseArticle" type="button">
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="article-header">
+            <span class="article-category-badge" id="articleCategory"></span>
+            <h2 id="articleTitle">Article Title</h2>
+            <div class="article-meta">
+              <span
+                ><i class="fas fa-eye"></i>
+                <span id="articleViews">0</span> views</span
+              >
+              <span
+                ><i class="fas fa-clock"></i>
+                <span id="articleDate">Today</span></span
+              >
+            </div>
+          </div>
+          <div class="article-body" id="articleBody">Loading...</div>
+          <div class="article-footer">
+            <p>Was this article helpful?</p>
+            <div class="article-feedback">
+              <button class="btn-feedback" id="btnFeedbackYes" type="button">
+                <i class="fas fa-thumbs-up"></i> Yes
+              </button>
+              <button class="btn-feedback" id="btnFeedbackNo" type="button">
+                <i class="fas fa-thumbs-down"></i> No
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Support Ticket Modal -->
+    <div class="support-modal" id="supportModal">
+      <div class="support-modal-overlay">
+        <div class="support-modal-content" onclick="event.stopPropagation()">
+          <button class="modal-close-btn" id="btnCloseSupport" type="button">
+            <i class="fas fa-times"></i>
+          </button>
+          <div class="support-header">
+            <i class="fas fa-envelope"></i>
+            <h2>Contact Support</h2>
+            <p>We'll get back to you within 24 hours</p>
+          </div>
+          <form class="support-form" id="supportForm">
+            <div class="form-group">
+              <label for="ticketSubject">Subject</label>
+              <input
+                type="text"
+                id="ticketSubject"
+                placeholder="Brief description of your issue"
+                required
+              />
+            </div>
+            <div class="form-group">
+              <label for="ticketCategory">Category</label>
+              <select id="ticketCategory" required>
+                <option value="">Select a category</option>
+                <option value="account">Account Issues</option>
+                <option value="technical">Technical Problem</option>
+                <option value="billing">Billing & Payments</option>
+                <option value="content">Content Related</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ticketPriority">Priority</label>
+              <select id="ticketPriority" required>
+                <option value="low">Low</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="ticketMessage">Message</label>
+              <textarea
+                id="ticketMessage"
+                rows="6"
+                placeholder="Please describe your issue in detail..."
+                required
+              ></textarea>
+            </div>
+            <button type="submit" class="btn-submit-ticket">
+              <i class="fas fa-paper-plane"></i>
+              Submit Ticket
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/help.js"></script>
+    <script src="js/audio-player.js"></script>
+  </body>
+</html>

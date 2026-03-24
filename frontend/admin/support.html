@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Support & Help — CreatorConnect Admin</title>
+    <link rel="icon" type="image/png" href="../images/logo2.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="../css/admin/support.css" />
+  </head>
+  <body>
+    <!-- Auth Gate -->
+    <div id="authGate">
+      <div>
+        <div class="auth-spin-ring"></div>
+        <div class="auth-spin-label">Verifying session…</div>
+      </div>
+    </div>
+
+    <!-- Sidebar -->
+    <iframe
+      id="sidebarFrame"
+      src="admin-sidebar.html"
+      title="Admin Sidebar"
+      scrolling="no"
+      allowtransparency="true"
+      onload="syncSidebarState()"
+    ></iframe>
+
+    <!-- Logout Modal -->
+    <div class="logout-modal-backdrop" id="logoutModal">
+      <div class="logout-modal-box">
+        <div class="logout-modal-icon">
+          <i class="fas fa-right-from-bracket"></i>
+        </div>
+        <div class="logout-modal-title">Leaving so soon?</div>
+        <div class="logout-modal-desc">
+          You'll be signed out of the admin panel.<br />Any unsaved changes may
+          be lost.
+        </div>
+        <div class="logout-modal-actions">
+          <button class="logout-btn-cancel" id="logoutCancelBtn">
+            <i class="fas fa-xmark"></i> Stay
+          </button>
+          <button class="logout-btn-confirm" id="logoutConfirmBtn">
+            <i class="fas fa-right-from-bracket"></i> Yes, Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ TICKET DETAIL MODAL ══ -->
+    <div class="modal-backdrop" id="detailModal">
+      <div class="modal-box">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon pink">
+              <i class="fas fa-ticket"></i>
+            </div>
+            <div>
+              <div class="modal-title" id="dm-title">Ticket Detail</div>
+              <div
+                id="dm-id"
+                style="
+                  font-size: 0.7rem;
+                  color: var(--text-secondary);
+                  font-weight: 600;
+                  margin-top: 2px;
+                "
+              ></div>
+            </div>
+          </div>
+          <button class="modal-close" onclick="closeModal('detailModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">
+            <i class="fas fa-circle-info"></i> Ticket Info
+          </div>
+          <div class="detail-row">
+            <span class="detail-key">Subject</span
+            ><span class="detail-val" id="dm-subject">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-key">Category</span
+            ><span class="detail-val" id="dm-cat">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-key">Priority</span
+            ><span class="detail-val" id="dm-priority">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-key">Status</span
+            ><span class="detail-val" id="dm-status">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-key">Created</span
+            ><span class="detail-val" id="dm-created">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-key">Updated</span
+            ><span class="detail-val" id="dm-updated">—</span>
+          </div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">
+            <i class="fas fa-user"></i> User
+          </div>
+          <div class="detail-row">
+            <span class="detail-key">Name</span
+            ><span class="detail-val" id="dm-username">—</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-key">Email</span
+            ><span class="detail-val" id="dm-email">—</span>
+          </div>
+        </div>
+        <div class="detail-section">
+          <div class="detail-section-title">
+            <i class="fas fa-message"></i> Message
+          </div>
+          <div class="msg-bubble" id="dm-message">—</div>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('detailModal')">
+            <i class="fas fa-xmark"></i> Close
+          </button>
+          <button class="modal-btn-blue" onclick="closeAndReply()">
+            <i class="fas fa-reply"></i> Reply to User
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ REPLY MODAL ══ -->
+    <div class="modal-backdrop" id="replyModal">
+      <div class="modal-box blue-top">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon blue">
+              <i class="fas fa-reply"></i>
+            </div>
+            <div>
+              <div class="modal-title">Reply to User</div>
+              <div
+                id="rm-ticket-info"
+                style="
+                  font-size: 0.7rem;
+                  color: var(--text-secondary);
+                  font-weight: 600;
+                  margin-top: 2px;
+                "
+              ></div>
+            </div>
+          </div>
+          <button class="modal-close" onclick="closeModal('replyModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <input type="hidden" id="rm-ticket-id" />
+        <input type="hidden" id="rm-user-email" />
+        <div
+          style="
+            padding: 12px 14px;
+            background: rgba(59, 130, 246, 0.07);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: 10px;
+            margin-bottom: 16px;
+          "
+        >
+          <div
+            style="
+              font-size: 0.7rem;
+              font-weight: 700;
+              color: var(--text-secondary);
+              text-transform: uppercase;
+              letter-spacing: 0.07em;
+              margin-bottom: 3px;
+            "
+          >
+            Sending to
+          </div>
+          <div
+            id="rm-to-display"
+            style="font-weight: 700; color: var(--blue); font-size: 0.84rem"
+          >
+            —
+          </div>
+        </div>
+        <div class="modal-fg">
+          <label>Change Status</label>
+          <select id="rm-status">
+            <option value="">— Keep current status —</option>
+            <option value="open">🟡 Open</option>
+            <option value="in_progress">🔵 In Progress</option>
+            <option value="resolved">🟢 Resolved</option>
+            <option value="closed">⚫ Closed</option>
+          </select>
+        </div>
+        <div class="modal-fg">
+          <label>Your Reply Message *</label>
+          <textarea
+            id="rm-reply"
+            placeholder="Type your reply to the user. This will be sent via email…"
+            style="min-height: 120px"
+          ></textarea>
+        </div>
+        <div
+          style="
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            background: rgba(59, 130, 246, 0.06);
+            border: 1px solid rgba(59, 130, 246, 0.18);
+            border-radius: 10px;
+            margin-bottom: 4px;
+            font-size: 0.76rem;
+            color: var(--blue);
+            font-weight: 600;
+          "
+        >
+          <i class="fas fa-envelope"></i> An acknowledgement email will be sent
+          to the user with your reply.
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('replyModal')">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button class="modal-btn-blue" id="rmSendBtn" onclick="submitReply()">
+            <i class="fas fa-paper-plane"></i> Send Reply
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ STATUS CHANGE MODAL ══ -->
+    <div class="modal-backdrop" id="statusModal">
+      <div class="modal-box green-top">
+        <div class="modal-header">
+          <div class="modal-title-row">
+            <div class="modal-title-icon green">
+              <i class="fas fa-circle-check"></i>
+            </div>
+            <div class="modal-title">Change Ticket Status</div>
+          </div>
+          <button class="modal-close" onclick="closeModal('statusModal')">
+            <i class="fas fa-xmark"></i>
+          </button>
+        </div>
+        <input type="hidden" id="sm-ticket-id" />
+        <div
+          id="sm-ticket-info"
+          style="
+            padding: 11px 13px;
+            background: rgba(34, 197, 94, 0.07);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+            border-radius: 10px;
+            margin-bottom: 16px;
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+          "
+        ></div>
+        <div class="modal-fg">
+          <label>New Status *</label>
+          <select id="sm-status">
+            <option value="open">🟡 Open</option>
+            <option value="in_progress">🔵 In Progress</option>
+            <option value="resolved">🟢 Resolved</option>
+            <option value="closed">⚫ Closed</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button class="modal-btn-cancel" onclick="closeModal('statusModal')">
+            <i class="fas fa-xmark"></i> Cancel
+          </button>
+          <button
+            class="modal-btn-green"
+            id="smSaveBtn"
+            onclick="submitStatusChange()"
+          >
+            <i class="fas fa-check"></i> Update Status
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <div class="toast-wrap" id="toastWrap"></div>
+
+    <!-- ══ MAIN ══ -->
+    <main class="main" id="mainContent">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Support &amp; <span>Help Center</span></div>
+          <div class="page-sub">
+            Manage user support tickets, reply with email acknowledgements, and
+            track resolution metrics.
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-row">
+        <div class="scard c-yellow">
+          <div class="scard-icon"><i class="fas fa-folder-open"></i></div>
+          <div class="scard-val" id="sv-open">—</div>
+          <div class="scard-label">Open Tickets</div>
+          <div class="scard-badge yellow">
+            <i class="fas fa-circle-dot"></i> Awaiting response
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-folder-open" style="color: var(--yellow)"></i>
+          </div>
+        </div>
+        <div class="scard c-blue">
+          <div class="scard-icon"><i class="fas fa-spinner"></i></div>
+          <div class="scard-val" id="sv-inprogress">—</div>
+          <div class="scard-label">In Progress</div>
+          <div class="scard-badge blue">
+            <i class="fas fa-clock"></i> Being handled
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-spinner" style="color: var(--blue)"></i>
+          </div>
+        </div>
+        <div class="scard c-green">
+          <div class="scard-icon"><i class="fas fa-circle-check"></i></div>
+          <div class="scard-val" id="sv-resolved">—</div>
+          <div class="scard-label">Resolved</div>
+          <div class="scard-badge green">
+            <i class="fas fa-check"></i> Closed out
+          </div>
+          <div class="scard-bg">
+            <i class="fas fa-circle-check" style="color: var(--green)"></i>
+          </div>
+        </div>
+        <div class="scard c-pink">
+          <div class="scard-icon">
+            <i class="fas fa-triangle-exclamation"></i>
+          </div>
+          <div class="scard-val" id="sv-high">—</div>
+          <div class="scard-label">High Priority</div>
+          <div class="scard-badge pink">
+            <i class="fas fa-fire"></i> Needs attention
+          </div>
+          <div class="scard-bg">
+            <i
+              class="fas fa-triangle-exclamation"
+              style="color: var(--primary)"
+            ></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <div class="search-wrap">
+          <i class="fas fa-search"></i>
+          <input
+            type="text"
+            class="search-input"
+            id="ticketSearch"
+            placeholder="Search by subject, user, category…"
+            oninput="onSearchInput()"
+          />
+        </div>
+        <select
+          class="filter-select"
+          id="statusFilter"
+          onchange="applyFilters()"
+        >
+          <option value="">All Statuses</option>
+          <option value="open">🟡 Open</option>
+          <option value="in_progress">🔵 In Progress</option>
+          <option value="resolved">🟢 Resolved</option>
+          <option value="closed">⚫ Closed</option>
+        </select>
+        <select
+          class="filter-select"
+          id="priorityFilter"
+          onchange="applyFilters()"
+        >
+          <option value="">All Priorities</option>
+          <option value="high">🔴 High</option>
+          <option value="medium">🟠 Medium</option>
+          <option value="low">🟢 Low</option>
+        </select>
+        <select
+          class="filter-select"
+          id="categoryFilter"
+          onchange="applyFilters()"
+        >
+          <option value="">All Categories</option>
+          <option value="technical">🔧 Technical</option>
+          <option value="account">👤 Account</option>
+          <option value="billing">💳 Billing</option>
+          <option value="content">📝 Content</option>
+          <option value="other">💬 Other</option>
+        </select>
+        <button class="btn-reset" onclick="resetFilters()">
+          <i class="fas fa-rotate-left"></i> Reset
+        </button>
+        <div class="view-toggle">
+          <button
+            class="vt-btn active"
+            id="gridBtn"
+            onclick="setView('grid')"
+            title="Card view"
+          >
+            <i class="fas fa-grip"></i>
+          </button>
+          <button
+            class="vt-btn"
+            id="listBtn"
+            onclick="setView('list')"
+            title="Table view"
+          >
+            <i class="fas fa-list"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Info banner -->
+      <div class="info-banner">
+        <i class="fas fa-circle-info"></i>
+        <span
+          >Replying to a ticket sends an email acknowledgement to the user.
+          Changing status updates the ticket in real time. High priority tickets
+          should be responded to first.</span
+        >
+      </div>
+
+      <!-- Card View -->
+      <div id="gridView">
+        <div class="card-grid" id="ticketCardGrid"></div>
+        <div id="cardSkelWrap" class="card-grid" style="display: none">
+          <div class="card-skel">
+            <div
+              class="skel-line"
+              style="height: 28px; width: 60%; margin-bottom: 12px"
+            ></div>
+            <div class="skel-line" style="height: 14px; width: 80%"></div>
+            <div class="skel-line" style="height: 14px; width: 55%"></div>
+            <div
+              class="skel-line"
+              style="height: 14px; width: 70%; margin-top: 12px; opacity: 0.5"
+            ></div>
+          </div>
+          <div class="card-skel">
+            <div
+              class="skel-line"
+              style="height: 28px; width: 50%; margin-bottom: 12px"
+            ></div>
+            <div class="skel-line" style="height: 14px; width: 75%"></div>
+            <div class="skel-line" style="height: 14px; width: 60%"></div>
+            <div
+              class="skel-line"
+              style="height: 14px; width: 65%; margin-top: 12px; opacity: 0.5"
+            ></div>
+          </div>
+          <div class="card-skel">
+            <div
+              class="skel-line"
+              style="height: 28px; width: 65%; margin-bottom: 12px"
+            ></div>
+            <div class="skel-line" style="height: 14px; width: 80%"></div>
+            <div class="skel-line" style="height: 14px; width: 50%"></div>
+            <div
+              class="skel-line"
+              style="height: 14px; width: 70%; margin-top: 12px; opacity: 0.5"
+            ></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- List View -->
+      <div id="listView" style="display: none">
+        <div class="table-card">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ticket ID</th>
+                  <th>User</th>
+                  <th>Subject</th>
+                  <th>Category</th>
+                  <th>Priority</th>
+                  <th>Status</th>
+                  <th>Created</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody id="ticketTableBody"></tbody>
+            </table>
+          </div>
+          <div id="tableEmptyState" class="empty-state" style="display: none">
+            <i class="fas fa-ticket"></i>
+            <p>No tickets found matching your filters.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pagination -->
+      <div class="pagination" id="paginationWrap">
+        <div class="pag-info" id="pagInfo">—</div>
+        <div class="pag-btns" id="pagBtns"></div>
+      </div>
+    </main>
+
+    <script src="../js/admin/support.js"></script>
+  </body>
+</html>

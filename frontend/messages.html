@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <title>Messages - Creator Connect</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/sidebar.css" />
+    <link rel="stylesheet" href="css/messages.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+
+    <style>
+      /* ── Toast ───────────────────────────────────────────────────── */
+      .toast {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: white;
+        padding: 15px 20px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 10000;
+        transform: translateX(400px);
+        transition: transform 0.3s ease;
+      }
+      .toast.show {
+        transform: translateX(0);
+      }
+      .toast-error {
+        background: #fee;
+        color: #c33;
+        border-left: 4px solid #c33;
+      }
+      .toast-success {
+        background: #efe;
+        color: #3c3;
+        border-left: 4px solid #3c3;
+      }
+      .toast i {
+        font-size: 1.2rem;
+      }
+      [data-theme="dark"] .toast {
+        background: #27272a;
+        color: #e4e4e7;
+      }
+      [data-theme="dark"] .toast-error {
+        background: #3f1f1f;
+        color: #ff6b6b;
+        border-left-color: #ff6b6b;
+      }
+      [data-theme="dark"] .toast-success {
+        background: #1f3f1f;
+        color: #51cf66;
+        border-left-color: #51cf66;
+      }
+
+      /* ── Active chat show ─────────────────────────────────────────── */
+      .chat-area.active #emptyChatState {
+        display: none;
+      }
+      /* Only show activeChat when it's explicitly set — not forced by CSS */
+      /* activeGroupChat is shown/hidden by JS directly */
+
+      /* ── EMOJI PICKER ─────────────────────────────────────────────── */
+      .emoji-picker {
+        position: absolute !important;
+        bottom: calc(100% + 10px) !important;
+        left: 20px !important;
+        background: var(--card-bg) !important;
+        border-radius: 16px !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15) !important;
+        width: 350px !important;
+        max-height: 400px !important;
+        display: none !important;
+        flex-direction: column !important;
+        z-index: 10000 !important;
+        opacity: 0 !important;
+        transform: translateY(10px) scale(0.95) !important;
+        transition: all 0.3s ease !important;
+      }
+      .emoji-picker.show {
+        display: flex !important;
+        opacity: 1 !important;
+        transform: translateY(0) scale(1) !important;
+      }
+      .message-input-container {
+        position: relative !important;
+      }
+
+      /* ── TOP TAB BAR (DMs | Groups) ──────────────────────────────── */
+      .msg-main-tabs {
+        display: flex;
+        border-bottom: 2px solid var(--border-purple, #f889e5);
+        background: var(--card-bg);
+      }
+      .msg-main-tab {
+        flex: 1;
+        padding: 11px 8px;
+        border: none;
+        background: transparent;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-bottom: 3px solid transparent;
+        margin-bottom: -2px;
+        transition: all 0.2s;
+        position: relative;
+      }
+      .msg-main-tab.active {
+        color: var(--primary-purple);
+        border-bottom-color: var(--primary-purple);
+      }
+      .msg-main-tab .tab-badge {
+        position: absolute;
+        top: 5px;
+        right: 18%;
+        background: #ef4444;
+        color: #fff;
+        font-size: 0.6rem;
+        font-weight: 700;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        display: none;
+        align-items: center;
+        justify-content: center;
+      }
+      .msg-main-tab .tab-badge.show {
+        display: inline-flex;
+      }
+
+      /* ── SUB-TAB BAR inside DMs (Chats | Requests) ───────────────── */
+      #dmTabBar {
+        display: flex;
+        border-bottom: 1px solid var(--border-color, #eee);
+      }
+      .dm-sub-tab {
+        flex: 1;
+        padding: 9px 8px;
+        border: none;
+        background: transparent;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        transition: all 0.2s;
+      }
+      .dm-sub-tab.active {
+        color: var(--primary-purple);
+        border-bottom-color: var(--primary-purple);
+      }
+
+      /* ── GROUP INVITE PANEL inside sidebar ───────────────────────── */
+      .group-invite-item {
+        padding: 14px 16px;
+        border-bottom: 1px solid var(--border-color, #eee);
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .group-invite-item:hover {
+        background: var(--light-purple, rgba(139, 92, 246, 0.04));
+      }
+
+      /* ── GROUP CHAT HEADER ───────────────────────────────────────── */
+      .group-chat-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 20px;
+        border-bottom: 2px solid var(--border-purple, #f889e5);
+        background: var(--card-bg);
+      }
+
+      /* ── Group member badge in message list ──────────────────────── */
+      .group-sender-label {
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--primary-purple);
+        margin-bottom: 2px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Header -->
+    <div id="header"></div>
+    <!-- Connection Status -->
+    <div class="connection-status connected">Connected</div>
+    <!-- Sidebar -->
+    <div id="sidebar"></div>
+
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <!-- MESSAGES CONTAINER                                           -->
+    <!-- ══════════════════════════════════════════════════════════════ -->
+    <div class="messages-container">
+      <!-- ── LEFT SIDEBAR ──────────────────────────────────────────── -->
+      <div class="conversations-sidebar" id="conversationsSidebar">
+        <div class="conversations-header">
+          <h2><i class="fas fa-comments"></i> Messages</h2>
+
+          <!-- ── ACTION BUTTONS ──────────────────────────────────────── -->
+          <div style="display: flex; gap: 8px; margin-bottom: 8px">
+            <button
+              class="new-message-btn"
+              onclick="openNewMessageModal()"
+              style="flex: 1; font-size: 0.8rem; padding: 8px 10px"
+            >
+              <i class="fas fa-edit"></i> <span>New Chat</span>
+            </button>
+            <button
+              class="new-message-btn"
+              onclick="openCreateGroupModal()"
+              style="
+                flex: 1;
+                font-size: 0.8rem;
+                padding: 8px 10px;
+                background: rgb(1, 173, 1);
+              "
+            >
+              <i class="fas fa-users"></i> <span>New Group</span>
+            </button>
+          </div>
+
+          <!-- ── SINGLE TAB BAR: Chats | Groups | Requests ─────────── -->
+          <div class="msg-main-tabs" id="mainTabBar">
+            <button
+              class="msg-main-tab active"
+              id="tabChats"
+              onclick="switchMainTab('chats')"
+            >
+              <i class="fas fa-comment"></i> Chats
+            </button>
+            <button
+              class="msg-main-tab"
+              id="tabGroups"
+              onclick="switchMainTab('groups')"
+            >
+              <i class="fas fa-users"></i> Groups
+              <span class="tab-badge" id="groupInviteBadge"></span>
+            </button>
+            <button
+              class="msg-main-tab"
+              id="tabRequests"
+              onclick="switchMainTab('requests')"
+            >
+              <i class="fas fa-inbox"></i> Requests
+              <span class="tab-badge" id="requestsBadge2"></span>
+            </button>
+          </div>
+
+          <!-- ── Group sub-tabs (My Groups | Invites) — shown only in Groups tab ── -->
+          <div
+            id="groupTabBar"
+            style="
+              display: none;
+              border-bottom: 1px solid var(--border-color, #eee);
+            "
+          >
+            <button
+              class="dm-sub-tab active"
+              id="grpSubGroups"
+              onclick="switchGroupSubTab('groups')"
+            >
+              My Groups
+            </button>
+            <button
+              class="dm-sub-tab"
+              id="grpSubInvites"
+              onclick="switchGroupSubTab('invites')"
+            >
+              Invites
+              <span
+                id="groupInviteBadge2"
+                style="
+                  background: var(--primary-purple);
+                  color: #fff;
+                  border-radius: 20px;
+                  padding: 1px 8px;
+                  font-size: 0.72rem;
+                  margin-left: 4px;
+                  display: none;
+                "
+              ></span>
+            </button>
+          </div>
+
+          <!-- ── Search ────────────────────────────────────────────── -->
+          <div class="message-search">
+            <i class="fas fa-search"></i>
+            <input
+              type="text"
+              id="conversationSearch"
+              placeholder="Search..."
+            />
+          </div>
+        </div>
+
+        <!-- LIST (DMs or Groups or Requests or Invites) -->
+        <div class="conversations-list" id="conversationsList"></div>
+      </div>
+
+      <!-- ── CHAT AREA ─────────────────────────────────────────────── -->
+      <div class="chat-area" id="chatArea">
+        <!-- Empty State -->
+        <div class="empty-chat-state" id="emptyChatState">
+          <i class="fas fa-comments empty-chat-icon"></i>
+          <h3>Select a conversation</h3>
+          <p>Choose a DM or group from the left to start messaging</p>
+        </div>
+
+        <!-- Active Chat (DM) -->
+        <div
+          id="activeChat"
+          style="display: none; flex-direction: column; height: 100%"
+        >
+          <div class="chat-header"></div>
+          <div class="messages-wrapper" id="messagesWrapper"></div>
+
+          <div class="message-input-container">
+            <!-- Emoji Picker -->
+            <div class="emoji-picker" id="emojiPicker">
+              <div class="emoji-picker-header">
+                <span class="emoji-picker-title">😊 Choose an emoji</span>
+                <button class="emoji-picker-close" id="emojiPickerCloseBtn">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+              <div class="emoji-picker-search">
+                <input
+                  type="text"
+                  placeholder="Search emoji..."
+                  id="emojiSearch"
+                />
+              </div>
+              <div class="emoji-picker-categories" id="emojiCategories"></div>
+              <div class="emoji-picker-content" id="emojiContent"></div>
+              <div class="emoji-picker-footer">
+                <span class="recently-used"
+                  >Recently used emojis appear here</span
+                >
+              </div>
+            </div>
+
+            <!-- Message Input Wrapper -->
+            <div class="message-input-wrapper">
+              <div class="message-input">
+                <div class="input-actions">
+                  <button
+                    class="input-action-btn"
+                    title="Attach media"
+                    disabled
+                  >
+                    <i class="fas fa-image"></i>
+                  </button>
+                  <button class="input-action-btn" id="emojiBtn" title="Emoji">
+                    <i class="far fa-smile"></i>
+                  </button>
+                </div>
+                <textarea
+                  id="messageInput"
+                  placeholder="Type a message..."
+                  rows="1"
+                ></textarea>
+              </div>
+              <button class="send-button" id="sendButton" disabled>
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Group Chat -->
+        <div
+          id="activeGroupChat"
+          style="display: none; flex-direction: column; height: 100%"
+        >
+          <div class="group-chat-header" id="groupChatHeader"></div>
+          <div class="messages-wrapper" id="groupMessagesWrapper"></div>
+          <div class="message-input-container">
+            <div class="message-input-wrapper">
+              <div class="message-input">
+                <textarea
+                  id="groupMessageInput"
+                  placeholder="Message group..."
+                  rows="1"
+                ></textarea>
+              </div>
+              <button class="send-button" id="groupSendButton" disabled>
+                <i class="fas fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── NEW DM MODAL ─────────────────────────────────────────────── -->
+    <div class="new-message-modal" id="newMessageModal" style="display: none">
+      <div class="new-message-overlay" onclick="closeNewMessageModal()">
+        <div class="new-message-content" onclick="event.stopPropagation()">
+          <div class="new-message-header">
+            <h3><i class="fas fa-edit"></i> New Message</h3>
+            <button class="modal-close-btn" onclick="closeNewMessageModal()">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+          <div class="new-message-body">
+            <div class="user-search">
+              <i class="fas fa-search"></i>
+              <input
+                type="text"
+                placeholder="Search users to message..."
+                id="userSearchInput"
+                oninput="searchUsersToMessage(this.value)"
+              />
+            </div>
+            <div class="user-search-results" id="userSearchResults">
+              <div class="search-hint">
+                <i class="fas fa-info-circle"></i>
+                <p>Search for users you follow to start a conversation</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts — ORDER MATTERS -->
+    <script src="js/messages-init.js"></script>
+    <script src="js/auth-guard.js"></script>
+    <script src="js/messages-requests.js"></script>
+    <script src="js/messages-delete.js"></script>
+    <script src="js/messages.js"></script>
+    <script src="js/groups-integrated.js"></script>
+
+    <script>
+      /* ── Prevent messages-requests.js injecting its own duplicate tab bar ── */
+      window.injectRequestsTab = function () {
+        /* disabled — tabs already in HTML */
+      };
+
+      /* ── Override switchMsgTab from messages-requests.js ─────────────────── */
+      window.switchMsgTab = function (tab) {
+        switchMainTab(tab === "chats" ? "chats" : "requests");
+      };
+
+      /* ── SINGLE TAB SWITCHER ─────────────────────────────────────────────── */
+      let _currentMainTab = "chats";
+
+      function switchMainTab(tab) {
+        _currentMainTab = tab;
+
+        // Update tab active states
+        ["tabChats", "tabGroups", "tabRequests"].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.classList.remove("active");
+        });
+        const activeId =
+          tab === "chats"
+            ? "tabChats"
+            : tab === "groups"
+            ? "tabGroups"
+            : "tabRequests";
+        document.getElementById(activeId)?.classList.add("active");
+
+        // Show/hide group sub-tabs
+        const grpBar = document.getElementById("groupTabBar");
+        if (grpBar) grpBar.style.display = tab === "groups" ? "flex" : "none";
+
+        // Update search placeholder
+        const s = document.getElementById("conversationSearch");
+        if (s) {
+          s.placeholder =
+            tab === "chats"
+              ? "Search conversations..."
+              : tab === "groups"
+              ? "Search groups..."
+              : "Search requests...";
+        }
+
+        // Load content
+        if (tab === "chats") {
+          if (typeof loadConversations === "function") loadConversations();
+        } else if (tab === "groups") {
+          switchGroupSubTab("groups");
+        } else {
+          if (typeof loadMessageRequests === "function") loadMessageRequests();
+        }
+
+        closeActiveChatPanel();
+      }
+
+      /* ── GROUP SUB-TABS ──────────────────────────────────────────────────── */
+      function switchGroupSubTab(sub) {
+        document
+          .getElementById("grpSubGroups")
+          ?.classList.toggle("active", sub === "groups");
+        document
+          .getElementById("grpSubInvites")
+          ?.classList.toggle("active", sub === "invites");
+        if (sub === "groups") {
+          if (typeof loadGroupsIntoList === "function") loadGroupsIntoList();
+        } else {
+          if (typeof loadGroupInvitesIntoList === "function")
+            loadGroupInvitesIntoList();
+        }
+      }
+
+      /* ── CLOSE CHAT PANEL ────────────────────────────────────────────────── */
+      function closeActiveChatPanel() {
+        document.getElementById("chatArea")?.classList.remove("active");
+        const ac = document.getElementById("activeChat");
+        if (ac) ac.style.display = "none";
+        const ag = document.getElementById("activeGroupChat");
+        if (ag) ag.style.display = "none";
+        const es = document.getElementById("emptyChatState");
+        if (es) es.style.display = "flex";
+      }
+
+      /* ── SEARCH ──────────────────────────────────────────────────────────── */
+      document.addEventListener("DOMContentLoaded", () => {
+        const s = document.getElementById("conversationSearch");
+        if (s) {
+          s.addEventListener("input", (e) => {
+            const q = e.target.value.toLowerCase();
+            if (
+              _currentMainTab === "chats" &&
+              typeof filterConversations === "function"
+            )
+              filterConversations(q);
+            else if (
+              _currentMainTab === "groups" &&
+              typeof filterGroupsList === "function"
+            )
+              filterGroupsList(q);
+          });
+        }
+      });
+
+      /* ── Patch openConversation (DM) ─────────────────────────────────────── */
+      window.addEventListener("load", () => {
+        setTimeout(() => {
+          const _orig = window.openConversation;
+          if (typeof _orig === "function") {
+            window.openConversation = async function (convo) {
+              const ag = document.getElementById("activeGroupChat");
+              if (ag) ag.style.display = "none";
+              const ac = document.getElementById("activeChat");
+              if (ac) ac.style.display = "flex";
+              const es = document.getElementById("emptyChatState");
+              if (es) es.style.display = "none";
+              document.getElementById("chatArea")?.classList.add("active");
+              await _orig(convo);
+            };
+          }
+        }, 900);
+      });
+
+      /* ── Update requests badge ───────────────────────────────────────────── */
+      async function _updateRequestsBadge() {
+        try {
+          const token =
+            localStorage.getItem("authToken") ||
+            sessionStorage.getItem("authToken");
+          if (!token) return;
+          const res = await fetch(
+            `${
+              typeof API_BASE_URL !== "undefined"
+                ? API_BASE_URL
+                : "http://localhost:3000/api"
+            }/messages/requests/count`,
+            { headers: { Authorization: `Bearer ${token}` } }
+          );
+          const data = await res.json();
+          const count = data.count || 0;
+          // Update the Requests tab badge
+          const badge = document.getElementById("requestsBadge2");
+          if (badge) {
+            badge.textContent = count;
+            badge.classList.toggle("show", count > 0);
+            badge.style.display = count > 0 ? "inline-flex" : "none";
+          }
+          // Also keep old badge ID working for messages-requests.js
+          const oldBadge = document.getElementById("requestsBadge");
+          if (oldBadge) {
+            oldBadge.textContent = count;
+            oldBadge.style.display = count > 0 ? "inline" : "none";
+          }
+        } catch (e) {}
+      }
+      window.addEventListener("load", () =>
+        setTimeout(_updateRequestsBadge, 1500)
+      );
+
+      /* ── Leave Group MODAL ───────────────────────────────────────────────── */
+      window.confirmLeaveCurrentGroup = function () {
+        if (!window.currentGroup) return;
+        const groupName = window.currentGroup.name || "this group";
+        document.getElementById("_leaveGrpModal")?.remove();
+        const modal = document.createElement("div");
+        modal.id = "_leaveGrpModal";
+        modal.style.cssText = `position:fixed;inset:0;z-index:99999;background:rgba(0,0,0,.55);
+          backdrop-filter:blur(6px);display:flex;align-items:center;justify-content:center;padding:20px;`;
+        modal.innerHTML = `
+          <div style="background:var(--card-bg,#fff);border-radius:20px;padding:28px;max-width:400px;
+                      width:100%;box-shadow:0 16px 48px rgba(0,0,0,.25);">
+            <div style="display:flex;align-items:center;gap:14px;margin-bottom:20px;">
+              <div style="width:50px;height:50px;border-radius:50%;flex-shrink:0;background:rgba(239,68,68,.12);
+                          display:flex;align-items:center;justify-content:center;">
+                <i class="fas fa-sign-out-alt" style="color:#ef4444;font-size:1.3rem;"></i>
+              </div>
+              <div>
+                <div style="font-weight:800;font-size:1.05rem;color:var(--text-primary);">Leave Group?</div>
+                <div style="font-size:.82rem;color:var(--text-secondary);margin-top:3px;">
+                  <strong>${groupName}</strong>
+                </div>
+              </div>
+            </div>
+            <p style="font-size:.88rem;color:var(--text-secondary);margin-bottom:20px;line-height:1.5;">
+              You won't be able to see this group's messages anymore. If you're the only admin, the next oldest member will be promoted.
+            </p>
+            <div style="display:flex;gap:10px;justify-content:flex-end;">
+              <button onclick="document.getElementById('_leaveGrpModal').remove()"
+                style="padding:10px 22px;border-radius:10px;border:none;cursor:pointer;
+                       background:var(--light-purple,rgba(139,92,246,.1));color:var(--text-primary);font-weight:700;">
+                Cancel
+              </button>
+              <button onclick="document.getElementById('_leaveGrpModal').remove(); _leaveGroup(window.currentGroup.group_id);"
+                style="padding:10px 22px;border-radius:10px;border:none;cursor:pointer;
+                       background:linear-gradient(135deg,#ef4444,#dc2626);color:#fff;font-weight:700;">
+                <i class="fas fa-sign-out-alt"></i> Leave
+              </button>
+            </div>
+          </div>`;
+        modal.addEventListener("click", (e) => {
+          if (e.target === modal) modal.remove();
+        });
+        document.body.appendChild(modal);
+      };
+    </script>
+  </body>
+</html>

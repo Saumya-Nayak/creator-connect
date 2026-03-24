@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/png" href="images/logo2.png" />
+    <title>Saved Posts - Creator Connect</title>
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="css/header.css" />
+    <link rel="stylesheet" href="css/sidebar.css" />
+    <link rel="stylesheet" href="css/saved.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+  </head>
+  <body>
+    <!-- Header Component -->
+    <div id="header"></div>
+
+    <!-- Sidebar Component -->
+    <div id="sidebar"></div>
+
+    <!-- Main Content -->
+    <main class="saved-container">
+      <!-- Header Section -->
+      <div class="saved-header">
+        <div class="saved-header-content">
+          <div class="saved-title-group">
+            <div class="saved-icon">
+              <i class="fas fa-bookmark"></i>
+            </div>
+            <div>
+              <h1 class="saved-title">Saved Posts</h1>
+              <p class="saved-subtitle">Your collection of favorite content</p>
+            </div>
+          </div>
+          <div class="saved-count-badge">
+            <i class="fas fa-layer-group"></i>
+            <span id="savedCount">0 Posts</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Results Header -->
+      <!-- In saved.html, replace the current filter section area with: -->
+
+      <!-- Results Header -->
+      <div class="results-header">
+        <div class="results-title-section">
+          <h2 id="resultsTitle">All Items</h2>
+          <span class="results-count" id="resultsCount">0 Posts</span>
+        </div>
+        <div class="view-toggle">
+          <button class="view-btn active" data-view="grid" title="Grid View">
+            <i class="fas fa-th"></i>
+          </button>
+          <button class="view-btn" data-view="list" title="List View">
+            <i class="fas fa-list"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Section -->
+      <div class="filter-section">
+        <div class="filter-buttons">
+          <button class="filter-btn active" data-filter="all">
+            <i class="fas fa-th"></i> All
+          </button>
+          <button class="filter-btn" data-filter="showcase">
+            <i class="fas fa-images"></i> Showcase
+          </button>
+          <button class="filter-btn" data-filter="service">
+            <i class="fas fa-briefcase"></i> Services
+          </button>
+          <button class="filter-btn" data-filter="product">
+            <i class="fas fa-shopping-bag"></i> Products
+          </button>
+        </div>
+        <button class="btn-clear-all" id="btnClearAll">
+          <i class="fas fa-trash"></i> Clear All
+        </button>
+      </div>
+
+      <!-- Posts Grid -->
+      <div class="saved-posts-grid" id="savedPostsGrid">
+        <!-- Loading Skeleton -->
+        <div class="loading-skeleton" id="savedLoading">
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+          <div class="skeleton-card"></div>
+        </div>
+      </div>
+
+      <!-- Empty State -->
+      <div class="empty-state" id="emptyState" style="display: none">
+        <i class="far fa-bookmark"></i>
+        <h3>No Saved Posts Yet</h3>
+        <p>Start saving posts to see them here!</p>
+        <button class="btn-explore" id="btnExplore">
+          <i class="fas fa-compass"></i>
+          Explore Posts
+        </button>
+      </div>
+
+      <!-- Load More Button -->
+      <div
+        class="load-more-container"
+        id="loadMoreContainer"
+        style="display: none"
+      >
+        <button class="btn-load-more" id="btnLoadMore">
+          <i class="fas fa-chevron-down"></i>
+          Load More
+        </button>
+      </div>
+    </main>
+
+    <!-- Post Detail Modal -->
+    <div class="post-detail-modal" id="postDetailModal">
+      <div class="post-detail-modal-overlay" onclick="closePostDetailModal()">
+        <div
+          class="post-detail-modal-content"
+          onclick="event.stopPropagation()"
+        >
+          <button
+            class="modal-close-btn"
+            onclick="closePostDetailModal()"
+            title="Close"
+          >
+            <i class="fas fa-times"></i>
+          </button>
+          <iframe src="" frameborder="0" id="postDetailIframe"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Confirmation Modal -->
+    <div class="confirmation-modal" id="confirmationModal">
+      <div class="confirmation-modal-overlay">
+        <div class="confirmation-modal-content">
+          <div class="confirmation-modal-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+          </div>
+          <h3 class="confirmation-modal-title" id="confirmationTitle">
+            Confirm Action
+          </h3>
+          <p class="confirmation-modal-text" id="confirmationText">
+            Are you sure you want to proceed?
+          </p>
+          <div class="confirmation-modal-actions">
+            <button class="btn-modal-cancel" id="btnModalCancel">
+              <i class="fas fa-times"></i>
+              Cancel
+            </button>
+            <button class="btn-modal-confirm" id="btnModalConfirm">
+              <i class="fas fa-trash"></i>
+              Confirm
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="js/auth-guard.js"></script>
+    <script src="js/saved.js"></script>
+  </body>
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard — CreatorConnect Admin</title>
+    <link rel="icon" type="image/png" href="../images/logo2.png" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="../css/admin/dashboard.css" />
+  </head>
+  <body>
+    <div id="authGate">
+      <div class="auth-spinner">
+        <div class="auth-spin-ring"></div>
+        <div class="auth-spin-label">Verifying session…</div>
+      </div>
+    </div>
+
+    <iframe
+      id="sidebarFrame"
+      src="admin-sidebar.html"
+      title="Admin Sidebar"
+      scrolling="no"
+      allowtransparency="true"
+      onload="syncSidebarState()"
+    ></iframe>
+
+    <!-- ── NOTIFICATION MODAL ── -->
+    <div
+      class="notif-modal-backdrop"
+      id="notifModal"
+      onclick="handleNotifBackdropClick(event)"
+    >
+      <div class="notif-modal-box" id="notifModalBox">
+        <div class="notif-modal-head">
+          <div class="notif-modal-title">
+            <i class="fas fa-bell"></i> Notifications
+          </div>
+          <button class="notif-mark-all" onclick="markAllRead()">
+            Mark all read
+          </button>
+        </div>
+        <div class="notif-list" id="notifList">
+          <div style="text-align: center; padding: 30px">
+            <div
+              class="auth-spin-ring"
+              style="width: 32px; height: 32px; margin: 0 auto"
+            ></div>
+          </div>
+        </div>
+        <div class="notif-footer">
+          <a href="financial.html">View all withdrawals →</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- LOGOUT MODAL -->
+    <div class="logout-modal-backdrop" id="logoutModal">
+      <div class="logout-modal-box">
+        <div class="logout-glow"></div>
+        <div class="logout-modal-icon">
+          <i class="fas fa-right-from-bracket"></i>
+        </div>
+        <div class="logout-modal-title">Leaving so soon?</div>
+        <div class="logout-modal-desc">
+          You'll be signed out of the admin panel.<br />Any unsaved changes may
+          be lost.
+        </div>
+        <div class="logout-modal-actions">
+          <button class="logout-btn-cancel" id="logoutCancelBtn">
+            <i class="fas fa-xmark"></i> Stay
+          </button>
+          <button class="logout-btn-confirm" id="logoutConfirmBtn">
+            <i class="fas fa-right-from-bracket"></i> Yes, Logout
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <main class="main" id="mainContent">
+      <div class="page-header">
+        <div>
+          <div class="page-title">
+            Good <span id="greetTime">morning</span>,
+            <span id="hAdminName">Admin</span> 👋
+          </div>
+          <div class="page-sub">
+            Here's what's happening on CreatorConnect right now.
+          </div>
+        </div>
+        <div class="header-actions">
+          <div class="date-chip">
+            <i class="fas fa-calendar-day"></i> <span id="todayDate">—</span>
+          </div>
+
+          <!-- Notification Bell (moved here from financial page) -->
+          <div class="notif-bell-wrap">
+            <button
+              class="notif-bell-btn icon-btn"
+              id="notifBellBtn"
+              onclick="toggleNotifModal()"
+              title="Notifications"
+            >
+              <i class="fas fa-bell"></i>
+            </button>
+            <div class="notif-bell-badge" id="notifBadge" style="display: none">
+              0
+            </div>
+          </div>
+
+          <button class="icon-btn" onclick="loadAll()" title="Refresh">
+            <i class="fas fa-rotate-right"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Stats row -->
+      <div class="stats-row">
+        <div class="scard c-pink">
+          <div class="scard-icon"><i class="fas fa-users"></i></div>
+          <div class="scard-val" id="sv-users">—</div>
+          <div class="scard-label">Total Users</div>
+          <div class="scard-badge up">
+            <i class="fas fa-circle-check"></i> All Roles
+          </div>
+          <div class="scard-bg"><i class="fas fa-users"></i></div>
+        </div>
+        <div class="scard c-green">
+          <div class="scard-icon"><i class="fas fa-photo-film"></i></div>
+          <div class="scard-val" id="sv-posts">—</div>
+          <div class="scard-label">Total Posts</div>
+          <div class="scard-badge up">
+            <i class="fas fa-circle-check"></i> Published
+          </div>
+          <div class="scard-bg"><i class="fas fa-photo-film"></i></div>
+        </div>
+        <div class="scard c-orange">
+          <div class="scard-icon"><i class="fas fa-bag-shopping"></i></div>
+          <div class="scard-val" id="sv-orders">—</div>
+          <div class="scard-label">Total Orders</div>
+          <div class="scard-badge warn" id="sb-orders-pend">— Pending</div>
+          <div class="scard-bg"><i class="fas fa-bag-shopping"></i></div>
+        </div>
+        <div class="scard c-blue">
+          <div class="scard-icon"><i class="fas fa-calendar-check"></i></div>
+          <div class="scard-val" id="sv-bookings">—</div>
+          <div class="scard-label">Bookings</div>
+          <div class="scard-badge warn" id="sb-book-pend">— Pending</div>
+          <div class="scard-bg"><i class="fas fa-calendar-check"></i></div>
+        </div>
+        <div class="scard c-yellow">
+          <div class="scard-icon"><i class="fas fa-indian-rupee-sign"></i></div>
+          <div class="scard-val">₹<span id="sv-revenue">—</span></div>
+          <div class="scard-label">Platform Revenue</div>
+          <div class="scard-badge up">
+            <i class="fas fa-arrow-trend-up"></i> Commission
+          </div>
+          <div class="scard-bg"><i class="fas fa-indian-rupee-sign"></i></div>
+        </div>
+        <div class="scard c-red">
+          <div class="scard-icon"><i class="fas fa-ticket"></i></div>
+          <div class="scard-val" id="sv-tickets">—</div>
+          <div class="scard-label">Open Tickets</div>
+          <div class="scard-badge danger">
+            <i class="fas fa-triangle-exclamation"></i> Needs Review
+          </div>
+          <div class="scard-bg"><i class="fas fa-headset"></i></div>
+        </div>
+      </div>
+
+      <!-- Row 1: Revenue + Post Types -->
+      <div class="charts-r1">
+        <div class="chart-card">
+          <div class="cc-head">
+            <div>
+              <div class="cc-title">Revenue Overview</div>
+              <div class="cc-sub">
+                Platform commission earnings (₹) — weekly breakdown
+              </div>
+            </div>
+            <span class="cc-chip">Last 8 Weeks</span>
+          </div>
+          <div class="cw h240"><canvas id="chartRevenue"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="cc-head">
+            <div>
+              <div class="cc-title">Posts by Type</div>
+              <div class="cc-sub">Showcase · Service · Product</div>
+            </div>
+          </div>
+          <div class="cw h240"><canvas id="chartPostTypes"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Row 2 -->
+      <div class="charts-r2">
+        <div class="chart-card">
+          <div class="cc-head">
+            <div>
+              <div class="cc-title">Order Status</div>
+              <div class="cc-sub">Current breakdown by status</div>
+            </div>
+          </div>
+          <div class="cw h180"><canvas id="chartOrderStatus"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="cc-head">
+            <div>
+              <div class="cc-title">New Signups</div>
+              <div class="cc-sub">Monthly user registrations</div>
+            </div>
+          </div>
+          <div class="cw h180"><canvas id="chartUsers"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="cc-head">
+            <div>
+              <div class="cc-title">Top Seller Balances</div>
+              <div class="cc-sub">Available earnings (₹)</div>
+            </div>
+          </div>
+          <div class="cw h180"><canvas id="chartSellers"></canvas></div>
+        </div>
+      </div>
+
+      <!-- Bottom -->
+      <div class="bottom-grid">
+        <div class="tbl-card">
+          <div class="cc-head" style="margin-bottom: 14px">
+            <div>
+              <div class="cc-title">Recent Orders</div>
+              <div class="cc-sub">Latest product transactions</div>
+            </div>
+            <a href="admin-orders.html" class="view-all">View all →</a>
+          </div>
+          <table class="tbl">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Buyer</th>
+                <th>Product</th>
+                <th>Amount</th>
+                <th>Payment</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="ordersBody">
+              <tr>
+                <td
+                  colspan="6"
+                  style="
+                    text-align: center;
+                    padding: 20px;
+                    color: var(--text-secondary);
+                  "
+                >
+                  <i
+                    class="fas fa-spinner fa-spin"
+                    style="margin-right: 6px"
+                  ></i
+                  >Loading orders…
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="right-col">
+          <div class="chart-card" style="padding: 18px">
+            <div class="cc-head" style="margin-bottom: 10px">
+              <div class="cc-title">Quick Actions</div>
+            </div>
+            <div class="qa-grid">
+              <a class="qa-btn" href="financial.html"
+                ><i class="fas fa-clock"></i>Review Withdrawals</a
+              >
+              <a class="qa-btn" href="support.html"
+                ><i class="fas fa-ticket"></i>Open Tickets</a
+              >
+              <a class="qa-btn" href="users.html"
+                ><i class="fas fa-user-plus"></i>Manage Users</a
+              >
+              <a class="qa-btn" href="admin-posts.html"
+                ><i class="fas fa-flag"></i>Moderate Posts</a
+              >
+              <a class="qa-btn" href="categories.html"
+                ><i class="fas fa-layer-group"></i>Categories</a
+              >
+              <a class="qa-btn" href="knowledge-base.html"
+                ><i class="fas fa-book-open"></i>Knowledge Base</a
+              >
+            </div>
+          </div>
+          <div class="chart-card" style="flex: 1; padding: 18px">
+            <div class="cc-head" style="margin-bottom: 6px">
+              <div>
+                <div class="cc-title">Activity Log</div>
+                <div class="cc-sub">Recent admin actions</div>
+              </div>
+              <a href="settings.html#logs" class="view-all">All →</a>
+            </div>
+            <div class="feed-list" id="activityFeed">
+              <div
+                style="
+                  text-align: center;
+                  padding: 20px;
+                  color: var(--text-secondary);
+                  font-size: 0.82rem;
+                "
+              >
+                <i class="fas fa-spinner fa-spin"></i> Loading…
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <script src="../js/admin/dashboard.js"></script>
+  </body>
+</html>
