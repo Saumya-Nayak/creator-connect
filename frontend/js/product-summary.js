@@ -1067,6 +1067,7 @@ async function submitOrder() {
         return;
       }
     }
+
     if (!pricingData._isPickup) {
       const pi = document.getElementById("phone");
       if (pi) {
@@ -1084,6 +1085,7 @@ async function submitOrder() {
         return;
       }
     }
+
     if (!currentUser) {
       showToast("Please login", "error");
       return;
@@ -1093,8 +1095,8 @@ async function submitOrder() {
       return;
     }
 
-    const qty = parseInt(document.getElementById("quantity").value),
-      stock = currentProductData.stock;
+    const qty = parseInt(document.getElementById("quantity").value);
+    const stock = currentProductData.stock;
     if (stock !== null && stock !== undefined && qty > stock) {
       showToast(`Only ${stock} available`, "error");
       return;
@@ -1103,6 +1105,8 @@ async function submitOrder() {
     const token =
       localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
     const orderBtn = document.getElementById("placeOrderBtn");
+    const originalHTML = orderBtn.innerHTML;
+
     orderBtn.disabled = true;
     orderBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing...';
 
@@ -1163,6 +1167,7 @@ async function submitOrder() {
       },
       body: JSON.stringify(requestBody),
     });
+
     const data = await res.json();
     if (!data.success) throw new Error(data.message || "Failed to place order");
 
@@ -1171,17 +1176,34 @@ async function submitOrder() {
           data.total_amount || pricingData.total
         )}`
       : `Order placed! Total: ${fmt(data.total_amount || pricingData.total)}`;
+
     showToast(successMsg, "success");
+
+    // ✅ Reset button state before redirect
+    orderBtn.disabled = false;
+    orderBtn.innerHTML = originalHTML;
+
+    // ✅ Close modal and redirect
+    if (
+      window.parent &&
+      typeof window.parent.closeBookingModal === "function"
+    ) {
+      window.parent.closeBookingModal();
+    } else {
+      window.parent.postMessage({ action: "closeModal" }, "*");
+    }
+
     setTimeout(() => {
-      window.top.location.href = "my-deals.html";
-    }, 2000);
+      window.location.href = "my-deals.html?role=buyer&type=products";
+    }, 500);
   } catch (e) {
+    console.error("Order error:", e);
     showToast(e.message, "error");
-    const ob = document.getElementById("placeOrderBtn");
-    ob.disabled = false;
-    ob.innerHTML =
-      '<i class="fas fa-shopping-cart"></i> <span id="placeOrderText">Place Order</span>';
-    _updatePlaceOrderBtn();
+    const orderBtn = document.getElementById("placeOrderBtn");
+    if (orderBtn) {
+      orderBtn.disabled = false;
+      orderBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Place Order';
+    }
   }
 }
 

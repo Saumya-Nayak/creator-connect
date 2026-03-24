@@ -1005,7 +1005,6 @@ function setupFormHandlers() {
   // Inject slot picker after form is ready
   _injectSlotPicker();
 }
-
 async function submitBooking() {
   try {
     if (!currentUser) {
@@ -1121,12 +1120,12 @@ async function submitBooking() {
     };
 
     const bookBtn = document.getElementById("bookNowBtn");
-    const originalBtnText = bookBtn.innerHTML;
+    const originalHTML = bookBtn.innerHTML;
 
     // Disable button and show loading
     bookBtn.disabled = true;
     bookBtn.innerHTML =
-      '<i class="fas fa-spinner fa-spin"></i> <span>Sending Request...</span>';
+      '<i class="fas fa-spinner fa-spin"></i> Sending Request...';
 
     const token =
       localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
@@ -1146,20 +1145,26 @@ async function submitBooking() {
     }
 
     // ✅ SUCCESS - Show success message
-    showToast("Booking request sent successfully! Redirecting...", "success");
+    showToast("Booking request sent successfully!", "success");
 
-    // ✅ IMPORTANT: Close the modal first
-    if (window.parent && window.parent.closeBookingModal) {
+    // ✅ Reset button state before redirect
+    bookBtn.disabled = false;
+    bookBtn.innerHTML = originalHTML;
+
+    // ✅ Close the modal
+    if (
+      window.parent &&
+      typeof window.parent.closeBookingModal === "function"
+    ) {
       window.parent.closeBookingModal();
     } else {
-      // Send message to parent to close modal
       window.parent.postMessage({ action: "closeModal" }, "*");
     }
 
-    // ✅ THEN redirect after a short delay
+    // ✅ Redirect to My Deals
     setTimeout(() => {
       window.location.href = "my-deals.html?role=buyer&type=services";
-    }, 1500);
+    }, 500);
   } catch (err) {
     console.error("Booking error:", err);
     showToast(err.message, "error");
@@ -1169,7 +1174,7 @@ async function submitBooking() {
     if (bookBtn) {
       bookBtn.disabled = false;
       bookBtn.innerHTML =
-        '<i class="fas fa-calendar-check"></i> <span>Send Booking Request</span>';
+        '<i class="fas fa-calendar-check"></i> Send Booking Request';
     }
   }
 }
