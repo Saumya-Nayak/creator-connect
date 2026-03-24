@@ -5015,3 +5015,65 @@ body {
 .notification-item[data-notification-type="message_reaction"] .notification-badge {
     background: linear-gradient(135deg, #f59e0b, #f97316);
 }
+
+/* ===== FIX: Mobile Filter Tabs in One Line with Horizontal Scroll ===== */
+@media (max-width: 767px) {
+    .feed-filters {
+        display: flex !important;
+        flex-direction: row !important;
+        flex-wrap: nowrap !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        white-space: nowrap !important;
+        -webkit-overflow-scrolling: touch !important;
+        scrollbar-width: thin !important;
+        gap: 8px !important;
+        padding: 4px 0 8px 0 !important;
+        width: 100% !important;
+    }
+
+    /* Hide scrollbar for cleaner look (optional) */
+    .feed-filters::-webkit-scrollbar {
+        height: 3px;
+    }
+
+    .feed-filters::-webkit-scrollbar-track {
+        background: var(--light-purple);
+        border-radius: 10px;
+    }
+
+    .feed-filters::-webkit-scrollbar-thumb {
+        background: var(--primary-purple);
+        border-radius: 10px;
+    }
+
+    .filter-btn {
+        flex-shrink: 0 !important;
+        white-space: nowrap !important;
+        display: inline-flex !important;
+        padding: 8px 16px !important;
+        font-size: 0.85rem !important;
+    }
+
+    /* Show text on mobile for better usability */
+    .filter-btn span {
+        display: inline !important;
+        margin-left: 6px;
+    }
+
+    .filter-btn i {
+        margin: 0 !important;
+    }
+}
+
+/* Extra small mobile (up to 480px) */
+@media (max-width: 480px) {
+    .filter-btn {
+        padding: 6px 12px !important;
+        font-size: 0.8rem !important;
+    }
+
+    .filter-btn span {
+        font-size: 0.75rem !important;
+    }
+}
