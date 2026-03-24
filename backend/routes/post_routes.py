@@ -1359,121 +1359,77 @@ def delete_post_route(post_id):
             'success': False,
             'message': 'Failed to delete post'
         }), 500
+# ===== PASTE THIS to REPLACE the delete_post_with_file function in post_routes.py =====
+# Find the route: @post_bp.route('/posts/<int:post_id>/delete', methods=['DELETE'])
+# Replace the entire function body below
+
 @post_bp.route('/posts/<int:post_id>/delete', methods=['DELETE'])
 def delete_post_with_file(post_id):
-    """Delete a post and its associated media file - HARD DELETE"""
+    """Delete a post and its associated Cloudinary media - HARD DELETE"""
     try:
         auth_token = request.headers.get('Authorization', '').replace('Bearer ', '')
         user_id = verify_user_token(auth_token)
         if not user_id:
-            return jsonify({
-                'success': False,
-                'message': 'Unauthorized'
-            }), 401
-        
+            return jsonify({'success': False, 'message': 'Unauthorized'}), 401
+
         connection = get_db_connection()
         if not connection:
-            return jsonify({
-                'success': False,
-                'message': 'Database connection failed'
-            }), 500
-        
+            return jsonify({'success': False, 'message': 'Database connection failed'}), 500
+
         cursor = connection.cursor(dictionary=True)
-        
-        # Get post with media_url
         cursor.execute("""
             SELECT user_id, media_url, post_type
-            FROM posts
-            WHERE post_id = %s AND is_deleted = FALSE
+            FROM posts WHERE post_id = %s AND is_deleted = FALSE
         """, (post_id,))
-        
         post = cursor.fetchone()
-        
+
         if not post:
-            cursor.close()
-            connection.close()
-            return jsonify({
-                'success': False,
-                'message': 'Post not found'
-            }), 404
-        
-        # Check if user owns the post
+            cursor.close(); connection.close()
+            return jsonify({'success': False, 'message': 'Post not found'}), 404
+
         if post['user_id'] != user_id:
-            cursor.close()
-            connection.close()
-            return jsonify({
-                'success': False,
-                'message': 'You can only delete your own posts'
-            }), 403
-        
-        # 🔥 HARD DELETE - Remove from database completely
-        # Delete related records first (handle missing tables gracefully)
-        try:
-            cursor.execute("DELETE FROM post_likes WHERE post_id = %s", (post_id,))
-        except Exception as e:
-            if "doesn't exist" not in str(e):
-                raise
-        
-        try:
-            cursor.execute("DELETE FROM post_comments WHERE post_id = %s", (post_id,))
-        except Exception as e:
-            if "doesn't exist" not in str(e):
-                raise
-        
-        try:
-            cursor.execute("DELETE FROM post_shares WHERE post_id = %s", (post_id,))
-        except Exception as e:
-            if "doesn't exist" not in str(e):
-                raise
-        
-        try:
-            cursor.execute("DELETE FROM transactions WHERE post_id = %s", (post_id,))
-        except Exception as e:
-            if "doesn't exist" not in str(e):
-                raise
-        
-        # Now delete the post itself
+            cursor.close(); connection.close()
+            return jsonify({'success': False, 'message': 'You can only delete your own posts'}), 403
+
+        # Delete related records (handle missing tables gracefully)
+        for table, col in [("post_likes","post_id"), ("post_comments","post_id"),
+                           ("post_shares","post_id"), ("transactions","post_id")]:
+            try:
+                cursor.execute(f"DELETE FROM {table} WHERE {col} = %s", (post_id,))
+            except Exception as e:
+                if "doesn't exist" not in str(e):
+                    raise
+
         cursor.execute("DELETE FROM posts WHERE post_id = %s", (post_id,))
         connection.commit()
-        
         print(f"✅ Post {post_id} PERMANENTLY deleted from database")
-        
-        # Delete the actual media file from uploads/posts folder
-        if post['media_url']:
+
+        # ✅ CHANGED: Delete from Cloudinary instead of local disk
+        media_url = post.get('media_url')
+        if media_url and 'cloudinary.com' in media_url:
             try:
-                media_path = post['media_url']
-                
-                # Check if it's a local file (not external URL)
-                if not media_path.startswith('http://') and not media_path.startswith('https://'):
-                    file_path = os.path.join(os.getcwd(), media_path)
-                    
-                    if os.path.exists(file_path):
-                        os.remove(file_path)
-                        print(f"✅ Deleted media file: {file_path}")
-                    else:
-                        print(f"⚠️ Media file not found: {file_path}")
-                        
+                import cloudinary.uploader
+                parts = media_url.split('/')
+                upload_idx = parts.index('upload')
+                start = upload_idx + 1
+                if start < len(parts) and parts[start].startswith('v') and parts[start][1:].isdigit():
+                    start += 1
+                public_id_with_ext = '/'.join(parts[start:])
+                public_id = public_id_with_ext.rsplit('.', 1)[0]
+                # Detect resource type from URL
+                resource_type = 'video' if '/video/' in media_url else 'image'
+                cloudinary.uploader.destroy(public_id, resource_type=resource_type)
+                print(f"✅ Cloudinary media deleted: {public_id}")
             except Exception as e:
-                print(f"⚠️ Error deleting media file: {e}")
-                # Continue anyway - database record is deleted
-        
-        cursor.close()
-        connection.close()
-        
-        return jsonify({
-            'success': True,
-            'message': 'Post and media file deleted permanently'
-        }), 200
-        
+                print(f"⚠️ Error deleting Cloudinary media: {e}")
+
+        cursor.close(); connection.close()
+        return jsonify({'success': True, 'message': 'Post and media deleted permanently'}), 200
+
     except Exception as e:
         print(f"❌ Error deleting post: {e}")
-        import traceback
-        traceback.print_exc()
-        return jsonify({
-            'success': False,
-            'message': 'Failed to delete post'
-        }), 500
-
+        import traceback; traceback.print_exc()
+        return jsonify({'success': False, 'message': 'Failed to delete post'}), 500
 
 @post_bp.route('/posts/search', methods=['GET'])
 def search_posts():
