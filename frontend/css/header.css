@@ -1171,3 +1171,45 @@ body.logged-in .search-input:focus {
         transform: none !important;
     }
 }
+
+/* ── Add this at the end of your header.css file ── */
+/* FIX: Show logo text on mobile without breaking anything else */
+
+@media (max-width: 768px) {
+
+    /* Keep logo text visible on mobile */
+    .logo-text {
+        display: inline !important;
+        font-size: 1.1rem !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+    }
+
+    /* Adjust logo container to accommodate text */
+    .logo {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0.3rem !important;
+        flex-shrink: 1 !important;
+        min-width: 0 !important;
+    }
+
+    /* Slightly smaller logo image on mobile to make room for text */
+    .logo img {
+        width: 28px !important;
+        height: 28px !important;
+    }
+}
+
+@media (max-width: 480px) {
+
+    /* On very small screens, keep text but smaller */
+    .logo-text {
+        font-size: 0.9rem !important;
+    }
+
+    .logo img {
+        width: 26px !important;
+        height: 26px !important;
+    }
+}
