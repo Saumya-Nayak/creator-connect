@@ -593,11 +593,7 @@ function setupEventListeners() {
 function constructMediaUrl(path, type = "post") {
   if (!path) return "images/placeholder.png";
   if (path.startsWith("http")) return path;
-
-  const cleanPath = path.replace(/^\/+/, "").replace(/^uploads\//, "");
-  return type === "profile"
-    ? `${API_BASE_URL}/get-profile-pic/${cleanPath.split("/").pop()}`
-    : `${API_BASE_URL}/uploads/${cleanPath.replace("posts/", "")}`;
+  return path;
 }
 
 function formatNumber(num) {

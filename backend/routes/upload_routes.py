@@ -112,21 +112,12 @@ def _save_time_slots(post_id: int, slots_json: str):
 
 
 # ── Configuration ────────────────────────────────────────────────────────────
-PROFILE_UPLOAD_FOLDER  = 'uploads/profile'
-COVER_UPLOAD_FOLDER    = 'uploads/cover'
-POST_UPLOAD_FOLDER     = 'uploads/posts'
-PAYMENT_PROOF_FOLDER   = 'uploads/payment_proofs'
-
 ALLOWED_IMAGE_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 ALLOWED_VIDEO_EXTENSIONS = {'mp4', 'webm', 'mov', 'avi'}
 ALLOWED_EXTENSIONS       = ALLOWED_IMAGE_EXTENSIONS | ALLOWED_VIDEO_EXTENSIONS
 
 MAX_FILE_SIZE    = 50 * 1024 * 1024
 PROFILE_MAX_SIZE =  5 * 1024 * 1024
-
-for _d in (PROFILE_UPLOAD_FOLDER, COVER_UPLOAD_FOLDER,
-           POST_UPLOAD_FOLDER, PAYMENT_PROOF_FOLDER):
-    os.makedirs(_d, exist_ok=True)
 
 
 def allowed_file(filename, allowed_exts=ALLOWED_EXTENSIONS):
@@ -301,14 +292,16 @@ def create_post_route(current_user):
         if file_size > MAX_FILE_SIZE:
             return jsonify({'success': False, 'message': 'File size exceeds 50MB limit'}), 400
 
-        timestamp         = datetime.now().strftime('%Y%m%d_%H%M%S')
-        original_filename = secure_filename(media_file.filename)
-        filename          = f"{current_user['id']}_{timestamp}_{original_filename}"
-        filepath          = os.path.join(POST_UPLOAD_FOLDER, filename)
-        media_file.save(filepath)
-
-        ext        = filename.rsplit('.', 1)[1].lower()
-        media_type = 'video' if ext in ALLOWED_VIDEO_EXTENSIONS else 'image'
+        import cloudinary.uploader
+        resource_type = 'video' if media_file.content_type.startswith('video') else 'image'
+        upload_result = cloudinary.uploader.upload(
+            media_file,
+            folder="posts",
+            resource_type=resource_type,
+            allowed_formats=["jpg", "jpeg", "png", "webp", "gif", "mp4", "webm", "mov", "avi"]
+        )
+        media_url  = upload_result['secure_url']
+        media_type = resource_type
 
         # ── Caption & Category ────────────────────────────────────────────────
         caption = request.form.get('caption', '').strip()
@@ -325,7 +318,8 @@ def create_post_route(current_user):
         post_data = {
             'user_id':        current_user['id'],
             'caption':        caption,
-            'media_url':      f"uploads/posts/{filename}",
+            'media_url':      media_url,
+            'media_type':     media_type,
             'media_type':     media_type,
             'post_type':      post_type,
             'privacy':        request.form.get('privacy', 'public'),
@@ -533,8 +527,6 @@ def create_post_route(current_user):
 
         if not result['success']:
             print(f"❌ DB ERROR: {result['message']}")
-            if os.path.exists(filepath):
-                os.remove(filepath)
             return jsonify({'success': False, 'message': result['message']}), 500
 
         post_id = result['post_id']
@@ -606,14 +598,17 @@ def upload_profile_pic():
         file.seek(0, os.SEEK_END); size = file.tell(); file.seek(0)
         if size > PROFILE_MAX_SIZE:
             return jsonify({'success': False, 'message': 'File size exceeds 5MB limit'}), 400
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename  = f"{timestamp}_{secure_filename(file.filename)}"
-        file.save(os.path.join(PROFILE_UPLOAD_FOLDER, filename))
+        import cloudinary.uploader
+        result = cloudinary.uploader.upload(
+            file,
+            folder="profiles",
+            allowed_formats=["jpg", "jpeg", "png", "webp", "gif"],
+            transformation=[{"width": 400, "height": 400, "crop": "fill", "gravity": "face"}]
+        )
         return jsonify({
             'success':  True,
             'message':  'Profile picture uploaded',
-            'filename': filename,
-            'filepath': f"uploads/profile/{filename}"
+            'filepath': result['secure_url']
         }), 200
     except Exception:
         return jsonify({'success': False, 'message': 'Failed to upload profile picture'}), 500
@@ -636,14 +631,16 @@ def upload_payment_proof():
         file.seek(0, os.SEEK_END); size = file.tell(); file.seek(0)
         if size > PROFILE_MAX_SIZE:
             return jsonify({'success': False, 'message': 'File size exceeds 5MB limit'}), 400
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename  = f"proof_{timestamp}_{secure_filename(file.filename)}"
-        file.save(os.path.join(PAYMENT_PROOF_FOLDER, filename))
+        import cloudinary.uploader
+        result = cloudinary.uploader.upload(
+            file,
+            folder="payment_proofs",
+            allowed_formats=["jpg", "jpeg", "png", "webp", "gif"]
+        )
         return jsonify({
             'success':  True,
             'message':  'Payment proof uploaded',
-            'filename': filename,
-            'filepath': f"uploads/payment_proofs/{filename}"
+            'filepath': result['secure_url']
         }), 200
     except Exception:
         return jsonify({'success': False, 'message': 'Failed to upload payment proof'}), 500
@@ -772,26 +769,27 @@ def update_post_media(current_user, post_id):
             cursor.close(); connection.close()
             return jsonify({'success': False, 'message': 'Unauthorized'}), 403
 
-        timestamp  = datetime.now().strftime('%Y%m%d_%H%M%S')
-        filename   = f"{current_user['id']}_{timestamp}_{secure_filename(media_file.filename)}"
-        filepath   = os.path.join(POST_UPLOAD_FOLDER, filename)
-        media_file.save(filepath)
-
-        ext        = filename.rsplit('.', 1)[1].lower()
-        media_type = 'video' if ext in ALLOWED_VIDEO_EXTENSIONS else 'image'
-
+        # Delete old media from Cloudinary if applicable
         old_url = post.get('media_url') or ''
-        if old_url:
+        if old_url and '/upload/' in old_url:
             try:
-                old_path = old_url if old_url.startswith('uploads/') \
-                           else os.path.join(POST_UPLOAD_FOLDER, old_url.split('/')[-1])
-                if os.path.exists(old_path):
-                    os.remove(old_path)
-                    print(f"🗑️  Deleted old media: {old_path}")
+                import cloudinary.uploader
+                public_id = old_url.split('/upload/')[1].rsplit('.', 1)[0]
+                cloudinary.uploader.destroy(public_id)
             except Exception as fe:
-                print(f"⚠️ Could not delete old media (non-fatal): {fe}")
+                print(f"⚠️ Could not delete old Cloudinary media (non-fatal): {fe}")
 
-        new_url = f"uploads/posts/{filename}"
+        # Upload new file to Cloudinary
+        import cloudinary.uploader
+        resource_type = 'video' if media_file.content_type.startswith('video') else 'image'
+        upload_result = cloudinary.uploader.upload(
+            media_file,
+            folder="posts",
+            resource_type=resource_type,
+            allowed_formats=["jpg", "jpeg", "png", "webp", "gif", "mp4", "webm", "mov", "avi"]
+        )
+        new_url    = upload_result['secure_url']
+        media_type = resource_type
         cursor.execute(
             "UPDATE posts SET media_url = %s, media_type = %s, updated_at = NOW() WHERE post_id = %s",
             (new_url, media_type, post_id)

@@ -1,13 +1,16 @@
 from flask_mail import Message
 from config.app_config import mail
-from utils.network_utils import get_server_url
+from flask import current_app
 
 def send_otp_email(email, otp):
     """Send OTP verification email"""
     try:
+        # Get sender from app config
+        sender = current_app.config.get('MAIL_DEFAULT_SENDER', 'saumyan24@gmail.com')
+        
         msg = Message(
             subject='Your Verification Code',
-            sender=("Creator_Connect", "saumyan24@gmail.com"),
+            sender=sender,
             recipients=[email],
             html=f'''
             <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -25,10 +28,11 @@ def send_otp_email(email, otp):
             '''
         )
         mail.send(msg)
+        print(f"✅ OTP email sent to {email}")
         return True
     except Exception as e:
         print(f"❌ Error sending OTP email: {str(e)}")
-        raise e
+        return False
 
 def send_password_reset_email(email, token, username):
     """Send password reset email with link"""

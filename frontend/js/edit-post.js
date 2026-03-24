@@ -831,11 +831,7 @@ function loadMediaPreview(post) {
     pa.style.display = "none";
     return;
   }
-  const url =
-    post.media_url.startsWith("http://") ||
-    post.media_url.startsWith("https://")
-      ? post.media_url
-      : `${API_BASE_URL}/uploads/${post.media_url.split("/").pop()}`;
+  const url = post.media_url || "images/placeholder.png";
   if (post.media_type === "video") {
     pm.innerHTML = `<video controls preload="metadata" id="currentMedia"><source src="${url}" type="video/mp4"></video>`;
     pa.style.display = "none";

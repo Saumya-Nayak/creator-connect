@@ -24,7 +24,7 @@ from database.db import get_db_connection
 profile_bp = Blueprint('profile', __name__)
 
 # Configuration for file uploads
-UPLOAD_FOLDER_PROFILE = 'uploads/profile'
+os.makedirs(UPLOAD_FOLDER_PROFILE, exist_ok=True)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
@@ -257,11 +257,14 @@ def update_profile():
             if 'profile_pic' in request.files:
                 file = request.files['profile_pic']
                 if file and file.filename and allowed_file(file.filename):
-                    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                    filename = f"{timestamp}_{secure_filename(file.filename)}"
-                    filepath = os.path.join(UPLOAD_FOLDER_PROFILE, filename)
-                    file.save(filepath)
-                    update_data['profile_pic'] = f"uploads/profile/{filename}"
+                    import cloudinary.uploader
+                    result = cloudinary.uploader.upload(
+                        file,
+                        folder="profiles",
+                        allowed_formats=["jpg", "jpeg", "png", "webp", "gif"],
+                        transformation=[{"width": 400, "height": 400, "crop": "fill", "gravity": "face"}]
+                    )
+                    update_data['profile_pic'] = result['secure_url']
         else:
             update_data = request.get_json() or {}
 

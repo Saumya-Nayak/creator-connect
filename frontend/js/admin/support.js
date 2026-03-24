@@ -347,9 +347,8 @@ function renderCard(t, idx) {
     .substring(0, 2)
     .toUpperCase();
   const catIcon = CAT_ICONS[t.category] || "fa-tag";
-  const avatarSrc = t.user_avatar
-    ? `${API}/get-profile-pic/${t.user_avatar.split("/").pop()}`
-    : "";
+  const avatarSrc =
+    t.user_avatar && t.user_avatar.startsWith("http") ? t.user_avatar : "";
   const avatar = avatarSrc
     ? `<img src="${escHtml(avatarSrc)}" onerror="this.style.display='none'" />`
     : "";

@@ -2550,20 +2550,8 @@ async function startConversationWith(userId, fullName, username, avatar) {
 // ===== UTILITY FUNCTIONS =====
 function constructMediaUrl(path, type = "post") {
   if (!path) return "images/default-avatar.png";
-
-  if (path.startsWith("http://") || path.startsWith("https://")) {
-    return path;
-  }
-
-  let cleanPath = path.replace(/^\/+/, "").replace(/^uploads\//, "");
-
-  if (type === "profile") {
-    const filename = cleanPath.split("/").pop();
-    return `${API_BASE_URL}/get-profile-pic/${filename}`;
-  } else {
-    const filename = cleanPath.replace("posts/", "");
-    return `${API_BASE_URL}/uploads/${filename}`;
-  }
+  if (path.startsWith("http")) return path;
+  return path;
 }
 
 function getTimeAgo(timestamp) {

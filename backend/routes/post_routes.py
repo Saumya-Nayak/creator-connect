@@ -16,12 +16,11 @@ from datetime import datetime
 post_bp = Blueprint('post', __name__)
 
 # Configuration
-UPLOAD_FOLDER_POSTS = 'uploads/posts'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp', 'mp4', 'webm'}
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 
 # Create upload directory
-os.makedirs(UPLOAD_FOLDER_POSTS, exist_ok=True)
+
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
@@ -154,26 +153,26 @@ def update_post_media(post_id):
             }), 403
         
         # Delete old media file if it exists
+        # Delete old media from Cloudinary if it was a Cloudinary URL
         old_media_path = post['media_url']
-        if old_media_path and not old_media_path.startswith('http'):
+        if old_media_path and '/upload/' in old_media_path:
             try:
-                old_file_path = os.path.join(os.getcwd(), old_media_path)
-                if os.path.exists(old_file_path):
-                    os.remove(old_file_path)
-                    print(f"🗑️ Deleted old media file: {old_file_path}")
+                import cloudinary.uploader
+                public_id = old_media_path.split('/upload/')[1].rsplit('.', 1)[0]
+                cloudinary.uploader.destroy(public_id)
             except Exception as e:
-                print(f"⚠️ Error deleting old media file: {e}")
-        
-        # Save new file
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        original_filename = secure_filename(file.filename)
-        filename = f"{user_id}_{timestamp}_{original_filename}"
-        filepath = os.path.join(UPLOAD_FOLDER_POSTS, filename)
-        
-        file.save(filepath)
-        
-        # Update database with new media path
-        new_media_url = f"uploads/posts/{filename}"
+                print(f"⚠️ Error deleting old Cloudinary media: {e}")
+
+        # Upload new file to Cloudinary
+        import cloudinary.uploader
+        resource_type = 'video' if file.content_type.startswith('video') else 'image'
+        upload_result = cloudinary.uploader.upload(
+            file,
+            folder="posts",
+            resource_type=resource_type,
+            allowed_formats=["jpg", "jpeg", "png", "webp", "gif", "mp4", "webm"]
+        )
+        new_media_url = upload_result['secure_url']
         
         cursor.execute("""
             UPDATE posts
@@ -482,7 +481,7 @@ def hard_delete_post_route(post_id):
             }), 401
         
         # Hard delete post with media file
-        result = hard_delete_post(post_id, user_id, UPLOAD_FOLDER_POSTS)
+        result = hard_delete_post(post_id, user_id)
         
         if result['success']:
             return jsonify(result), 200
@@ -783,13 +782,16 @@ def create_post_route():
             }), 400
 
         # Generate unique filename
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        original_filename = secure_filename(file.filename)
-        filename = f"{user_id}_{timestamp}_{original_filename}"
-
-        # Save file
-        filepath = os.path.join(UPLOAD_FOLDER_POSTS, filename)
-        file.save(filepath)
+       # Upload to Cloudinary
+        import cloudinary.uploader
+        resource_type = 'video' if file.content_type.startswith('video') else 'image'
+        upload_result = cloudinary.uploader.upload(
+            file,
+            folder="posts",
+            resource_type=resource_type,
+            allowed_formats=["jpg", "jpeg", "png", "webp", "gif", "mp4", "webm"]
+        )
+        media_url = upload_result['secure_url']
 
         # Prepare post data
         post_data = {
@@ -797,8 +799,8 @@ def create_post_route():
             'caption': caption,
             'post_type': post_type,
             'privacy': privacy,
-            'media_url': f"uploads/posts/{filename}",
-            'media_type': 'video' if file.content_type.startswith('video') else 'image'
+            'media_url': media_url,
+            'media_type': resource_type
         }
 
         # Add showcase-specific data
@@ -926,10 +928,7 @@ def create_post_route():
             }), 201
         else:
             # Delete uploaded file if database insertion fails
-            try:
-                os.remove(filepath)
-            except:
-                pass
+            pass  # Cloudinary upload already done; log the DB failure
             return jsonify({
                 'success': False,
                 'message': result['message']
@@ -1475,18 +1474,7 @@ def delete_post_with_file(post_id):
             'message': 'Failed to delete post'
         }), 500
 
-# ===== SERVE POST MEDIA =====
-@post_bp.route('/posts/media/<filename>', methods=['GET'])
-def get_post_media(filename):
-    """Serve post media files"""
-    try:
-        from flask import send_from_directory
-        return send_from_directory(UPLOAD_FOLDER_POSTS, filename)
-    except FileNotFoundError:
-        return jsonify({'error': 'Media not found'}), 404
-    except Exception as e:
-        print(f"❌ Error serving media: {e}")
-        return jsonify({'error': 'Failed to serve media'}), 500
+
 @post_bp.route('/posts/search', methods=['GET'])
 def search_posts():
     """

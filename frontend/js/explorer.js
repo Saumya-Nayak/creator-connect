@@ -1173,14 +1173,11 @@ const PLACEHOLDER_SVG =
 
 function constructMediaUrl(path, type = "post") {
   if (!path) return PLACEHOLDER_SVG;
+  // Already Cloudinary URL or other external URL - return as-is
   if (path.startsWith("http")) return path;
-
-  const cleanPath = path.replace(/^\/+/, "").replace(/^uploads\//, "");
-  return type === "profile"
-    ? `${API_BASE_URL}/get-profile-pic/${cleanPath.split("/").pop()}`
-    : `${API_BASE_URL}/uploads/${cleanPath.replace("posts/", "")}`;
+  // Backend now returns full Cloudinary URLs, so this is fallback
+  return path;
 }
-
 function formatNumber(num) {
   if (num >= 1000000) return (num / 1000000).toFixed(1) + "M";
   if (num >= 1000) return (num / 1000).toFixed(1) + "K";

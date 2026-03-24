@@ -49,30 +49,22 @@ def register_user():
             }
             
             # Handle file upload
+            # Handle file upload via Cloudinary
             profile_pic_path = None
             if 'profilePic' in request.files:
                 file = request.files['profilePic']
                 if file and file.filename != '':
-                    from werkzeug.utils import secure_filename
-                    from datetime import datetime
-                    import os
-                    
-                    # Validate file
                     ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
                     if '.' in file.filename and file.filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS:
-                        # Generate unique filename
-                        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                        original_filename = secure_filename(file.filename)
-                        filename = f"{timestamp}_{original_filename}"
-                        
-                        # Save file
-                        upload_folder = 'uploads/profile'
-                        os.makedirs(upload_folder, exist_ok=True)
-                        filepath = os.path.join(upload_folder, filename)
-                        file.save(filepath)
-                        
-                        profile_pic_path = f"uploads/profile/{filename}"
-                        print(f"✅ Profile picture saved: {profile_pic_path}")
+                        import cloudinary.uploader
+                        result = cloudinary.uploader.upload(
+                            file,
+                            folder="profiles",
+                            allowed_formats=["jpg", "jpeg", "png", "webp", "gif"],
+                            transformation=[{"width": 400, "height": 400, "crop": "fill", "gravity": "face"}]
+                        )
+                        profile_pic_path = result['secure_url']
+                        print(f"✅ Profile picture uploaded to Cloudinary: {profile_pic_path}")
             
             data['profile_pic'] = profile_pic_path
             

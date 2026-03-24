@@ -448,13 +448,13 @@ async function loadPosts() {
 function mediaUrl(path) {
   if (!path) return null;
   if (path.startsWith("http")) return path;
-  const clean = path.replace(/^\/+/, "").replace(/^uploads\//, "");
-  return `${API}/uploads/${clean.replace("posts/", "")}`;
+  return path; // Fallback - backend returns full Cloudinary URLs
 }
+
 function profileUrl(path) {
   if (!path) return null;
   if (path.startsWith("http")) return path;
-  return `${API}/get-profile-pic/${path.split("/").pop()}`;
+  return path; // Fallback - backend returns full Cloudinary URLs
 }
 function typeIcon(t) {
   return t === "showcase"

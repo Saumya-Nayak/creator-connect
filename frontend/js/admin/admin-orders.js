@@ -768,25 +768,8 @@ function statusBadge(status) {
 const IMG_BASE = `http://${location.hostname}:3000`;
 function imgUrl(path, type = "auto") {
   if (!path) return "";
-  if (
-    path.startsWith("http://") ||
-    path.startsWith("https://") ||
-    path.startsWith("data:")
-  )
-    return path;
-  const clean = path.replace(/\\/g, "/").replace(/^\/+/, "");
-  if (
-    type === "profile" ||
-    clean.includes("uploads/profile/") ||
-    clean.includes("profile/")
-  )
-    return `${API}/get-profile-pic/${clean.split("/").pop()}`;
-  if (clean.startsWith("uploads/posts/"))
-    return `${API}/uploads/${clean.replace("uploads/posts/", "")}`;
-  if (clean.startsWith("uploads/"))
-    return `${API}/uploads/${clean.replace("uploads/", "")}`;
-  if (type === "product") return `${API}/uploads/${clean}`;
-  return `${API}/uploads/${clean}`;
+  if (path.startsWith("http")) return path;
+  return path; // Backend returns full Cloudinary URLs
 }
 function avatarHtml(name, url, size = 32) {
   const initials = (name || "?")

@@ -323,13 +323,16 @@ def hard_delete_post(post_id, user_id, uploads_folder='uploads'):
         media_deleted = False
         if post['media_url']:
             try:
-                fp = post['media_url'] if post['media_url'].startswith('uploads/') \
-                     else os.path.join(uploads_folder, post['media_url'].split('/')[-1])
-                if os.path.exists(fp):
-                    os.remove(fp)
+                import cloudinary.uploader
+                # Extract public_id from Cloudinary URL
+                # e.g. https://res.cloudinary.com/xxx/image/upload/v123/posts/abc.jpg → posts/abc
+                url_parts = post['media_url'].split('/upload/')
+                if len(url_parts) == 2:
+                    public_id = url_parts[1].rsplit('.', 1)[0]  # remove extension
+                    cloudinary.uploader.destroy(public_id)
                     media_deleted = True
             except Exception as fe:
-                print(f"⚠️ Error deleting media: {fe}")
+                print(f"⚠️ Error deleting media from Cloudinary: {fe}")
         cursor.close(); connection.close()
         msg = 'Post deleted' + (' (media removed)' if media_deleted else '')
         return {'success': True, 'message': msg}

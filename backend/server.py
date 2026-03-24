@@ -223,10 +223,7 @@ def after_request(response):
 # ─────────────────────────────────────────────────────────────
 # Ensure upload directories exist (works on localhost + Railway volume)
 # ─────────────────────────────────────────────────────────────
-os.makedirs(os.path.join(UPLOAD_DIR, 'profile'), exist_ok=True)
-os.makedirs(os.path.join(UPLOAD_DIR, 'cover'), exist_ok=True)
-os.makedirs(os.path.join(UPLOAD_DIR, 'posts'), exist_ok=True)
-os.makedirs(os.path.join(UPLOAD_DIR, 'payment_proofs'), exist_ok=True)
+
 
 # ─────────────────────────────────────────────────────────────
 # Register blueprints
@@ -268,39 +265,7 @@ app.register_blueprint(group_routes, url_prefix='/api/groups')
 
 # ─────────────────────────────────────────────────────────────
 # Static file routes for uploads
-# ─────────────────────────────────────────────────────────────
-@app.route('/api/get-profile-pic/<filename>')
-def get_profile_pic(filename):
-    try:
-        print(f"📸 Serving profile pic: {filename}")
-        return send_from_directory(os.path.join(UPLOAD_DIR, 'profile'), filename)
-    except FileNotFoundError:
-        print(f"❌ Profile picture not found: {filename}")
-        return {"error": "Profile picture not found"}, 404
 
-
-@app.route('/api/get-cover-photo/<filename>')
-def get_cover_photo(filename):
-    try:
-        print(f"🖼️ Serving cover photo: {filename}")
-        return send_from_directory(os.path.join(UPLOAD_DIR, 'cover'), filename)
-    except FileNotFoundError:
-        print(f"❌ Cover photo not found: {filename}")
-        return {"error": "Cover photo not found"}, 404
-
-
-@app.route('/api/uploads/<path:filename>')
-def get_post_media(filename):
-    try:
-        filename = filename.replace('\\', '/')
-        filepath = os.path.join(UPLOAD_DIR, 'posts', filename)
-        filepath = os.path.normpath(filepath)
-        if not os.path.exists(filepath):
-            return {"error": "Media file not found"}, 404
-        return send_from_directory(os.path.join(UPLOAD_DIR, 'posts'), filename)
-    except Exception as e:
-        print(f"❌ Error serving media: {e}")
-        return {"error": str(e)}, 500
 
 # ─────────────────────────────────────────────────────────────
 # API routes defined directly in server.py

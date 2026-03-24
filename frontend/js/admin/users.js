@@ -251,27 +251,25 @@ async function loadUsers() {
 
 // ── Render helpers ──
 function avatarImg(u, cls, size = 60) {
-  const base = `http://${
-    location.hostname === "localhost" ? "localhost" : location.hostname
-  }:3000/api/`;
   if (u.profile_pic) {
+    // Already Cloudinary URL or other external URL - use directly
     if (u.profile_pic.startsWith("http")) {
       return `<img src="${
         u.profile_pic
-      }" class="${cls}" width="${size}" height="${size}" onerror="this.parentElement.innerHTML=avatarFallback('${
-        u.username
-      }','${cls
+      }" class="${cls}" width="${size}" height="${size}" onerror="this.style.display='none';this.insertAdjacentHTML('afterend',\`<div class='${cls
         .replace("ucard-avatar", "ucard-avatar-fallback")
         .replace("ulist-avatar", "ulist-avatar-fb")
-        .replace("d-avatar", "d-avatar-fb")}')">`;
+        .replace("d-avatar", "d-avatar-fb")}'>${(u.username ||
+        "?")[0].toUpperCase()}</div>\`)">`;
     }
-    const filename = u.profile_pic.split("/").pop();
-    return `<img src="${base}get-profile-pic/${filename}" class="${cls}" width="${size}" height="${size}" onerror="this.style.display='none';this.insertAdjacentHTML('afterend',\`<div class='${cls
+    // Fallback for any non-HTTP path (should not happen after Cloudinary migration)
+    return `<div class="${cls
       .replace("ucard-avatar", "ucard-avatar-fallback")
       .replace("ulist-avatar", "ulist-avatar-fb")
-      .replace("d-avatar", "d-avatar-fb")}'>${(u.username ||
-      "?")[0].toUpperCase()}</div>\`)">`;
+      .replace("d-avatar", "d-avatar-fb")}">${(u.username ||
+      "?")[0].toUpperCase()}</div>`;
   }
+  // No profile pic - show fallback
   const fbCls = cls.includes("ucard")
     ? "ucard-avatar-fallback"
     : cls.includes("ulist")

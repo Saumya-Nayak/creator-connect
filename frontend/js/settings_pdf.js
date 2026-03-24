@@ -66,40 +66,25 @@ async function _fetchLogo() {
 //   → URL = API_BASE_URL + "/uploads/" + postFile
 //
 async function _fetchImageB64(url, hint) {
-  // hint = 'profile' | 'post' | undefined (auto-detect)
   if (!url) return null;
-  if (url.startsWith("data:")) return url; // already base64
-
-  const api = (typeof API_BASE_URL !== "undefined" ? API_BASE_URL : "").replace(
-    /\/$/,
-    ""
-  );
-
-  let fetchUrl;
-
-  if (url.startsWith("http://") || url.startsWith("https://")) {
-    fetchUrl = url;
-  } else {
-    // Strip leading slashes + "uploads/" prefix  (same as constructMediaUrl)
-    const cleanPath = url
-      .replace(/\\/g, "/")
-      .replace(/^\/+/, "")
-      .replace(/^uploads\//, "");
-    const filename = cleanPath.split("/").pop();
-
-    const isProfile =
-      hint === "profile" ||
-      url.includes("/profile/") ||
-      url.includes("profile_pic");
-
-    if (isProfile) {
-      fetchUrl = `${api}/get-profile-pic/${filename}`;
-    } else {
-      // strip "posts/" subfolder — matches: cleanPath.replace("posts/", "")
-      const postFile = cleanPath.replace("posts/", "");
-      fetchUrl = `${api}/uploads/${postFile}`;
+  if (url.startsWith("data:")) return url;
+  // If it's already a full URL (including Cloudinary), use directly
+  if (url.startsWith("http")) {
+    try {
+      const res = await fetch(url, { cache: "force-cache" });
+      if (!res.ok) return null;
+      const blob = await res.blob();
+      if (!blob.size || !blob.type.startsWith("image/")) return null;
+      return await new Promise((resolve) => {
+        const r = new FileReader();
+        r.onloadend = () => resolve(r.result);
+        r.readAsDataURL(blob);
+      });
+    } catch (e) {
+      return null;
     }
   }
+  // Fallback for any non-HTTP path (should not happen after Cloudinary migration)
 
   try {
     const res = await fetch(fetchUrl, { cache: "force-cache" });
