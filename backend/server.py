@@ -263,15 +263,11 @@ app.register_blueprint(slot_bp, url_prefix='/api')
 app.register_blueprint(edit_post_bp, url_prefix='/api')
 app.register_blueprint(group_routes, url_prefix='/api/groups')
 
-
-# Add this after all blueprint registrations
-@app.route('/uploads/<path:filename>')
-def serve_upload(filename):
-    """Serve local uploads for old images"""
-    return send_from_directory(UPLOAD_DIR, filename)
-
 # ─────────────────────────────────────────────────────────────
 # Static file routes for uploads
+
+
+
 
 
 # ─────────────────────────────────────────────────────────────
