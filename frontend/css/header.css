@@ -1205,7 +1205,7 @@ body.logged-in .search-input:focus {
 
     /* On very small screens, keep text but smaller */
     .logo-text {
-        font-size: 0.9rem !important;
+        font-size: 1.0rem !important;
     }
 
     .logo img {
