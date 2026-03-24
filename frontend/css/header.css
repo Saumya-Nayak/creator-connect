@@ -1172,15 +1172,19 @@ body.logged-in .search-input:focus {
     }
 }
 
-/* ── Add this at the end of your header.css file ── */
-/* FIX: Show logo text on mobile without breaking anything else */
+/* ── Add this at the end of your header.css file, replacing the previous mobile fix ── */
 
+/* FIX: Keep logo text visible and consistent font on mobile */
 @media (max-width: 768px) {
 
     /* Keep logo text visible on mobile */
     .logo-text {
         display: inline !important;
-        font-size: 1.1rem !important;
+        font-size: 1.5rem !important;
+        /* Same as desktop */
+        font-family: Allura !important;
+        /* Same font as desktop */
+        font-weight: bolder !important;
         white-space: nowrap !important;
         overflow: visible !important;
     }
@@ -1189,27 +1193,27 @@ body.logged-in .search-input:focus {
     .logo {
         display: flex !important;
         align-items: center !important;
-        gap: 0.3rem !important;
+        gap: 0.5rem !important;
         flex-shrink: 1 !important;
         min-width: 0 !important;
     }
 
-    /* Slightly smaller logo image on mobile to make room for text */
+    /* Keep logo image size */
     .logo img {
-        width: 28px !important;
-        height: 28px !important;
+        width: 34px !important;
+        height: 34px !important;
     }
 }
 
 @media (max-width: 480px) {
 
-    /* On very small screens, keep text but smaller */
+    /* On very small screens, keep font consistent but slightly smaller if needed */
     .logo-text {
-        font-size: 1.0rem !important;
+        font-size: 1.3rem !important;
     }
 
     .logo img {
-        width: 26px !important;
-        height: 26px !important;
+        width: 30px !important;
+        height: 30px !important;
     }
 }
