@@ -1121,6 +1121,9 @@ async function submitBooking() {
     };
 
     const bookBtn = document.getElementById("bookNowBtn");
+    const originalBtnText = bookBtn.innerHTML;
+
+    // Disable button and show loading
     bookBtn.disabled = true;
     bookBtn.innerHTML =
       '<i class="fas fa-spinner fa-spin"></i> <span>Sending Request...</span>';
@@ -1137,15 +1140,31 @@ async function submitBooking() {
     });
 
     const data = await response.json();
-    if (!data.success)
-      throw new Error(data.message || "Failed to create booking");
 
-    showToast("Booking request sent successfully!", "success");
+    if (!data.success) {
+      throw new Error(data.message || "Failed to create booking");
+    }
+
+    // ✅ SUCCESS - Show success message
+    showToast("Booking request sent successfully! Redirecting...", "success");
+
+    // ✅ IMPORTANT: Close the modal first
+    if (window.parent && window.parent.closeBookingModal) {
+      window.parent.closeBookingModal();
+    } else {
+      // Send message to parent to close modal
+      window.parent.postMessage({ action: "closeModal" }, "*");
+    }
+
+    // ✅ THEN redirect after a short delay
     setTimeout(() => {
-      window.top.location.href = "my-deals.html";
-    }, 2000);
+      window.location.href = "my-deals.html?role=buyer&type=services";
+    }, 1500);
   } catch (err) {
+    console.error("Booking error:", err);
     showToast(err.message, "error");
+
+    // Reset button on error
     const bookBtn = document.getElementById("bookNowBtn");
     if (bookBtn) {
       bookBtn.disabled = false;
@@ -1222,6 +1241,7 @@ function showError(message) {
 }
 
 function closeSummary() {
+  // Send message to parent to close modal
   window.parent.postMessage({ action: "closeModal" }, "*");
 }
 function navigateToProfile() {
