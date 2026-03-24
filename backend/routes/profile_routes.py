@@ -24,12 +24,12 @@ from database.db import get_db_connection
 profile_bp = Blueprint('profile', __name__)
 
 # Configuration for file uploads
-os.makedirs(UPLOAD_FOLDER_PROFILE, exist_ok=True)
+# os.makedirs(UPLOAD_FOLDER_PROFILE, exist_ok=True)
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif', 'webp'}
 MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 
 # Create upload directories
-os.makedirs(UPLOAD_FOLDER_PROFILE, exist_ok=True)
+# os.makedirs(UPLOAD_FOLDER_PROFILE, exist_ok=True)
 
 def allowed_file(filename):
     """Check if file extension is allowed"""
