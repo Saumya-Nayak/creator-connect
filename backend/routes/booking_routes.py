@@ -3,7 +3,7 @@ from database.db import get_db_connection
 from services.jwt_service import verify_token
 from datetime import datetime, timedelta
 
-# ✅ RESTORED: All notification imports uncommented
+# ✅ All notification imports
 from database.notification_operations import (
     notify_order_placed,
     notify_order_confirmed,
@@ -18,23 +18,7 @@ from database.notification_operations import (
 )
 
 from routes.delivery_routes import _get_gst_rate, _haversine_km, _coords_from_pincode
-try:
-    from services.deal_email_service import (
-        send_booking_request_email,
-        send_booking_accepted_email,
-        send_booking_rejected_email,
-        send_booking_cancelled_email,
-        send_order_placed_email,
-        send_order_confirmed_email,
-        send_order_rejected_email,
-        send_order_cancelled_email,
-        send_order_status_email,
-        send_payment_received_email,
-    )
-    _EMAILS_ENABLED = True
-except ImportError as _e:
-    print(f"⚠️ deal_email_service not found: {_e} — emails disabled")
-    _EMAILS_ENABLED = False
+
 booking_routes = Blueprint('booking_routes', __name__)
 
 PLATFORM_FEE_PCT     = 5.0
@@ -81,11 +65,6 @@ def _record_product_commission(connection, order_id: int, seller_id: int,
 
 @booking_routes.route('/service-bookings/create', methods=['POST'])
 def create_service_booking():
-    """
-    Create a new service booking.
-    When service_location_type = 'both', buyer MUST pass location_type
-    as either 'at_provider' or 'doorstep' — not 'both'.
-    """
     try:
         auth_token  = request.headers.get('Authorization', '').replace('Bearer ', '')
         customer_id = verify_user_token(auth_token)
@@ -122,7 +101,6 @@ def create_service_booking():
             cursor.close(); connection.close()
             return jsonify({'success': False, 'message': 'You cannot book your own service'}), 400
 
-        # ── Resolve location type ──────────────────────────────────────────
         service_loc_type = post.get('service_location_type') or 'online'
         buyer_loc_choice = data.get('location_type', '').strip()
 
@@ -139,7 +117,6 @@ def create_service_booking():
         else:
             loc_type = 'online'
 
-        # ── Doorstep: radius check + travel fee ───────────────────────────
         travel_fee = 0.0
 
         if loc_type == 'doorstep' and data.get('buyer_pincode'):
@@ -170,9 +147,7 @@ def create_service_booking():
                 base_fee   = float(post.get('doorstep_base_fee') or 0)
                 per_km_fee = float(post.get('doorstep_per_km')   or 0)
                 travel_fee = round(base_fee + (dist_km * per_km_fee), 2)
-                print(f"🚗 Travel fee: ₹{base_fee} base + {dist_km:.1f}km × ₹{per_km_fee} = ₹{travel_fee}")
 
-        # ── Pricing ───────────────────────────────────────────────────────
         variant_price = None
         raw_vp = data.get('variant_price')
         if raw_vp is not None:
@@ -236,7 +211,6 @@ def create_service_booking():
 
         print(f"✅ Booking #{booking_id} created for service '{service_name}'")
 
-        # ✅ RESTORED: Notify provider of new booking request
         try:
             notify_booking_request(
                 booking_id   = booking_id,
@@ -250,15 +224,7 @@ def create_service_booking():
             print(f"🔔 Booking request notification sent to provider {provider_id}")
         except Exception as e:
             print(f"⚠️ Failed to send booking notification (non-fatal): {e}")
-        if _EMAILS_ENABLED:
-            try:
-                send_booking_request_email(
-                    booking_id=booking_id, provider_id=provider_id, customer_id=customer_id,
-                    service_name=service_name, total_amount=total_amount,
-                    preferred_start_date=data.get('preferred_start_date'),
-                    requirements=data.get('customer_requirements')
-                )
-            except Exception as _e: print(f"⚠️ Booking request email (non-fatal): {_e}")
+
         return jsonify({
             'success':      True,
             'message':      'Booking request sent successfully!',
@@ -371,7 +337,6 @@ def respond_to_booking(booking_id):
 
         print(f"✅ Booking #{booking_id} {action}ed by provider")
 
-        # ✅ RESTORED: Notify customer of accept/reject
         try:
             if action == 'accept':
                 notify_booking_accepted(
@@ -384,29 +349,16 @@ def respond_to_booking(booking_id):
                 print(f"🔔 Booking accepted notification sent to customer {customer_id}")
             else:
                 notify_booking_rejected(
-                    booking_id  = booking_id,
-                    customer_id = customer_id,
-                    provider_id = provider_id,
-                    service_name= service_name,
-                    reason      = provider_message
+                    booking_id   = booking_id,
+                    customer_id  = customer_id,
+                    provider_id  = provider_id,
+                    service_name = service_name,
+                    reason       = provider_message
                 )
                 print(f"🔔 Booking rejected notification sent to customer {customer_id}")
         except Exception as e:
             print(f"⚠️ Failed to send booking response notification (non-fatal): {e}")
-        if _EMAILS_ENABLED and action == 'accept':
-            try:
-                send_booking_accepted_email(
-                    booking_id=booking_id, customer_id=customer_id, provider_id=provider_id,
-                    service_name=service_name, provider_message=provider_message
-                )
-            except Exception as _e: print(f"⚠️ Booking accepted email (non-fatal): {_e}")
-        elif _EMAILS_ENABLED and action == 'reject':
-            try:
-                send_booking_rejected_email(
-                    booking_id=booking_id, customer_id=customer_id, provider_id=provider_id,
-                    service_name=service_name, reason=provider_message
-                )
-            except Exception as _e: print(f"⚠️ Booking rejected email (non-fatal): {_e}")
+
         return jsonify({'success': True, 'message': f'Booking {action}ed successfully'}), 200
 
     except Exception as e:
@@ -460,24 +412,17 @@ def cancel_booking_by_customer(booking_id):
 
         print(f"✅ Booking #{booking_id} cancelled by customer")
 
-        # ✅ RESTORED: Notify provider of cancellation
         try:
             notify_booking_cancelled_by_customer(
-                booking_id  = booking_id,
-                provider_id = provider_id,
-                customer_id = customer_id,
-                service_name= service_name
+                booking_id   = booking_id,
+                provider_id  = provider_id,
+                customer_id  = customer_id,
+                service_name = service_name
             )
             print(f"🔔 Booking cancellation notification sent to provider {provider_id}")
         except Exception as e:
             print(f"⚠️ Failed to send booking cancellation notification (non-fatal): {e}")
-        if _EMAILS_ENABLED:
-            try:
-                send_booking_cancelled_email(
-                    booking_id=booking_id, provider_id=provider_id,
-                    customer_id=customer_id, service_name=service_name
-                )
-            except Exception as _e: print(f"⚠️ Booking cancelled email (non-fatal): {_e}")
+
         return jsonify({'success': True, 'message': 'Booking cancelled successfully'}), 200
 
     except Exception as e:
@@ -675,7 +620,6 @@ def create_product_order():
 
         print(f"✅ Order #{order_id} placed for product: {product_name}")
 
-        # ✅ RESTORED: Notify seller of new order
         try:
             notify_order_placed(
                 order_id     = order_id,
@@ -687,13 +631,6 @@ def create_product_order():
             print(f"🔔 Order placed notification sent to seller {seller_id}")
         except Exception as e:
             print(f"⚠️ Failed to send order placed notification (non-fatal): {e}")
-        if _EMAILS_ENABLED:
-            try:
-                send_order_placed_email(
-                    order_id=order_id, seller_id=seller_id, buyer_id=buyer_id,
-                    product_name=product_name, quantity=quantity, total_amount=total_amount
-                )
-            except Exception as _e: print(f"⚠️ Order placed email (non-fatal): {_e}")
 
         return jsonify({
             'success':              True,
@@ -712,7 +649,7 @@ def create_product_order():
         print(f"❌ Error creating product order: {e}")
         import traceback; traceback.print_exc()
         return jsonify({'success': False, 'message': 'Failed to place order'}), 500
-    
+
 
 @booking_routes.route('/product-orders/<int:order_id>', methods=['GET'])
 def get_order_details(order_id):
@@ -794,7 +731,6 @@ def confirm_order(order_id):
 
         print(f"✅ Order #{order_id} confirmed by seller")
 
-        # ✅ RESTORED: Notify buyer of confirmation
         try:
             notify_order_confirmed(
                 order_id     = order_id,
@@ -805,13 +741,7 @@ def confirm_order(order_id):
             print(f"🔔 Order confirmed notification sent to buyer {buyer_id}")
         except Exception as e:
             print(f"⚠️ Failed to send order confirmed notification (non-fatal): {e}")
-        if _EMAILS_ENABLED:
-            try:
-                send_order_confirmed_email(
-                    order_id=order_id, buyer_id=buyer_id, seller_id=seller_id,
-                    product_name=product_name, total_amount=float(order.get('total_amount', 0))
-                )
-            except Exception as _e: print(f"⚠️ Order confirmed email (non-fatal): {_e}")
+
         return jsonify({'success': True, 'message': 'Order confirmed successfully'}), 200
 
     except Exception as e:
@@ -861,7 +791,6 @@ def reject_order(order_id):
 
         print(f"❌ Order #{order_id} rejected by seller")
 
-        # ✅ RESTORED: Notify buyer of rejection
         try:
             notify_order_rejected(
                 order_id     = order_id,
@@ -873,15 +802,9 @@ def reject_order(order_id):
             print(f"🔔 Order rejected notification sent to buyer {buyer_id}")
         except Exception as e:
             print(f"⚠️ Failed to send order rejected notification (non-fatal): {e}")
-        if _EMAILS_ENABLED:
-            try:
-                send_order_rejected_email(
-                    order_id=order_id, buyer_id=buyer_id, seller_id=seller_id,
-                    product_name=product_name, reason=reason
-                )
-            except Exception as _e: print(f"⚠️ Order rejected email (non-fatal): {_e}")
+
         return jsonify({'success': True, 'message': 'Order rejected'}), 200
-        
+
     except Exception as e:
         print(f"❌ Error rejecting order: {e}")
         import traceback; traceback.print_exc()
@@ -929,7 +852,6 @@ def cancel_order_by_buyer(order_id):
 
         print(f"❌ Order #{order_id} cancelled by buyer")
 
-        # ✅ RESTORED: Notify seller of cancellation
         try:
             notify_order_cancelled_by_buyer(
                 order_id     = order_id,
@@ -940,13 +862,7 @@ def cancel_order_by_buyer(order_id):
             print(f"🔔 Order cancellation notification sent to seller {seller_id}")
         except Exception as e:
             print(f"⚠️ Failed to send order cancelled notification (non-fatal): {e}")
-        if _EMAILS_ENABLED:
-            try:
-                send_order_cancelled_email(
-                    order_id=order_id, seller_id=seller_id,
-                    buyer_id=buyer_id, product_name=product_name
-                )
-            except Exception as _e: print(f"⚠️ Order cancelled email (non-fatal): {_e}")
+
         return jsonify({'success': True, 'message': 'Order cancelled successfully'}), 200
 
     except Exception as e:
@@ -1015,7 +931,6 @@ def update_order_status(order_id):
 
         print(f"📦 Order #{order_id} status updated to: {new_status}")
 
-        # ✅ RESTORED: Notify buyer of status change
         try:
             notify_order_status_update(
                 order_id     = order_id,
@@ -1027,14 +942,7 @@ def update_order_status(order_id):
             print(f"🔔 Order status update notification sent to buyer {buyer_id}")
         except Exception as e:
             print(f"⚠️ Failed to send order status notification (non-fatal): {e}")
-        if _EMAILS_ENABLED:
-            try:
-                send_order_status_email(
-                    order_id=order_id, buyer_id=buyer_id, seller_id=seller_id,
-                    product_name=product_name, new_status=new_status,
-                    tracking_number=tracking_number, carrier=carrier
-                )
-            except Exception as _e: print(f"⚠️ Order status email (non-fatal): {_e}")
+
         return jsonify({'success': True, 'message': f'Order status updated to {new_status}'}), 200
 
     except Exception as e:
@@ -1092,7 +1000,6 @@ def mark_payment_received(order_id):
 
         print(f"💰 Payment received for order #{order_id}: ₹{total_amount}")
 
-        # ✅ RESTORED: Notify seller of payment received
         try:
             notify_payment_received(
                 order_id     = order_id,
@@ -1104,14 +1011,7 @@ def mark_payment_received(order_id):
             print(f"🔔 Payment received notification sent to seller {seller_id}")
         except Exception as e:
             print(f"⚠️ Failed to send payment notification (non-fatal): {e}")
-        if _EMAILS_ENABLED:
-            try:
-                net = round(total_amount * 0.95, 2)
-                send_payment_received_email(
-                    order_id=order_id, seller_id=seller_id, buyer_id=buyer_id,
-                    net_amount=net, product_name=product_name
-                )
-            except Exception as _e: print(f"⚠️ Payment email (non-fatal): {_e}")
+
         return jsonify({'success': True, 'message': 'Payment marked as received'}), 200
 
     except Exception as e:
@@ -1198,4 +1098,4 @@ def get_my_deals():
         return jsonify({'success': False, 'message': 'Failed to fetch deals'}), 500
 
 
-print("✅ Booking Routes loaded — notifications restored for all actions")
+print("✅ Booking Routes loaded — emails removed, notifications active")

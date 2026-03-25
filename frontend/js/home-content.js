@@ -455,12 +455,9 @@ async function handleRejectRequest(
 }
 async function refreshNotificationsAfterAction() {
   console.log("🔄 Refreshing notifications after action...");
-
   try {
-    // Refresh the sidebar notification list
-    await loadNotifications();
+    await loadNotifications(); // badge updated inside
 
-    // If the "View All" modal is open, refresh it too
     const allNotificationsList = document.getElementById(
       "allNotificationsList"
     );
@@ -468,11 +465,9 @@ async function refreshNotificationsAfterAction() {
       allNotificationsList &&
       allNotificationsList.closest(".notifications-modal")
     ) {
-      console.log("🔄 Refreshing modal notifications...");
       await loadAllNotifications();
     }
-
-    console.log("✅ Notifications refreshed successfully");
+    console.log("✅ Notifications refreshed");
   } catch (error) {
     console.error("❌ Error refreshing notifications:", error);
   }
@@ -2825,7 +2820,7 @@ async function initializeNotifications() {
 
   showNotificationPanel();
 
-  // ✅ FIX: loadNotifications() now also updates the badge — no separate call
+  // loadNotifications() now also sets the badge — no race condition
   await loadNotifications();
 
   setupNotificationListeners();
@@ -2839,6 +2834,7 @@ async function initializeNotifications() {
     if (mobileBtn) mobileBtn.style.display = "flex";
   }
 }
+
 function setupClearNotificationsModalListeners() {
   const confirmBtn = document.getElementById("btnConfirmClear");
   const cancelBtn = document.getElementById("btnCancelClear");
@@ -2975,9 +2971,6 @@ function hideNotificationPanel() {
 async function updateNotificationBadge() {
   if (!currentUser) return;
 
-  const badge = document.getElementById("notificationBadge");
-  if (!badge) return;
-
   try {
     const token =
       localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
@@ -2998,7 +2991,6 @@ async function updateNotificationBadge() {
     console.error("❌ Error fetching unread count:", error);
   }
 }
-
 // Setup notification click listeners
 function setupNotificationListeners() {
   const notificationItems = document.querySelectorAll(".notification-item");
@@ -3362,13 +3354,6 @@ async function loadNotifications() {
           <div class="skeleton-line short"></div>
         </div>
       </div>
-      <div class="notification-skeleton">
-        <div class="skeleton-circle"></div>
-        <div class="skeleton-text">
-          <div class="skeleton-line"></div>
-          <div class="skeleton-line short"></div>
-        </div>
-      </div>
     </div>
   `;
 
@@ -3376,9 +3361,8 @@ async function loadNotifications() {
     const token =
       localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
 
-    // ✅ FIX: Fetch enough notifications to get accurate unread count
-    // Use limit=20 so we count all recent unreads accurately,
-    // but only display the first 4 in the panel
+    // ✅ FIX: fetch limit=20 to get accurate unread count
+    // but only render first 4 in the side panel
     const response = await fetch(`${API_BASE_URL}/notifications?limit=20`, {
       method: "GET",
       headers: {
@@ -3391,14 +3375,15 @@ async function loadNotifications() {
     console.log("📊 Notifications response:", data);
 
     if (data.success && data.notifications && data.notifications.length > 0) {
-      // ✅ FIX: Update badge from the SAME response (no separate API call needed)
-      const unreadCount = data.notifications.filter((n) => !n.is_read).length;
-      const totalUnread = data.total_unread ?? unreadCount;
+      // ✅ FIX: Update badge from SAME response — no separate API call
+      const totalUnread =
+        data.total_unread !== undefined
+          ? data.total_unread
+          : data.notifications.filter((n) => !n.is_read).length;
       _applyBadgeCount(totalUnread);
 
-      // Render only the first 4 in the side panel
-      const toShow = data.notifications.slice(0, 4);
-      renderNotifications(toShow);
+      // Render only first 4 in side panel
+      renderNotifications(data.notifications.slice(0, 4));
     } else {
       notificationsList.innerHTML = `
         <div class="notifications-empty">
@@ -3406,7 +3391,6 @@ async function loadNotifications() {
           <p>No notifications yet<br/>We'll notify you when something happens!</p>
         </div>
       `;
-      // ✅ FIX: Badge = 0 when no notifications
       _applyBadgeCount(0);
     }
   } catch (error) {
@@ -3422,20 +3406,21 @@ async function loadNotifications() {
 document.removeEventListener("visibilitychange", null); // clear old if any
 document.addEventListener("visibilitychange", async () => {
   if (!document.hidden && currentUser) {
-    console.log("👁️ Page became visible - refreshing notifications");
-    await loadNotifications(); // badge is updated inside this call
+    console.log("👁️ Page visible — refreshing notifications");
+    await loadNotifications(); // handles badge too
   }
 });
+console.log(
+  "✅ Notification panel fix loaded — single-source badge, no race condition"
+);
 function _applyBadgeCount(count) {
-  // Desktop badge
   const badge = document.getElementById("notificationBadge");
   if (badge) {
     badge.textContent = count;
     badge.style.display = count > 0 ? "inline-block" : "none";
   }
-  // Mobile badge
   updateMobileNotificationBadge(count);
-  console.log(`🔔 Badge count set: ${count}`);
+  console.log(`🔔 Badge set: ${count}`);
 }
 // Render notifications
 function renderNotifications(notifications) {
