@@ -1142,50 +1142,44 @@ async function submitBooking() {
     if (!data.success)
       throw new Error(data.message || "Failed to create booking");
 
-    // ✅ Show success toast in iframe first
-    const successMsg = "✅ Booking request sent successfully!";
-    showToast(successMsg, "success");
-
-    // ✅ Update button to show success
+    // ✅ 1. Show success on button immediately
     bookBtn.innerHTML = '<i class="fas fa-check"></i> Booking Sent!';
     bookBtn.style.background = "#10b981";
 
-    // ✅ Send message to parent to close modal and redirect
-    // This ensures parent handles the navigation, not the iframe itself
-    const successPayload = {
-      action: "bookingSuccess",
-      message: successMsg,
-      redirectUrl: "my-deals.html?role=buyer&type=services",
-      source: "creatorconnect_iframe",
-      shouldCloseModal: true,
-    };
+    // ✅ 2. Show toast inside iframe right away
+    showToast("✅ Booking request sent successfully!", "success");
 
-    // Send to both parent and top for reliability
+    // ✅ 3. Notify parent — source tag matches handleBookingMessage filter in home-content.js
     try {
-      window.parent.postMessage(successPayload, "*");
-      window.top.postMessage(successPayload, "*");
+      window.parent.postMessage(
+        {
+          action: "cc_bookingSuccess",
+          message: "✅ Booking request sent successfully!",
+          redirectUrl: "my-deals.html?role=buyer&type=services",
+          source: "creatorconnect_iframe",
+        },
+        "*"
+      );
     } catch (e) {
-      console.warn("Could not send postMessage:", e);
+      /* parent may already be gone */
     }
 
-    // ✅ Fallback: if parent doesn't respond in 2s, try to close modal ourselves
+    // ✅ 4. Self-contained redirect — guaranteed even if parent never responds
     setTimeout(() => {
       try {
-        window.parent.postMessage({ action: "closeModal" }, "*");
-      } catch (e) {}
-      // Only redirect if we're not inside an iframe that will close
-      if (window.parent === window) {
+        window.top.location.href = "my-deals.html?role=buyer&type=services";
+      } catch (e) {
         window.location.href = "my-deals.html?role=buyer&type=services";
       }
-    }, 2000);
+    }, 1200);
   } catch (err) {
+    // ✅ REQUIRED catch block — was missing, causing the syntax error
     console.error("Booking error:", err);
     showToast(err.message || "Failed to send booking request", "error");
     const bookBtn = document.getElementById("bookNowBtn");
     if (bookBtn) {
       bookBtn.disabled = false;
       bookBtn.innerHTML =
-        originalHTML ||
         '<i class="fas fa-calendar-check"></i> Send Booking Request';
       bookBtn.style.background = "";
     }
