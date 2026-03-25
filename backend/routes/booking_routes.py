@@ -661,7 +661,7 @@ def create_product_order():
     except Exception as e:
         print(f"❌ Error creating product order: {e}")
         import traceback; traceback.print_exc()
-        return jsonify({'success': False, 'message': 'Failed to place order'}), 500
+        return jsonify({'success': False, 'message': str(e)}), 500
 
 
 @booking_routes.route('/product-orders/<int:order_id>', methods=['GET'])
