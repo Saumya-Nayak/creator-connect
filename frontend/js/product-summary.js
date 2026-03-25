@@ -179,23 +179,23 @@ function _renderBothFulfillmentSelector(post) {
   card.style.cssText =
     "background:var(--card-bg,#fff);border-radius:14px;padding:14px;box-shadow:0 2px 8px rgba(0,0,0,.08);border:1px solid var(--border-color,#dee2e6);margin-bottom:12px;";
   card.innerHTML = `
-    <h2 style="font-size:1rem;font-weight:700;color:var(--text-primary);margin:0 0 12px 0;display:flex;align-items:center;gap:7px;padding-bottom:10px;border-bottom:1px solid var(--border-color,#dee2e6)">
-      <i class="fas fa-exchange-alt" style="color:var(--primary-purple,#e60aea)"></i>
-      How would you like to receive it?
-    </h2>
-    <div style="display:flex;border:2px solid var(--primary-purple,#e60aea);border-radius:12px;overflow:hidden">
-      <button type="button" id="btnChooseShipping" onclick="chooseFulfillment('shipping')"
-        style="flex:1;padding:12px 8px;border:none;cursor:pointer;font-size:.88rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--primary-purple,#e60aea);color:#fff;transition:all .2s">
-        <i class="fas fa-truck"></i> Shipping
-      </button>
-      <button type="button" id="btnChoosePickup" onclick="chooseFulfillment('pickup')"
-        style="flex:1;padding:12px 8px;border:none;cursor:pointer;font-size:.88rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--bg-secondary,#f8f9fa);color:var(--text-secondary,#6c757d);border-left:2px solid var(--primary-purple,#e60aea);transition:all .2s">
-        <i class="fas fa-store"></i> Pickup (Free)
-      </button>
-    </div>
-    <div style="margin-top:8px;font-size:.76rem;color:var(--text-secondary);text-align:center">
-      <i class="fas fa-info-circle" style="margin-right:4px"></i>Seller offers both options — pick what works for you
-    </div>`;
+      <h2 style="font-size:1rem;font-weight:700;color:var(--text-primary);margin:0 0 12px 0;display:flex;align-items:center;gap:7px;padding-bottom:10px;border-bottom:1px solid var(--border-color,#dee2e6)">
+        <i class="fas fa-exchange-alt" style="color:var(--primary-purple,#e60aea)"></i>
+        How would you like to receive it?
+      </h2>
+      <div style="display:flex;border:2px solid var(--primary-purple,#e60aea);border-radius:12px;overflow:hidden">
+        <button type="button" id="btnChooseShipping" onclick="chooseFulfillment('shipping')"
+          style="flex:1;padding:12px 8px;border:none;cursor:pointer;font-size:.88rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--primary-purple,#e60aea);color:#fff;transition:all .2s">
+          <i class="fas fa-truck"></i> Shipping
+        </button>
+        <button type="button" id="btnChoosePickup" onclick="chooseFulfillment('pickup')"
+          style="flex:1;padding:12px 8px;border:none;cursor:pointer;font-size:.88rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:7px;background:var(--bg-secondary,#f8f9fa);color:var(--text-secondary,#6c757d);border-left:2px solid var(--primary-purple,#e60aea);transition:all .2s">
+          <i class="fas fa-store"></i> Pickup (Free)
+        </button>
+      </div>
+      <div style="margin-top:8px;font-size:.76rem;color:var(--text-secondary);text-align:center">
+        <i class="fas fa-info-circle" style="margin-right:4px"></i>Seller offers both options — pick what works for you
+      </div>`;
 
   deliverySection.parentNode.insertBefore(card, deliverySection);
 
@@ -418,102 +418,102 @@ function _renderPickupCard(post) {
     "margin:16px 0;border-radius:16px;overflow:hidden;border:1.5px solid rgba(139,92,246,.25);background:var(--card-bg,#fff);box-shadow:0 2px 12px rgba(139,92,246,.08);";
 
   const headerHtml = `
-    <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:14px 18px;display:flex;align-items:center;gap:10px">
-      <div style="background:rgba(255,255,255,.2);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
-        <i class="fas fa-store" style="color:#fff;font-size:.9rem"></i>
-      </div>
-      <div>
-        <div style="font-weight:800;font-size:.95rem;color:#fff">Pickup Location</div>
-        <div style="font-size:.75rem;color:rgba(255,255,255,.8)">Collect in person from seller</div>
-      </div>
-      <span style="margin-left:auto;background:rgba(16,185,129,.9);color:#fff;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:20px">
-        <i class="fas fa-tag" style="margin-right:3px;font-size:.62rem"></i>Free
-      </span>
-    </div>`;
+      <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:14px 18px;display:flex;align-items:center;gap:10px">
+        <div style="background:rgba(255,255,255,.2);border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <i class="fas fa-store" style="color:#fff;font-size:.9rem"></i>
+        </div>
+        <div>
+          <div style="font-weight:800;font-size:.95rem;color:#fff">Pickup Location</div>
+          <div style="font-size:.75rem;color:rgba(255,255,255,.8)">Collect in person from seller</div>
+        </div>
+        <span style="margin-left:auto;background:rgba(16,185,129,.9);color:#fff;font-size:.72rem;font-weight:700;padding:4px 10px;border-radius:20px">
+          <i class="fas fa-tag" style="margin-right:3px;font-size:.62rem"></i>Free
+        </span>
+      </div>`;
 
   let addressHtml = "";
   if (hasAnyAddress) {
     addressHtml = `
-      <div style="padding:14px 18px 0 18px">
-        ${
-          pickupAddress
-            ? `<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
-              <i class="fas fa-map-marker-alt" style="color:#7c3aed;margin-top:3px;flex-shrink:0;font-size:1rem"></i>
-              <div>
-                <div style="font-weight:700;font-size:.92rem;color:var(--text-primary,#1a1a1a);line-height:1.5">${escapeHtmlSafe(
-                  pickupAddress
-                )}</div>
-                ${
+        <div style="padding:14px 18px 0 18px">
+          ${
+            pickupAddress
+              ? `<div style="display:flex;align-items:flex-start;gap:10px;margin-bottom:8px">
+                <i class="fas fa-map-marker-alt" style="color:#7c3aed;margin-top:3px;flex-shrink:0;font-size:1rem"></i>
+                <div>
+                  <div style="font-weight:700;font-size:.92rem;color:var(--text-primary,#1a1a1a);line-height:1.5">${escapeHtmlSafe(
+                    pickupAddress
+                  )}</div>
+                  ${
+                    cityStateLine
+                      ? `<div style="font-size:.82rem;color:var(--text-secondary,#6c757d);margin-top:2px">${escapeHtmlSafe(
+                          cityStateLine
+                        )}</div>`
+                      : ""
+                  }
+                </div>
+              </div>`
+              : cityStateLine
+              ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+                <i class="fas fa-map-marker-alt" style="color:#7c3aed;flex-shrink:0;font-size:1rem"></i>
+                <div style="font-weight:600;font-size:.9rem;color:var(--text-primary,#1a1a1a)">${escapeHtmlSafe(
                   cityStateLine
-                    ? `<div style="font-size:.82rem;color:var(--text-secondary,#6c757d);margin-top:2px">${escapeHtmlSafe(
-                        cityStateLine
-                      )}</div>`
-                    : ""
-                }
-              </div>
-            </div>`
-            : cityStateLine
-            ? `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
-              <i class="fas fa-map-marker-alt" style="color:#7c3aed;flex-shrink:0;font-size:1rem"></i>
-              <div style="font-weight:600;font-size:.9rem;color:var(--text-primary,#1a1a1a)">${escapeHtmlSafe(
-                cityStateLine
-              )}</div>
-            </div>`
-            : ""
-        }
-        ${
-          pickupPincode
-            ? `<div style="margin-bottom:12px;margin-left:24px">
-              <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(139,92,246,.1);color:#7c3aed;font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid rgba(139,92,246,.25)">
-                <i class="fas fa-map-pin" style="font-size:.65rem"></i>${escapeHtmlSafe(
-                  pickupPincode
-                )}
-              </span>
-            </div>`
-            : ""
-        }
-      </div>`;
+                )}</div>
+              </div>`
+              : ""
+          }
+          ${
+            pickupPincode
+              ? `<div style="margin-bottom:12px;margin-left:24px">
+                <span style="display:inline-flex;align-items:center;gap:5px;background:rgba(139,92,246,.1);color:#7c3aed;font-size:.75rem;font-weight:700;padding:3px 10px;border-radius:20px;border:1px solid rgba(139,92,246,.25)">
+                  <i class="fas fa-map-pin" style="font-size:.65rem"></i>${escapeHtmlSafe(
+                    pickupPincode
+                  )}
+                </span>
+              </div>`
+              : ""
+          }
+        </div>`;
   } else {
     addressHtml = `
-      <div style="padding:14px 18px 0 18px">
-        <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
-          <i class="fas fa-map-marker-alt" style="color:#7c3aed;font-size:1rem;flex-shrink:0"></i>
-          <div style="font-size:.85rem;color:var(--text-secondary,#6c757d);font-style:italic">
-            Seller will share pickup address after order confirmation
+        <div style="padding:14px 18px 0 18px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <i class="fas fa-map-marker-alt" style="color:#7c3aed;font-size:1rem;flex-shrink:0"></i>
+            <div style="font-size:.85rem;color:var(--text-secondary,#6c757d);font-style:italic">
+              Seller will share pickup address after order confirmation
+            </div>
           </div>
-        </div>
-      </div>`;
+        </div>`;
   }
 
   const mapHtml = embedUrl
     ? `<div style="margin:0 18px 14px 18px;border-radius:10px;overflow:hidden;height:170px;background:#f3f4f6;border:1px solid rgba(139,92,246,.15)">
-        <iframe src="${embedUrl}" width="100%" height="170" style="border:0;display:block" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
-      </div>`
+          <iframe src="${embedUrl}" width="100%" height="170" style="border:0;display:block" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+        </div>`
     : "";
 
   const directionsHtml = mapsUrl
     ? `<div style="padding:0 18px 14px 18px">
-        <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
-           style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px 0;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:10px;font-size:.88rem;font-weight:700;text-decoration:none">
-          <i class="fas fa-directions"></i> Get Directions in Google Maps
-        </a>
-      </div>`
+          <a href="${mapsUrl}" target="_blank" rel="noopener noreferrer"
+            style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px 0;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#fff;border-radius:10px;font-size:.88rem;font-weight:700;text-decoration:none">
+            <i class="fas fa-directions"></i> Get Directions in Google Maps
+          </a>
+        </div>`
     : "";
 
   const noteHtml = `
-    <div style="margin:0 18px 10px 18px;padding:10px 12px;background:rgba(139,92,246,.07);border-radius:8px;font-size:.78rem;color:#5b21b6;display:flex;align-items:flex-start;gap:7px;line-height:1.5">
-      <i class="fas fa-info-circle" style="margin-top:1px;flex-shrink:0"></i>
-      <span>No delivery address needed — coordinate pickup timing with the seller after placing your order.</span>
-    </div>`;
+      <div style="margin:0 18px 10px 18px;padding:10px 12px;background:rgba(139,92,246,.07);border-radius:8px;font-size:.78rem;color:#5b21b6;display:flex;align-items:flex-start;gap:7px;line-height:1.5">
+        <i class="fas fa-info-circle" style="margin-top:1px;flex-shrink:0"></i>
+        <span>No delivery address needed — coordinate pickup timing with the seller after placing your order.</span>
+      </div>`;
 
   const notesHtml = `
-    <div style="padding:0 18px 16px 18px">
-      <label style="font-size:.82rem;font-weight:600;color:var(--text-primary);display:block;margin-bottom:5px">
-        <i class="fas fa-sticky-note" style="color:#7c3aed;margin-right:5px"></i>Special Instructions (Optional)
-      </label>
-      <textarea id="buyerNotesPickup" rows="2" placeholder="Preferred pickup time, any special requests..."
-        style="width:100%;padding:8px 10px;border:1px solid var(--border-color,#dee2e6);border-radius:8px;font-size:.85rem;background:var(--bg-secondary,#f8f9fa);color:var(--text-primary);box-sizing:border-box;resize:vertical"></textarea>
-    </div>`;
+      <div style="padding:0 18px 16px 18px">
+        <label style="font-size:.82rem;font-weight:600;color:var(--text-primary);display:block;margin-bottom:5px">
+          <i class="fas fa-sticky-note" style="color:#7c3aed;margin-right:5px"></i>Special Instructions (Optional)
+        </label>
+        <textarea id="buyerNotesPickup" rows="2" placeholder="Preferred pickup time, any special requests..."
+          style="width:100%;padding:8px 10px;border:1px solid var(--border-color,#dee2e6);border-radius:8px;font-size:.85rem;background:var(--bg-secondary,#f8f9fa);color:var(--text-primary);box-sizing:border-box;resize:vertical"></textarea>
+      </div>`;
 
   pickupCard.innerHTML =
     headerHtml + addressHtml + mapHtml + directionsHtml + noteHtml + notesHtml;
@@ -1189,20 +1189,23 @@ async function submitOrder() {
     orderBtn.innerHTML = '<i class="fas fa-check"></i> Order Placed!';
     orderBtn.style.background = "#10b981";
 
-    showToast(successMsg, "success");
+    const successMsg = pricingData._isPickup
+      ? `✅ Order placed! Coordinate pickup with the seller. Total: ${fmt(
+          data.total_amount || pricingData.total
+        )}`
+      : `✅ Order placed successfully! Total: ${fmt(
+          data.total_amount || pricingData.total
+        )}`;
 
-    // ✅ Wait 1.8s so user sees confirmation, THEN close modal + redirect
-    setTimeout(() => {
-      if (
-        window.parent &&
-        typeof window.parent.closeBookingModal === "function"
-      ) {
-        window.parent.closeBookingModal();
-      } else {
-        window.parent.postMessage({ action: "closeModal" }, "*");
-      }
-      window.location.href = "my-deals.html?role=buyer&type=products";
-    }, 1800);
+    // Send success message to parent — parent shows toast + redirects
+    window.parent.postMessage(
+      {
+        action: "bookingSuccess",
+        message: successMsg,
+        redirectUrl: "my-deals.html?role=buyer&type=products",
+      },
+      "*"
+    );
   } catch (e) {
     console.error("Order error:", e);
     showToast(e.message || "Failed to place order", "error");

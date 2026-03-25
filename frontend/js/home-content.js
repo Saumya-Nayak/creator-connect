@@ -1427,14 +1427,33 @@ function closeBookingModal() {
     document.body.style.overflow = "auto";
   }, 300);
 
-  window.removeEventListener("message", handleBookingMessage);
+  // ✅ Do NOT remove the message listener here — bookingSuccess may fire
+  // right as the modal closes. Remove it only after a safe delay.
+  setTimeout(() => {
+    window.removeEventListener("message", handleBookingMessage);
+  }, 2500);
 }
 
 function handleBookingMessage(event) {
-  const { action } = event.data;
+  const { action, message, redirectUrl } = event.data;
 
   if (action === "closeModal") {
     closeBookingModal();
+  }
+
+  if (action === "bookingSuccess") {
+    // 1. Show toast in the PARENT window (visible even after iframe closes)
+    showSuccess(message || "✅ Done!");
+
+    // 2. Close the modal immediately (iframe is done, button already shows ✅)
+    closeBookingModal();
+
+    // 3. Redirect after toast has had time to show (1.8s)
+    if (redirectUrl) {
+      setTimeout(() => {
+        window.location.href = redirectUrl;
+      }, 1800);
+    }
   }
 }
 

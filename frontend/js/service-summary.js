@@ -1148,22 +1148,16 @@ async function submitBooking() {
     bookBtn.innerHTML = '<i class="fas fa-check"></i> Booking Sent!';
     bookBtn.style.background = "#10b981";
 
-    showToast("✅ Booking request sent successfully!", "success");
-
-    // ✅ Wait 1.8s so the user sees the success message, THEN close and redirect
-    setTimeout(() => {
-      // Notify parent to close modal
-      if (
-        window.parent &&
-        typeof window.parent.closeBookingModal === "function"
-      ) {
-        window.parent.closeBookingModal();
-      } else {
-        window.parent.postMessage({ action: "closeModal" }, "*");
-      }
-      // Redirect to My Deals
-      window.location.href = "my-deals.html?role=buyer&type=services";
-    }, 1800);
+    // Send success message to parent — parent shows toast + redirects
+    // This avoids the iframe being destroyed before toast renders
+    window.parent.postMessage(
+      {
+        action: "bookingSuccess",
+        message: "✅ Booking request sent successfully!",
+        redirectUrl: "my-deals.html?role=buyer&type=services",
+      },
+      "*"
+    );
   } catch (err) {
     console.error("Booking error:", err);
     showToast(err.message || "Failed to send booking request", "error");
