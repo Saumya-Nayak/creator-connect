@@ -1,4 +1,4 @@
-// ===== CONFIGURATION =====
+/ ===== CONFIGURATION =====
 const API_BASE_URL =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
@@ -455,9 +455,12 @@ async function handleRejectRequest(
 }
 async function refreshNotificationsAfterAction() {
   console.log("🔄 Refreshing notifications after action...");
-  try {
-    await loadNotifications(); // badge updated inside
 
+  try {
+    // Refresh the sidebar notification list
+    await loadNotifications();
+
+    // If the "View All" modal is open, refresh it too
     const allNotificationsList = document.getElementById(
       "allNotificationsList"
     );
@@ -465,9 +468,11 @@ async function refreshNotificationsAfterAction() {
       allNotificationsList &&
       allNotificationsList.closest(".notifications-modal")
     ) {
+      console.log("🔄 Refreshing modal notifications...");
       await loadAllNotifications();
     }
-    console.log("✅ Notifications refreshed");
+
+    console.log("✅ Notifications refreshed successfully");
   } catch (error) {
     console.error("❌ Error refreshing notifications:", error);
   }
@@ -2818,23 +2823,30 @@ async function initializeNotifications() {
     return;
   }
 
+  // ✅ ENSURE panel is visible
   showNotificationPanel();
 
-  // loadNotifications() now also sets the badge — no race condition
+  // Load notifications from backend
   await loadNotifications();
 
+  // Update unread badge
+  await updateNotificationBadge();
+
+  // Setup click listeners
   setupNotificationListeners();
+
+  // Add refresh button
   addRefreshButtonToNotifications();
   setupClearNotificationsModalListeners();
-
   console.log("✅ Notification system initialized");
-
+  // Show mobile notification button
   if (window.innerWidth <= 991) {
     const mobileBtn = document.getElementById("mobileNotificationsBtn");
-    if (mobileBtn) mobileBtn.style.display = "flex";
+    if (mobileBtn) {
+      mobileBtn.style.display = "flex";
+    }
   }
 }
-
 function setupClearNotificationsModalListeners() {
   const confirmBtn = document.getElementById("btnConfirmClear");
   const cancelBtn = document.getElementById("btnCancelClear");
@@ -2971,6 +2983,9 @@ function hideNotificationPanel() {
 async function updateNotificationBadge() {
   if (!currentUser) return;
 
+  const badge = document.getElementById("notificationBadge");
+  if (!badge) return;
+
   try {
     const token =
       localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
@@ -2984,13 +2999,27 @@ async function updateNotificationBadge() {
     });
 
     const data = await response.json();
+    console.log("📊 Unread count:", data);
+
     if (data.success) {
-      _applyBadgeCount(data.unread_count || 0);
+      const count = data.unread_count || 0;
+      badge.textContent = count;
+
+      // Hide badge if no unread notifications
+      if (count === 0) {
+        badge.style.display = "none";
+      } else {
+        badge.style.display = "inline-block";
+      }
+
+      // ✅ NEW: Update mobile badge too
+      updateMobileNotificationBadge(count);
     }
   } catch (error) {
     console.error("❌ Error fetching unread count:", error);
   }
 }
+
 // Setup notification click listeners
 function setupNotificationListeners() {
   const notificationItems = document.querySelectorAll(".notification-item");
@@ -3338,8 +3367,16 @@ async function loadNotifications() {
     return;
   }
 
+  // Show loading state
   notificationsList.innerHTML = `
     <div class="notifications-loading">
+      <div class="notification-skeleton">
+        <div class="skeleton-circle"></div>
+        <div class="skeleton-text">
+          <div class="skeleton-line"></div>
+          <div class="skeleton-line short"></div>
+        </div>
+      </div>
       <div class="notification-skeleton">
         <div class="skeleton-circle"></div>
         <div class="skeleton-text">
@@ -3361,9 +3398,7 @@ async function loadNotifications() {
     const token =
       localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
 
-    // ✅ FIX: fetch limit=20 to get accurate unread count
-    // but only render first 4 in the side panel
-    const response = await fetch(`${API_BASE_URL}/notifications?limit=20`, {
+    const response = await fetch(`${API_BASE_URL}/notifications?limit=4`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -3375,26 +3410,20 @@ async function loadNotifications() {
     console.log("📊 Notifications response:", data);
 
     if (data.success && data.notifications && data.notifications.length > 0) {
-      // ✅ FIX: Update badge from SAME response — no separate API call
-      const totalUnread =
-        data.total_unread !== undefined
-          ? data.total_unread
-          : data.notifications.filter((n) => !n.is_read).length;
-      _applyBadgeCount(totalUnread);
-
-      // Render only first 4 in side panel
-      renderNotifications(data.notifications.slice(0, 4));
+      renderNotifications(data.notifications);
     } else {
+      // Show empty state
       notificationsList.innerHTML = `
         <div class="notifications-empty">
           <i class="fas fa-bell-slash"></i>
           <p>No notifications yet<br/>We'll notify you when something happens!</p>
         </div>
       `;
-      _applyBadgeCount(0);
     }
   } catch (error) {
     console.error("❌ Error loading notifications:", error);
+
+    // Show error state
     notificationsList.innerHTML = `
       <div class="notifications-empty">
         <i class="fas fa-exclamation-circle"></i>
@@ -3403,25 +3432,7 @@ async function loadNotifications() {
     `;
   }
 }
-document.removeEventListener("visibilitychange", null); // clear old if any
-document.addEventListener("visibilitychange", async () => {
-  if (!document.hidden && currentUser) {
-    console.log("👁️ Page visible — refreshing notifications");
-    await loadNotifications(); // handles badge too
-  }
-});
-console.log(
-  "✅ Notification panel fix loaded — single-source badge, no race condition"
-);
-function _applyBadgeCount(count) {
-  const badge = document.getElementById("notificationBadge");
-  if (badge) {
-    badge.textContent = count;
-    badge.style.display = count > 0 ? "inline-block" : "none";
-  }
-  updateMobileNotificationBadge(count);
-  console.log(`🔔 Badge set: ${count}`);
-}
+
 // Render notifications
 function renderNotifications(notifications) {
   const notificationsList = document.getElementById("notificationsList");
