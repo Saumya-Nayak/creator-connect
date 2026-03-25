@@ -1327,7 +1327,6 @@ function openServiceSummary(postId) {
     showError("Please login to book services");
     return;
   }
-  window.removeEventListener("message", handleBookingMessage);
 
   const modal = document.createElement("div");
   modal.className = "post-detail-modal";
@@ -1345,7 +1344,6 @@ function openServiceSummary(postId) {
   document.body.appendChild(modal);
   document.body.style.overflow = "hidden";
   setTimeout(() => modal.classList.add("show"), 10);
-  window.addEventListener("message", handleBookingMessage);
 }
 function contactSeller(phoneNumber, itemTitle) {
   const message = encodeURIComponent(`Hi! I'm interested in: ${itemTitle}`);
@@ -1372,7 +1370,6 @@ function openProductSummary(postId) {
     showError("Please login to purchase products");
     return;
   }
-  window.removeEventListener("message", handleBookingMessage);
 
   const modal = document.createElement("div");
   modal.className = "post-detail-modal";
@@ -1390,7 +1387,6 @@ function openProductSummary(postId) {
   document.body.appendChild(modal);
   document.body.style.overflow = "hidden";
   setTimeout(() => modal.classList.add("show"), 10);
-  window.addEventListener("message", handleBookingMessage);
 }
 function closeBookingModal() {
   const modal = document.getElementById("bookingModal");
@@ -1400,10 +1396,6 @@ function closeBookingModal() {
     modal.remove();
     document.body.style.overflow = "auto";
   }, 300);
-  setTimeout(
-    () => window.removeEventListener("message", handleBookingMessage),
-    3000
-  );
 }
 function handleBookingMessage(event) {
   // ✅ Only handle messages from our own iframes
@@ -1444,6 +1436,8 @@ function handleBookingMessage(event) {
 window.openServiceSummary = openServiceSummary;
 window.openProductSummary = openProductSummary;
 window.closeBookingModal = closeBookingModal;
+// Persistent listener — set once, never removed
+window.addEventListener("message", handleBookingMessage);
 // ===== LOAD SUGGESTED USERS =====
 async function loadSuggestedUsers() {
   const suggestedUsersList = document.getElementById("suggestedUsersList");
