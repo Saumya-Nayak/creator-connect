@@ -1148,8 +1148,7 @@ async function submitBooking() {
     bookBtn.innerHTML = '<i class="fas fa-check"></i> Booking Sent!';
     bookBtn.style.background = "#10b981";
 
-    // Send success message to parent — parent shows toast + redirects
-    // This avoids the iframe being destroyed before toast renders
+    // ✅ Primary path: tell parent to show toast + close + redirect
     window.parent.postMessage(
       {
         action: "bookingSuccess",
@@ -1169,6 +1168,20 @@ async function submitBooking() {
       bookBtn.style.background = "";
     }
   }
+  setTimeout(() => {
+    // If modal is still open (postMessage didn't close it), do it ourselves
+    try {
+      showToast("✅ Booking request sent successfully!", "success");
+    } catch (e) {}
+    setTimeout(() => {
+      try {
+        window.parent.postMessage({ action: "closeModal" }, "*");
+      } catch (e) {}
+      try {
+        window.location.href = "my-deals.html?role=buyer&type=services";
+      } catch (e) {}
+    }, 1500);
+  }, 2500);
 }
 // =====================================================================
 // UTILITIES  (unchanged from original)
