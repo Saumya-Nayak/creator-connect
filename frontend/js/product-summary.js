@@ -1,8 +1,8 @@
 // =====================================================================
-// product-summary.js — COMPLETE FINAL (FIXED)
-// FIX 1: Fast loading — product shown immediately, countries load in parallel
-// FIX 2: submitOrder — self-contained success (toast + redirect), no parent dependency
-// FIX 3: source: "creatorconnect_iframe" added so parent handleBookingMessage accepts it
+// product-summary.js — COMPLETE FINAL
+// FIX: "Both" mode lets buyer choose Shipping OR Pickup
+// FIX: All address fields stored correctly
+// FIX: Both-mode shipping/pickup toggle fully reliable
 // =====================================================================
 
 const API_BASE_URL =
@@ -51,10 +51,6 @@ function normState(s) {
 
 document.addEventListener("DOMContentLoaded", () => initializePage());
 
-// =====================================================================
-// FIX 1: FAST INITIALIZATION — product loads immediately
-// countries JSON + autofill run in background in parallel
-// =====================================================================
 async function initializePage() {
   const postId = new URLSearchParams(window.location.search).get("id");
   if (!postId) {
@@ -62,18 +58,10 @@ async function initializePage() {
     return;
   }
   checkAuth();
-  setupFormHandlers();
-
-  // Start countries + autofill in background (don't await)
-  const bgWork = loadCountriesData()
-    .then(() => autofillAddress())
-    .catch((e) => console.warn("Background load warning:", e));
-
-  // Load product immediately — no waiting for countries JSON
+  await loadCountriesData();
+  await autofillAddress();
   await loadProductDetails(postId);
-
-  // Let background finish quietly
-  bgWork.catch(() => {});
+  setupFormHandlers();
 }
 
 function checkAuth() {
@@ -132,11 +120,13 @@ async function loadProductDetails(postId) {
     );
 
     if (shippingOn && hasPickup) {
+      // BOTH mode — buyer chooses shipping or pickup
       pricingData._isBothMode = true;
       _renderBothFulfillmentSelector(post);
     } else if (!shippingOn) {
       _renderPickupMode(post);
     } else {
+      // Shipping only
       _applyShippingDefaults(post);
       setTimeout(() => {
         _updatePlaceOrderBtn();
@@ -157,6 +147,7 @@ async function loadProductDetails(postId) {
   }
 }
 
+// Apply flat/free delivery defaults for shipping-only mode
 function _applyShippingDefaults(post) {
   const ct = post.delivery_charge_type || "flat";
   if (ct === "free") {
@@ -170,15 +161,17 @@ function _applyShippingDefaults(post) {
       "flat"
     );
   }
+  // per_km requires pincode — leave deliveryChecked = false
 }
 
 // =====================================================================
-// BOTH MODE
+// BOTH MODE — Buyer chooses shipping or pickup
 // =====================================================================
 function _renderBothFulfillmentSelector(post) {
   const deliverySection = document.getElementById("deliverySection");
   if (!deliverySection) return;
 
+  // Remove old if re-rendered
   document.getElementById("fulfillmentSelectorCard")?.remove();
 
   const card = document.createElement("div");
@@ -206,16 +199,19 @@ function _renderBothFulfillmentSelector(post) {
 
   deliverySection.parentNode.insertBefore(card, deliverySection);
 
+  // Update product shipping badge in post detail
   const shippingInfoEl = document.getElementById("productShipping");
   if (shippingInfoEl)
     shippingInfoEl.textContent = "Shipping & Pickup Available";
 
+  // Default to shipping — all shipping fields visible, pickup hidden
   chooseFulfillment("shipping");
 }
 
 function chooseFulfillment(mode) {
   if (!currentProductData) return;
 
+  // Update button styles
   const btnS = document.getElementById("btnChooseShipping");
   const btnP = document.getElementById("btnChoosePickup");
   if (btnS) {
@@ -250,9 +246,11 @@ function _switchToPickup() {
   pricingData.deliveryCharge = 0;
   pricingData.deliveryAvailable = true;
 
+  // Hide delivery section
   const deliverySection = document.getElementById("deliverySection");
   if (deliverySection) deliverySection.style.display = "none";
 
+  // Hide shipping address form sections — mark each with data-hidden-by-pickup
   document.querySelectorAll(".form-section, .section").forEach((section) => {
     const h = section.querySelector("h3,h2");
     if (!h) return;
@@ -271,6 +269,7 @@ function _switchToPickup() {
     }
   });
 
+  // Also hide by common IDs
   [
     "shippingForm",
     "addressSection",
@@ -284,6 +283,7 @@ function _switchToPickup() {
     }
   });
 
+  // Show or create pickup card
   let pickupCard = document.getElementById("pickupCard");
   if (!pickupCard) {
     _renderPickupCard(currentProductData);
@@ -300,17 +300,21 @@ function _switchToShipping() {
   pricingData.deliveryChecked = false;
   pricingData.deliveryCharge = 0;
 
+  // Show delivery section again
   const deliverySection = document.getElementById("deliverySection");
   if (deliverySection) deliverySection.style.display = "block";
 
+  // Re-show all sections that were hidden for pickup
   document.querySelectorAll("[data-hidden-by-pickup='1']").forEach((el) => {
     el.style.display = "";
     delete el.dataset.hiddenByPickup;
   });
 
+  // Hide pickup card
   const pickupCard = document.getElementById("pickupCard");
   if (pickupCard) pickupCard.style.display = "none";
 
+  // Apply initial delivery charge based on type
   _applyShippingDefaults(currentProductData);
 
   const needsPincode =
@@ -322,7 +326,7 @@ function _switchToShipping() {
 window.chooseFulfillment = chooseFulfillment;
 
 // =====================================================================
-// PICKUP ONLY MODE
+// PICKUP ONLY MODE (shipping_available = false)
 // =====================================================================
 function _renderPickupMode(post) {
   pricingData._isPickup = true;
@@ -365,7 +369,7 @@ function _renderPickupMode(post) {
 }
 
 // =====================================================================
-// PICKUP CARD
+// PICKUP CARD — shared between pickup-only and both-mode pickup
 // =====================================================================
 function _renderPickupCard(post) {
   document.getElementById("pickupCard")?.remove();
@@ -378,6 +382,7 @@ function _renderPickupCard(post) {
   const cityStateLine = [pickupCity, pickupState].filter(Boolean).join(", ");
   const hasAnyAddress = pickupAddress || cityStateLine || pickupPincode;
 
+  // Address parts for Maps query
   const mapsQueryParts = [
     pickupAddress,
     pickupCity,
@@ -386,6 +391,7 @@ function _renderPickupCard(post) {
   ].filter(Boolean);
   const mapsQuery = mapsQueryParts.join(", ");
 
+  // Directions button: always prefer address text
   const mapsUrl = mapsQuery
     ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
         mapsQuery
@@ -394,6 +400,9 @@ function _renderPickupCard(post) {
     ? `https://www.google.com/maps/dir/?api=1&destination=${post.pickup_lat},${post.pickup_lng}`
     : null;
 
+  // ── FIX: Embed uses address query (same as service-summary) ──────────
+  // This means clicking the embedded map opens the address name, not coords.
+  // Coords-only fallback used only when no address text is stored at all.
   let embedUrl = null;
   if (mapsQuery) {
     embedUrl = `https://maps.google.com/maps?q=${encodeURIComponent(
@@ -928,6 +937,7 @@ function _updatePlaceOrderBtn() {
   const btn = document.getElementById("placeOrderBtn");
   if (!btn) return;
 
+  // Pickup mode — always enabled
   if (pricingData._isPickup) {
     btn.disabled = false;
     btn.style.opacity = "1";
@@ -939,6 +949,7 @@ function _updatePlaceOrderBtn() {
     return;
   }
 
+  // Shipping mode
   const isShipped =
     !pricingData._isPickup && currentProductData?.shipping_available;
   if (!isShipped) {
@@ -1028,127 +1039,131 @@ function decreaseQuantity() {
 }
 
 // =====================================================================
-// FIX 2 & 3: SUBMIT ORDER — self-contained, with source tag for parent
+// SUBMIT ORDER
 // =====================================================================
-async function submitOrder() {
-  // ── pre-flight checks ──────────────────────────────────────────────
-  if (!pricingData._isPickup && currentProductData?.shipping_available) {
-    if (!pricingData.deliveryChecked) {
-      showToast(
-        "Please check delivery availability for your pincode first",
-        "error"
-      );
-      const pinInput = document.getElementById("deliveryPincode");
-      if (pinInput) {
-        pinInput.focus();
-        pinInput.style.outline = "2px solid #ef4444";
-        pinInput.style.boxShadow = "0 0 0 3px rgba(239,68,68,.2)";
-        setTimeout(() => {
-          pinInput.style.outline = "";
-          pinInput.style.boxShadow = "";
-        }, 3000);
-        pinInput.scrollIntoView({ behavior: "smooth", block: "center" });
-      }
-      return;
-    }
-    if (!pricingData.deliveryAvailable) {
-      showToast("Delivery is not available to your pincode.", "error");
-      return;
-    }
-  }
+// =====================================================================
+// REPLACE ONLY the submitOrder function in product-summary.js
+// Find:  async function submitOrder() {
+// Replace the entire function with this:
+// =====================================================================
 
-  if (!pricingData._isPickup) {
-    const pi = document.getElementById("phone");
-    if (pi) {
-      const pd = pi.value.replace(/\D/g, "");
-      if (pd.length !== 10) {
-        pi.setCustomValidity("Enter a valid 10-digit mobile number");
-        pi.reportValidity();
+async function submitOrder() {
+  try {
+    if (!pricingData._isPickup && currentProductData?.shipping_available) {
+      if (!pricingData.deliveryChecked) {
+        showToast(
+          "Please check delivery availability for your pincode first",
+          "error"
+        );
+        const pinInput = document.getElementById("deliveryPincode");
+        if (pinInput) {
+          pinInput.focus();
+          pinInput.style.outline = "2px solid #ef4444";
+          pinInput.style.boxShadow = "0 0 0 3px rgba(239,68,68,.2)";
+          setTimeout(() => {
+            pinInput.style.outline = "";
+            pinInput.style.boxShadow = "";
+          }, 3000);
+          pinInput.scrollIntoView({ behavior: "smooth", block: "center" });
+        }
         return;
       }
-      pi.setCustomValidity("");
+      if (!pricingData.deliveryAvailable) {
+        showToast("Delivery is not available to your pincode.", "error");
+        return;
+      }
     }
-    const form = document.getElementById("orderForm");
-    if (form && !form.checkValidity()) {
-      form.reportValidity();
+
+    if (!pricingData._isPickup) {
+      const pi = document.getElementById("phone");
+      if (pi) {
+        const pd = pi.value.replace(/\D/g, "");
+        if (pd.length !== 10) {
+          pi.setCustomValidity("Enter a valid 10-digit mobile number");
+          pi.reportValidity();
+          return;
+        }
+        pi.setCustomValidity("");
+      }
+      const form = document.getElementById("orderForm");
+      if (form && !form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+    }
+
+    if (!currentUser) {
+      showToast("Please login", "error");
       return;
     }
-  }
+    if (!currentProductData) {
+      showToast("Product not loaded", "error");
+      return;
+    }
 
-  if (!currentUser) {
-    showToast("Please login", "error");
-    return;
-  }
-  if (!currentProductData) {
-    showToast("Product not loaded", "error");
-    return;
-  }
+    const qty = parseInt(document.getElementById("quantity").value);
+    const stock = currentProductData.stock;
+    if (stock !== null && stock !== undefined && qty > stock) {
+      showToast(`Only ${stock} available`, "error");
+      return;
+    }
 
-  const qty = parseInt(document.getElementById("quantity").value);
-  const stock = currentProductData.stock;
-  if (stock !== null && stock !== undefined && qty > stock) {
-    showToast(`Only ${stock} available`, "error");
-    return;
-  }
+    const token =
+      localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+    const orderBtn = document.getElementById("placeOrderBtn");
+    const originalHTML = orderBtn.innerHTML;
+    orderBtn.disabled = true;
+    orderBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing...';
 
-  // ── disable button, capture originalHTML before changing it ───────
-  const token =
-    localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-  const orderBtn = document.getElementById("placeOrderBtn");
-  const originalHTML = orderBtn.innerHTML;
-  orderBtn.disabled = true;
-  orderBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing...';
+    let requestBody;
+    if (pricingData._isPickup) {
+      const buyerNotes =
+        document.getElementById("buyerNotesPickup")?.value?.trim() ||
+        document.getElementById("buyerNotes")?.value?.trim() ||
+        "";
+      requestBody = {
+        post_id: currentProductData.post_id,
+        quantity: qty,
+        currency: pricingData.currency,
+        is_pickup: true,
+        shipping_address: null,
+        buyer_notes: buyerNotes,
+      };
+    } else {
+      const pincode =
+        document.getElementById("deliveryPincode")?.value?.trim() ||
+        document.getElementById("pincode")?.value?.trim() ||
+        "";
+      const cs = document.getElementById("country");
+      const cn =
+        cs?.options[cs.selectedIndex]?.getAttribute("data-name") ||
+        cs?.options[cs.selectedIndex]?.text ||
+        "";
+      const pi = document.getElementById("phone");
+      const pd = pi ? pi.value.replace(/\D/g, "") : "";
+      requestBody = {
+        post_id: currentProductData.post_id,
+        quantity: qty,
+        currency: pricingData.currency,
+        buyer_pincode: pincode,
+        is_pickup: false,
+        shipping_address: {
+          full_name: document.getElementById("fullName")?.value.trim() || "",
+          phone: pd,
+          address_line1:
+            document.getElementById("address1")?.value.trim() || "",
+          address_line2:
+            document.getElementById("address2")?.value.trim() || "",
+          city: document.getElementById("city")?.value.trim() || "",
+          state: document.getElementById("state")?.value.trim() || "",
+          pincode: document.getElementById("pincode")?.value.trim() || "",
+          country: cn,
+          landmark: document.getElementById("landmark")?.value.trim() || "",
+        },
+        buyer_notes: document.getElementById("buyerNotes")?.value.trim() || "",
+      };
+    }
 
-  // ── build request body ─────────────────────────────────────────────
-  let requestBody;
-  if (pricingData._isPickup) {
-    const buyerNotes =
-      document.getElementById("buyerNotesPickup")?.value?.trim() ||
-      document.getElementById("buyerNotes")?.value?.trim() ||
-      "";
-    requestBody = {
-      post_id: currentProductData.post_id,
-      quantity: qty,
-      currency: pricingData.currency,
-      is_pickup: true,
-      shipping_address: null,
-      buyer_notes: buyerNotes,
-    };
-  } else {
-    const pincode =
-      document.getElementById("deliveryPincode")?.value?.trim() ||
-      document.getElementById("pincode")?.value?.trim() ||
-      "";
-    const cs = document.getElementById("country");
-    const cn =
-      cs?.options[cs.selectedIndex]?.getAttribute("data-name") ||
-      cs?.options[cs.selectedIndex]?.text ||
-      "";
-    const pi = document.getElementById("phone");
-    const pd = pi ? pi.value.replace(/\D/g, "") : "";
-    requestBody = {
-      post_id: currentProductData.post_id,
-      quantity: qty,
-      currency: pricingData.currency,
-      buyer_pincode: pincode,
-      is_pickup: false,
-      shipping_address: {
-        full_name: document.getElementById("fullName")?.value.trim() || "",
-        phone: pd,
-        address_line1: document.getElementById("address1")?.value.trim() || "",
-        address_line2: document.getElementById("address2")?.value.trim() || "",
-        city: document.getElementById("city")?.value.trim() || "",
-        state: document.getElementById("state")?.value.trim() || "",
-        pincode: document.getElementById("pincode")?.value.trim() || "",
-        country: cn,
-        landmark: document.getElementById("landmark")?.value.trim() || "",
-      },
-      buyer_notes: document.getElementById("buyerNotes")?.value.trim() || "",
-    };
-  }
-
-  // ── API call ───────────────────────────────────────────────────────
-  try {
     const res = await fetch(`${API_BASE_URL}/product-orders/create`, {
       method: "POST",
       headers: {
@@ -1161,10 +1176,11 @@ async function submitOrder() {
     const data = await res.json();
     if (!data.success) throw new Error(data.message || "Failed to place order");
 
-    // ✅ 1. Show success on button immediately
+    // ✅ FIX: Show acknowledgement FIRST before closing/redirecting
     orderBtn.innerHTML = '<i class="fas fa-check"></i> Order Placed!';
     orderBtn.style.background = "#10b981";
 
+    // Build the success message once
     const successMsg = pricingData._isPickup
       ? `✅ Order placed! Coordinate pickup with the seller. Total: ${fmt(
           data.total_amount || pricingData.total
@@ -1173,41 +1189,26 @@ async function submitOrder() {
           data.total_amount || pricingData.total
         )}`;
 
-    // ✅ 2. Show toast inside iframe so user sees it right away
-    showToast(successMsg, "success");
-
-    // ✅ 3. Notify parent (source tag must match handleBookingMessage filter)
-    try {
-      window.parent.postMessage(
-        {
-          action: "cc_bookingSuccess",
-          message: successMsg,
-          redirectUrl: "my-deals.html?role=buyer&type=products",
-          source: "creatorconnect_iframe",
-        },
-        "*"
-      );
-    } catch (e) {
-      /* parent may be gone */
-    }
-
-    // ✅ 4. Self-contained redirect — works even if parent never responds
-    setTimeout(() => {
-      try {
-        window.top.location.href = "my-deals.html?role=buyer&type=products";
-      } catch (e) {
-        window.location.href = "my-deals.html?role=buyer&type=products";
-      }
-    }, 1200);
+    // Send to parent — parent shows toast + closes modal + redirects
+    window.parent.postMessage(
+      {
+        action: "bookingSuccess",
+        message: successMsg,
+        redirectUrl: "my-deals.html?role=buyer&type=products",
+      },
+      "*"
+    );
   } catch (e) {
     console.error("Order error:", e);
     showToast(e.message || "Failed to place order", "error");
-    orderBtn.disabled = false;
-    orderBtn.innerHTML = originalHTML;
-    orderBtn.style.background = "";
+    const orderBtn = document.getElementById("placeOrderBtn");
+    if (orderBtn) {
+      orderBtn.disabled = false;
+      orderBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Place Order';
+      orderBtn.style.background = "";
+    }
   }
 }
-
 // =====================================================================
 // AUTOFILL ADDRESS
 // =====================================================================
@@ -1495,7 +1496,6 @@ function escapeHtmlSafe(text) {
 }
 function showToast(m, t = "success") {
   const el = document.getElementById("toast");
-  if (!el) return;
   el.classList.remove("success", "error");
   el.classList.add(t);
   el.querySelector("i").className =
@@ -1547,5 +1547,5 @@ window._updatePlaceOrderBtn = _updatePlaceOrderBtn;
 window.chooseFulfillment = chooseFulfillment;
 
 console.log(
-  "✅ product-summary.js FIXED — fast load + self-contained success flow"
+  "✅ product-summary.js — Both-mode fixed: shipping fields properly restore on switch back"
 );

@@ -2,23 +2,20 @@ from flask import Blueprint, request, jsonify
 from database.db import get_db_connection
 from services.jwt_service import verify_token
 from datetime import datetime, timedelta
-
-# ✅ RESTORED: All notification imports uncommented
-from database.notification_operations import (
-    notify_order_placed,
-    notify_order_confirmed,
-    notify_order_rejected,
-    notify_order_cancelled_by_buyer,
-    notify_order_status_update,
-    notify_payment_received,
-    notify_booking_request,
-    notify_booking_accepted,
-    notify_booking_rejected,
-    notify_booking_cancelled_by_customer,
-)
-
+# ===== COMMENT OUT ALL NOTIFICATION IMPORTS =====
+# from database.notification_operations import (
+#     notify_order_placed,
+#     notify_order_confirmed,
+#     notify_order_rejected,
+#     notify_order_cancelled_by_buyer,
+#     notify_order_status_update,
+#     notify_payment_received,
+#     notify_booking_request,
+#     notify_booking_accepted,
+#     notify_booking_rejected,
+#     notify_booking_cancelled_by_customer,
+# )
 from routes.delivery_routes import _get_gst_rate, _haversine_km, _coords_from_pincode
-
 booking_routes = Blueprint('booking_routes', __name__)
 
 PLATFORM_FEE_PCT     = 5.0
@@ -97,22 +94,26 @@ def create_service_booking():
         post = cursor.fetchone()
 
         if not post:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Service not found'}), 404
         if post['post_type'] != 'service':
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'This post is not a service'}), 400
         if post['user_id'] == customer_id:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'You cannot book your own service'}), 400
 
-        # ── Resolve location type ──────────────────────────────────────────
+        # ── Resolve location type ─────────────────────────────────────────────
         service_loc_type = post.get('service_location_type') or 'online'
         buyer_loc_choice = data.get('location_type', '').strip()
 
         if service_loc_type == 'both':
             if buyer_loc_choice not in ('at_provider', 'doorstep'):
-                cursor.close(); connection.close()
+                cursor.close()
+                connection.close()
                 return jsonify({
                     'success': False,
                     'message': 'Please choose whether you will visit the provider or need doorstep service.'
@@ -123,7 +124,7 @@ def create_service_booking():
         else:
             loc_type = 'online'
 
-        # ── Doorstep: radius check + travel fee ───────────────────────────
+        # ── Doorstep: radius check + travel fee ───────────────────────────────
         travel_fee = 0.0
 
         if loc_type == 'doorstep' and data.get('buyer_pincode'):
@@ -141,7 +142,8 @@ def create_service_booking():
                 radius_km = int(post.get('service_radius_km') or 0)
 
                 if radius_km > 0 and dist_km > radius_km:
-                    cursor.close(); connection.close()
+                    cursor.close()
+                    connection.close()
                     return jsonify({
                         'success': False,
                         'message': (
@@ -156,7 +158,7 @@ def create_service_booking():
                 travel_fee = round(base_fee + (dist_km * per_km_fee), 2)
                 print(f"🚗 Travel fee: ₹{base_fee} base + {dist_km:.1f}km × ₹{per_km_fee} = ₹{travel_fee}")
 
-        # ── Pricing ───────────────────────────────────────────────────────
+        # ── Pricing ───────────────────────────────────────────────────────────
         variant_price = None
         raw_vp = data.get('variant_price')
         if raw_vp is not None:
@@ -214,26 +216,11 @@ def create_service_booking():
         connection.commit()
         booking_id   = cursor.lastrowid
         service_name = post['product_title'] or post['title'] or 'Service'
-        provider_id  = post['user_id']
         cursor.close()
         connection.close()
 
+        # ✅ NO NOTIFICATION SENT - just print to console
         print(f"✅ Booking #{booking_id} created for service '{service_name}'")
-
-        # ✅ RESTORED: Notify provider of new booking request
-        try:
-            notify_booking_request(
-                booking_id   = booking_id,
-                provider_id  = provider_id,
-                customer_id  = customer_id,
-                service_name = service_name,
-                total_amount = total_amount,
-                preferred_start_date = data.get('preferred_start_date'),
-                requirements         = data.get('customer_requirements')
-            )
-            print(f"🔔 Booking request notification sent to provider {provider_id}")
-        except Exception as e:
-            print(f"⚠️ Failed to send booking notification (non-fatal): {e}")
 
         return jsonify({
             'success':      True,
@@ -245,7 +232,8 @@ def create_service_booking():
 
     except Exception as e:
         print(f"❌ Error creating service booking: {e}")
-        import traceback; traceback.print_exc()
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': 'Failed to create booking'}), 500
 
 
@@ -275,13 +263,16 @@ def get_booking_details(booking_id):
         booking = cursor.fetchone()
 
         if not booking:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Booking not found'}), 404
         if booking['service_provider_id'] != user_id and booking['customer_id'] != user_id:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'You do not have access to this booking'}), 403
 
-        cursor.close(); connection.close()
+        cursor.close()
+        connection.close()
         return jsonify({'success': True, 'booking': booking}), 200
 
     except Exception as e:
@@ -315,13 +306,16 @@ def respond_to_booking(booking_id):
         booking = cursor.fetchone()
 
         if not booking:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Booking not found'}), 404
         if booking['service_provider_id'] != provider_id:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Only the service provider can respond'}), 403
         if booking['status'] != 'pending':
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False,
                             'message': f'Cannot respond to booking with status: {booking["status"]}'}), 400
 
@@ -342,39 +336,18 @@ def respond_to_booking(booking_id):
 
         connection.commit()
         service_name = booking.get('product_title') or booking.get('title') or 'Service'
-        customer_id  = booking['customer_id']
-        cursor.close(); connection.close()
+        cursor.close()
+        connection.close()
 
+        # ✅ NO NOTIFICATION SENT - just print
         print(f"✅ Booking #{booking_id} {action}ed by provider")
-
-        # ✅ RESTORED: Notify customer of accept/reject
-        try:
-            if action == 'accept':
-                notify_booking_accepted(
-                    booking_id       = booking_id,
-                    customer_id      = customer_id,
-                    provider_id      = provider_id,
-                    service_name     = service_name,
-                    provider_message = provider_message
-                )
-                print(f"🔔 Booking accepted notification sent to customer {customer_id}")
-            else:
-                notify_booking_rejected(
-                    booking_id  = booking_id,
-                    customer_id = customer_id,
-                    provider_id = provider_id,
-                    service_name= service_name,
-                    reason      = provider_message
-                )
-                print(f"🔔 Booking rejected notification sent to customer {customer_id}")
-        except Exception as e:
-            print(f"⚠️ Failed to send booking response notification (non-fatal): {e}")
 
         return jsonify({'success': True, 'message': f'Booking {action}ed successfully'}), 200
 
     except Exception as e:
         print(f"❌ Error responding to booking: {e}")
-        import traceback; traceback.print_exc()
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': 'Failed to respond to booking'}), 500
 
 
@@ -400,13 +373,16 @@ def cancel_booking_by_customer(booking_id):
         booking = cursor.fetchone()
 
         if not booking:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Booking not found'}), 404
         if booking['customer_id'] != customer_id:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Only the customer can cancel this booking'}), 403
         if booking['status'] not in ('pending', 'accepted'):
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False,
                             'message': f'Cannot cancel booking with status: {booking["status"]}'}), 400
 
@@ -418,28 +394,18 @@ def cancel_booking_by_customer(booking_id):
         """, (cancellation_reason, booking_id))
         connection.commit()
         service_name = booking.get('product_title') or booking.get('title') or 'Service'
-        provider_id  = booking['service_provider_id']
-        cursor.close(); connection.close()
+        cursor.close()
+        connection.close()
 
+        # ✅ NO NOTIFICATION SENT - just print
         print(f"✅ Booking #{booking_id} cancelled by customer")
-
-        # ✅ RESTORED: Notify provider of cancellation
-        try:
-            notify_booking_cancelled_by_customer(
-                booking_id  = booking_id,
-                provider_id = provider_id,
-                customer_id = customer_id,
-                service_name= service_name
-            )
-            print(f"🔔 Booking cancellation notification sent to provider {provider_id}")
-        except Exception as e:
-            print(f"⚠️ Failed to send booking cancellation notification (non-fatal): {e}")
 
         return jsonify({'success': True, 'message': 'Booking cancelled successfully'}), 200
 
     except Exception as e:
         print(f"❌ Error cancelling booking: {e}")
-        import traceback; traceback.print_exc()
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': 'Failed to cancel booking'}), 500
 
 
@@ -449,6 +415,10 @@ def cancel_booking_by_customer(booking_id):
 
 @booking_routes.route('/product-orders/create', methods=['POST'])
 def create_product_order():
+    """
+    FIX 7: Pickup orders (is_pickup=true) skip shipping address validation
+    and delivery charge calculation entirely.
+    """
     try:
         auth_token = request.headers.get('Authorization', '').replace('Bearer ', '')
         buyer_id   = verify_user_token(auth_token)
@@ -457,12 +427,15 @@ def create_product_order():
 
         data = request.get_json()
 
+        # FIX 7: Only require post_id and quantity always; shipping_address only for non-pickup
         for field in ['post_id', 'quantity']:
             if field not in data:
                 return jsonify({'success': False, 'message': f'Missing required field: {field}'}), 400
 
+        # FIX 7: Detect pickup mode from request
         is_pickup = bool(data.get('is_pickup', False))
 
+        # For non-pickup orders, shipping_address is required
         if not is_pickup and 'shipping_address' not in data:
             return jsonify({'success': False, 'message': 'Missing required field: shipping_address'}), 400
 
@@ -475,6 +448,7 @@ def create_product_order():
         connection = get_db_connection()
         cursor     = connection.cursor(dictionary=True)
 
+        # FIX 7: Include pickup columns in SELECT
         cursor.execute("""
             SELECT p.post_id, p.user_id, p.post_type, p.price,
                    p.product_title, p.stock,
@@ -496,18 +470,23 @@ def create_product_order():
         post = cursor.fetchone()
 
         if not post:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Product not found'}), 404
         if post['post_type'] != 'product':
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'This post is not a product'}), 400
         if post['user_id'] == buyer_id:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'You cannot buy your own product'}), 400
         if post['stock'] is not None and quantity > post['stock']:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': f'Only {post["stock"]} items available'}), 400
 
+        # FIX 7: If product has no shipping, force is_pickup = True
         shipping_available = bool(post.get('shipping_available'))
         if not shipping_available:
             is_pickup = True
@@ -521,6 +500,7 @@ def create_product_order():
         delivery_charge   = 0.0
         delivery_distance = None
 
+        # FIX 7: Skip delivery calculation entirely for pickup orders
         if not is_pickup and shipping_available:
             charge_type = post.get('delivery_charge_type') or 'flat'
 
@@ -565,7 +545,8 @@ def create_product_order():
                     dist = _haversine_km(s_lat, s_lng, b_lat, b_lng)
                     delivery_distance = round(dist, 2)
                     if max_km and dist > max_km:
-                        cursor.close(); connection.close()
+                        cursor.close()
+                        connection.close()
                         return jsonify({
                             'success': False,
                             'message': f'Delivery not available. Your location is {delivery_distance:.1f} km from seller. Max: {max_km} km.'
@@ -576,6 +557,7 @@ def create_product_order():
 
         total_amount = round(subtotal + gst_amount + delivery_charge, 2)
 
+        # FIX 7: Build address fields — null for pickup orders
         addr = data.get('shipping_address') or {}
 
         cursor.execute("""
@@ -625,43 +607,31 @@ def create_product_order():
             1 if is_pickup else 0,
         ))
         connection.commit()
-        order_id     = cursor.lastrowid
-        seller_id    = post['user_id']
-        product_name = post['product_title']
-        cursor.close(); connection.close()
+        order_id = cursor.lastrowid
+        cursor.close()
+        connection.close()
 
-        print(f"✅ Order #{order_id} placed for product: {product_name}")
-
-        # ✅ RESTORED: Notify seller of new order
-        try:
-            notify_order_placed(
-                order_id     = order_id,
-                seller_id    = seller_id,
-                buyer_id     = buyer_id,
-                product_name = product_name,
-                total_amount = total_amount
-            )
-            print(f"🔔 Order placed notification sent to seller {seller_id}")
-        except Exception as e:
-            print(f"⚠️ Failed to send order placed notification (non-fatal): {e}")
+        # ✅ NO NOTIFICATION SENT - just print
+        print(f"✅ Order #{order_id} placed for product: {post['product_title']}")
 
         return jsonify({
-            'success':              True,
-            'message':              'Order placed successfully!',
-            'order_id':             order_id,
-            'is_pickup':            is_pickup,
-            'subtotal':             subtotal,
-            'gst_rate':             gst_rate,
-            'gst_amount':           gst_amount,
-            'delivery_charge':      delivery_charge,
+            'success': True,
+            'message': 'Order placed successfully!',
+            'order_id': order_id,
+            'is_pickup': is_pickup,
+            'subtotal': subtotal,
+            'gst_rate': gst_rate,
+            'gst_amount': gst_amount,
+            'delivery_charge': delivery_charge,
             'delivery_distance_km': delivery_distance,
-            'total_amount':         total_amount
+            'total_amount': total_amount
         }), 201
 
     except Exception as e:
         print(f"❌ Error creating product order: {e}")
-        import traceback; traceback.print_exc()
-        return jsonify({'success': False, 'message': str(e)}), 500
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'message': 'Failed to place order'}), 500
 
 
 @booking_routes.route('/product-orders/<int:order_id>', methods=['GET'])
@@ -689,13 +659,16 @@ def get_order_details(order_id):
         order = cursor.fetchone()
 
         if not order:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Order not found'}), 404
         if order['seller_id'] != user_id and order['buyer_id'] != user_id:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'You do not have access to this order'}), 403
 
-        cursor.close(); connection.close()
+        cursor.close()
+        connection.close()
         return jsonify({'success': True, 'order': order}), 200
 
     except Exception as e:
@@ -720,13 +693,16 @@ def confirm_order(order_id):
         order = cursor.fetchone()
 
         if not order:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Order not found'}), 404
         if order['seller_id'] != seller_id:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Only the seller can confirm this order'}), 403
         if order['status'] != 'pending':
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False,
                             'message': f'Cannot confirm order with status: {order["status"]}'}), 400
 
@@ -737,30 +713,18 @@ def confirm_order(order_id):
             WHERE order_id = %s
         """, (seller_message, order_id))
         connection.commit()
+        cursor.close()
+        connection.close()
 
-        buyer_id     = order['buyer_id']
-        product_name = order['product_name'] or order['product_title']
-        cursor.close(); connection.close()
-
+        # ✅ NO NOTIFICATION - just print
         print(f"✅ Order #{order_id} confirmed by seller")
-
-        # ✅ RESTORED: Notify buyer of confirmation
-        try:
-            notify_order_confirmed(
-                order_id     = order_id,
-                buyer_id     = buyer_id,
-                seller_id    = seller_id,
-                product_name = product_name
-            )
-            print(f"🔔 Order confirmed notification sent to buyer {buyer_id}")
-        except Exception as e:
-            print(f"⚠️ Failed to send order confirmed notification (non-fatal): {e}")
 
         return jsonify({'success': True, 'message': 'Order confirmed successfully'}), 200
 
     except Exception as e:
         print(f"❌ Error confirming order: {e}")
-        import traceback; traceback.print_exc()
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': 'Failed to confirm order'}), 500
 
 
@@ -781,13 +745,16 @@ def reject_order(order_id):
         order = cursor.fetchone()
 
         if not order:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Order not found'}), 404
         if order['seller_id'] != seller_id:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Only the seller can reject this order'}), 403
         if order['status'] != 'pending':
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False,
                             'message': f'Cannot reject order with status: {order["status"]}'}), 400
 
@@ -798,31 +765,18 @@ def reject_order(order_id):
             WHERE order_id = %s
         """, (reason, order_id))
         connection.commit()
+        cursor.close()
+        connection.close()
 
-        buyer_id     = order['buyer_id']
-        product_name = order['product_name'] or order['product_title']
-        cursor.close(); connection.close()
-
+        # ✅ NO NOTIFICATION - just print
         print(f"❌ Order #{order_id} rejected by seller")
-
-        # ✅ RESTORED: Notify buyer of rejection
-        try:
-            notify_order_rejected(
-                order_id     = order_id,
-                buyer_id     = buyer_id,
-                seller_id    = seller_id,
-                product_name = product_name,
-                reason       = reason
-            )
-            print(f"🔔 Order rejected notification sent to buyer {buyer_id}")
-        except Exception as e:
-            print(f"⚠️ Failed to send order rejected notification (non-fatal): {e}")
 
         return jsonify({'success': True, 'message': 'Order rejected'}), 200
 
     except Exception as e:
         print(f"❌ Error rejecting order: {e}")
-        import traceback; traceback.print_exc()
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': 'Failed to reject order'}), 500
 
 
@@ -843,13 +797,16 @@ def cancel_order_by_buyer(order_id):
         order = cursor.fetchone()
 
         if not order:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Order not found'}), 404
         if order['buyer_id'] != buyer_id:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Only the buyer can cancel this order'}), 403
         if order['status'] not in ('pending', 'confirmed'):
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False,
                             'message': f'Cannot cancel order with status: {order["status"]}'}), 400
 
@@ -860,35 +817,27 @@ def cancel_order_by_buyer(order_id):
             WHERE order_id = %s
         """, (reason, order_id))
         connection.commit()
+        cursor.close()
+        connection.close()
 
-        seller_id    = order['seller_id']
-        product_name = order['product_name'] or order['product_title']
-        cursor.close(); connection.close()
-
+        # ✅ NO NOTIFICATION - just print
         print(f"❌ Order #{order_id} cancelled by buyer")
-
-        # ✅ RESTORED: Notify seller of cancellation
-        try:
-            notify_order_cancelled_by_buyer(
-                order_id     = order_id,
-                seller_id    = seller_id,
-                buyer_id     = buyer_id,
-                product_name = product_name
-            )
-            print(f"🔔 Order cancellation notification sent to seller {seller_id}")
-        except Exception as e:
-            print(f"⚠️ Failed to send order cancelled notification (non-fatal): {e}")
 
         return jsonify({'success': True, 'message': 'Order cancelled successfully'}), 200
 
     except Exception as e:
         print(f"❌ Error cancelling order: {e}")
-        import traceback; traceback.print_exc()
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': 'Failed to cancel order'}), 500
 
 
 @booking_routes.route('/product-orders/<int:order_id>/status', methods=['PUT'])
 def update_order_status(order_id):
+    """
+    FIX 7: Pickup orders accept 'processing' and 'delivered' as valid statuses.
+    Shipped/out_for_delivery are still valid for non-pickup orders.
+    """
     try:
         auth_token = request.headers.get('Authorization', '').replace('Bearer ', '')
         seller_id  = verify_user_token(auth_token)
@@ -911,19 +860,22 @@ def update_order_status(order_id):
         order = cursor.fetchone()
 
         if not order:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Order not found'}), 404
         if order['seller_id'] != seller_id:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Only the seller can update this order'}), 403
 
+        # FIX 7: For pickup orders mark pickup_confirmed_at when delivered
         is_pickup = bool(order.get('is_pickup', 0))
 
         ts_col = {
-            'processing':       'processing_at',
-            'shipped':          'shipped_at',
+            'processing': 'processing_at',
+            'shipped': 'shipped_at',
             'out_for_delivery': 'shipped_at',
-            'delivered':        'delivered_at'
+            'delivered': 'delivered_at'
         }
         set_parts  = [f"status = %s", f"{ts_col[new_status]} = NOW()", "updated_at = NOW()"]
         set_values = [new_status]
@@ -934,37 +886,26 @@ def update_order_status(order_id):
         if carrier:
             set_parts.append("shipping_carrier = %s")
             set_values.append(carrier)
+
+        # FIX 7: Record pickup confirmation timestamp
         if is_pickup and new_status == 'delivered':
             set_parts.append("pickup_confirmed_at = NOW()")
 
         query = f"UPDATE product_orders SET {', '.join(set_parts)} WHERE order_id = %s"
         cursor.execute(query, set_values + [order_id])
         connection.commit()
+        cursor.close()
+        connection.close()
 
-        buyer_id     = order['buyer_id']
-        product_name = order['product_name'] or order['product_title']
-        cursor.close(); connection.close()
-
+        # ✅ NO NOTIFICATION - just print
         print(f"📦 Order #{order_id} status updated to: {new_status}")
-
-        # ✅ RESTORED: Notify buyer of status change
-        try:
-            notify_order_status_update(
-                order_id     = order_id,
-                buyer_id     = buyer_id,
-                seller_id    = seller_id,
-                product_name = product_name,
-                new_status   = new_status
-            )
-            print(f"🔔 Order status update notification sent to buyer {buyer_id}")
-        except Exception as e:
-            print(f"⚠️ Failed to send order status notification (non-fatal): {e}")
 
         return jsonify({'success': True, 'message': f'Order status updated to {new_status}'}), 200
 
     except Exception as e:
         print(f"❌ Error updating order status: {e}")
-        import traceback; traceback.print_exc()
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': 'Failed to update order status'}), 500
 
 
@@ -986,10 +927,12 @@ def mark_payment_received(order_id):
         order = cursor.fetchone()
 
         if not order:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False, 'message': 'Order not found'}), 404
         if order['seller_id'] != seller_id:
-            cursor.close(); connection.close()
+            cursor.close()
+            connection.close()
             return jsonify({'success': False,
                             'message': 'Only the seller can mark payment for this order'}), 403
 
@@ -1002,39 +945,20 @@ def mark_payment_received(order_id):
         connection.commit()
         cursor.close()
 
-        buyer_id     = order['buyer_id']
-        product_name = order['product_name'] or order['product_title']
-        total_amount = float(order['total_amount'])
-
-        _record_product_commission(
-            connection   = connection,
-            order_id     = order_id,
-            seller_id    = order['seller_id'],
-            post_id      = order['post_id'],
-            gross_amount = total_amount
-        )
+        _record_product_commission(connection=connection, order_id=order_id,
+                                   seller_id=order['seller_id'], post_id=order['post_id'],
+                                   gross_amount=float(order['total_amount']))
         connection.close()
 
-        print(f"💰 Payment received for order #{order_id}: ₹{total_amount}")
-
-        # ✅ RESTORED: Notify seller of payment received
-        try:
-            notify_payment_received(
-                order_id     = order_id,
-                seller_id    = seller_id,
-                buyer_id     = buyer_id,
-                product_name = product_name,
-                amount       = total_amount
-            )
-            print(f"🔔 Payment received notification sent to seller {seller_id}")
-        except Exception as e:
-            print(f"⚠️ Failed to send payment notification (non-fatal): {e}")
+        # ✅ NO NOTIFICATION - just print
+        print(f"💰 Payment received for order #{order_id}: ₹{order['total_amount']}")
 
         return jsonify({'success': True, 'message': 'Payment marked as received'}), 200
 
     except Exception as e:
         print(f"❌ Error marking payment: {e}")
-        import traceback; traceback.print_exc()
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': 'Failed to mark payment'}), 500
 
 
@@ -1107,13 +1031,15 @@ def get_my_deals():
             """, (user_id,))
             deals['product_orders']['as_buyer'] = cursor.fetchall()
 
-        cursor.close(); connection.close()
+        cursor.close()
+        connection.close()
         return jsonify({'success': True, 'deals': deals}), 200
 
     except Exception as e:
         print(f"❌ Error fetching my deals: {e}")
-        import traceback; traceback.print_exc()
+        import traceback
+        traceback.print_exc()
         return jsonify({'success': False, 'message': 'Failed to fetch deals'}), 500
 
 
-print("✅ Booking Routes loaded — notifications restored for all actions")
+print("✅ Booking Routes loaded (email notifications removed for speed)")

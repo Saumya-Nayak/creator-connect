@@ -1322,28 +1322,42 @@ function getCategoryIcon(postType) {
   return icons[postType] || "fas fa-folder";
 }
 // ===== NEW FUNCTIONS FOR BUY/CONTACT =====
+
 function openServiceSummary(postId) {
   if (!currentUser) {
     showError("Please login to book services");
     return;
   }
 
+  // Create modal overlay
   const modal = document.createElement("div");
   modal.className = "post-detail-modal";
   modal.id = "bookingModal";
   modal.innerHTML = `
-    <div class="post-detail-modal-overlay" onclick="closeBookingModal()">
-      <div class="post-detail-modal-content" onclick="event.stopPropagation()">
-        <button class="modal-close-btn" onclick="closeBookingModal()" title="Close">
-          <i class="fas fa-times"></i>
-        </button>
-        <iframe src="service-summary.html?id=${postId}" frameborder="0" id="bookingIframe"
-          style="width:100%;height:100%;border:none;display:block;"></iframe>
+      <div class="post-detail-modal-overlay" onclick="closeBookingModal()">
+          <div class="post-detail-modal-content" onclick="event.stopPropagation()">
+              <button class="modal-close-btn" onclick="closeBookingModal()" title="Close">
+                  <i class="fas fa-times"></i>
+              </button>
+              <iframe 
+                  src="service-summary.html?id=${postId}" 
+                  frameborder="0"
+                  id="bookingIframe"
+                  style="width: 100%; height: 100%; border: none; display: block;">
+              </iframe>
+          </div>
       </div>
-    </div>`;
+  `;
+
   document.body.appendChild(modal);
   document.body.style.overflow = "hidden";
-  setTimeout(() => modal.classList.add("show"), 10);
+
+  setTimeout(() => {
+    modal.classList.add("show");
+  }, 10);
+
+  // Listen for close message from iframe
+  window.addEventListener("message", handleBookingMessage);
 }
 function contactSeller(phoneNumber, itemTitle) {
   const message = encodeURIComponent(`Hi! I'm interested in: ${itemTitle}`);
@@ -1371,59 +1385,70 @@ function openProductSummary(postId) {
     return;
   }
 
+  // Create modal overlay
   const modal = document.createElement("div");
   modal.className = "post-detail-modal";
   modal.id = "bookingModal";
   modal.innerHTML = `
-    <div class="post-detail-modal-overlay" onclick="closeBookingModal()">
-      <div class="post-detail-modal-content" onclick="event.stopPropagation()">
-        <button class="modal-close-btn" onclick="closeBookingModal()" title="Close">
-          <i class="fas fa-times"></i>
-        </button>
-        <iframe src="product-summary.html?id=${postId}" frameborder="0" id="bookingIframe"
-          style="width:100%;height:100%;border:none;display:block;"></iframe>
+      <div class="post-detail-modal-overlay" onclick="closeBookingModal()">
+          <div class="post-detail-modal-content" onclick="event.stopPropagation()">
+              <button class="modal-close-btn" onclick="closeBookingModal()" title="Close">
+                  <i class="fas fa-times"></i>
+              </button>
+              <iframe 
+                  src="product-summary.html?id=${postId}" 
+                  frameborder="0"
+                  id="bookingIframe"
+                  style="width: 100%; height: 100%; border: none; display: block;">
+              </iframe>
+          </div>
       </div>
-    </div>`;
+  `;
+
   document.body.appendChild(modal);
   document.body.style.overflow = "hidden";
-  setTimeout(() => modal.classList.add("show"), 10);
+
+  setTimeout(() => {
+    modal.classList.add("show");
+  }, 10);
+
+  // Listen for close message from iframe
+  window.addEventListener("message", handleBookingMessage);
 }
+
 function closeBookingModal() {
   const modal = document.getElementById("bookingModal");
   if (!modal) return;
+
   modal.classList.remove("show");
+
   setTimeout(() => {
     modal.remove();
     document.body.style.overflow = "auto";
   }, 300);
+
+  // ✅ Do NOT remove the message listener here — bookingSuccess may fire
+  // right as the modal closes. Remove it only after a safe delay.
+  setTimeout(() => {
+    window.removeEventListener("message", handleBookingMessage);
+  }, 2500);
 }
+
 function handleBookingMessage(event) {
-  // ✅ Only handle messages from our own iframes
-  const data = event.data || {};
+  const { action, message, redirectUrl } = event.data;
 
-  // Ignore MetaMask and other extension messages entirely
-  if (
-    data.target === "metamask-inpage" ||
-    data.source !== "creatorconnect_iframe"
-  ) {
-    return;
-  }
-
-  const { action, message, redirectUrl } = data;
-
-  if (action === "cc_closeModal" || action === "closeModal") {
+  if (action === "closeModal") {
     closeBookingModal();
-    return;
   }
 
-  if (action === "cc_bookingSuccess") {
-    // Show toast in parent window (visible after iframe closes)
+  if (action === "bookingSuccess") {
+    // 1. Show toast in the PARENT window (visible even after iframe closes)
     showSuccess(message || "✅ Done!");
 
-    // Close modal
+    // 2. Close the modal immediately (iframe is done, button already shows ✅)
     closeBookingModal();
 
-    // Redirect after toast is visible
+    // 3. Redirect after toast has had time to show (1.8s)
     if (redirectUrl) {
       setTimeout(() => {
         window.location.href = redirectUrl;
@@ -1436,8 +1461,6 @@ function handleBookingMessage(event) {
 window.openServiceSummary = openServiceSummary;
 window.openProductSummary = openProductSummary;
 window.closeBookingModal = closeBookingModal;
-// Persistent listener — set once, never removed
-window.addEventListener("message", handleBookingMessage);
 // ===== LOAD SUGGESTED USERS =====
 async function loadSuggestedUsers() {
   const suggestedUsersList = document.getElementById("suggestedUsersList");
