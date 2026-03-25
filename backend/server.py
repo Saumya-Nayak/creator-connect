@@ -265,7 +265,18 @@ app.register_blueprint(group_routes, url_prefix='/api/groups')
 
 # ─────────────────────────────────────────────────────────────
 # Static file routes for uploads
-
+@app.route('/api/debug/mail-config', methods=['GET'])
+def debug_mail_config():
+    """TEMPORARY - remove after fixing email"""
+    return jsonify({
+        'MAIL_SERVER':         app.config.get('MAIL_SERVER'),
+        'MAIL_PORT':           app.config.get('MAIL_PORT'),
+        'MAIL_USE_TLS':        app.config.get('MAIL_USE_TLS'),
+        'MAIL_USERNAME':       app.config.get('MAIL_USERNAME'),
+        'MAIL_PASSWORD':       '***' if app.config.get('MAIL_PASSWORD') else 'NOT SET ❌',
+        'MAIL_DEFAULT_SENDER': app.config.get('MAIL_DEFAULT_SENDER'),
+        'mail_state':          str(mail.state) if hasattr(mail, 'state') else 'unknown',
+    })
 
 
 
