@@ -21,6 +21,7 @@ def configure_app(app):
     )
 
     # Email Configuration
+    app.config['BREVO_API_KEY'] = os.getenv('BREVO_API_KEY')
     app.config['MAIL_SERVER'] = os.getenv('MAIL_SERVER', 'smtp-relay.brevo.com')
     app.config['MAIL_PORT'] = int(os.getenv('MAIL_PORT', 587))
     app.config['MAIL_USE_TLS'] = os.getenv('MAIL_USE_TLS', 'True').lower() == 'true'
