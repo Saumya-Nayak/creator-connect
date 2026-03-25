@@ -60,17 +60,27 @@ def send_otp_email(email, otp):
     '''
     return _send_via_brevo_api(email, "Your Verification Code - Creator Connect", html)
 
-
 def send_password_reset_email(email, token, username):
     """Send password reset email with correct URL"""
     try:
-        # Get the full URL with https://
+        from utils.network_utils import get_full_url
+        
+        # IMPORTANT: Use the correct path for reset-password.html
+        # If it's directly in frontend folder, use this:
         reset_link = get_full_url(f"frontend/reset-password.html?token={token}")
         
-        # Log for debugging
-        print(f"📧 Sending password reset email to: {email}")
-        print(f"🔗 Reset link: {reset_link}")
+        # For debugging, also try alternative paths
+        print(f"🔍 Debug - Reset link: {reset_link}")
+        print(f"🔍 Debug - Full token: {token}")
         
+        # Also try to check if the file exists (for debugging)
+        import os
+        if os.path.exists('frontend/reset-password.html'):
+            print("✅ reset-password.html exists in frontend folder")
+        else:
+            print("⚠️ reset-password.html not found in frontend folder")
+        
+        # Rest of the email HTML...
         html = f'''
         <!DOCTYPE html>
         <html>
@@ -78,16 +88,12 @@ def send_password_reset_email(email, token, username):
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
         </head>
-        <body style="font-family: Arial, sans-serif; margin: 0; padding: 0; background-color: #f4f4f4;">
-            <div style="max-width: 600px; margin: 0 auto; padding: 20px; background-color: #ffffff; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                <div style="text-align: center; padding: 20px 0;">
-                    <h1 style="color: #e336cc; margin: 0;">Creator Connect</h1>
-                    <p style="color: #666; font-size: 14px;">Password Reset Request</p>
-                </div>
-                
-                <div style="padding: 20px;">
-                    <p style="color: #333; font-size: 16px;">Hello <strong>{username}</strong>,</p>
-                    <p style="color: #666; line-height: 1.6;">We received a request to reset your password. Click the button below to create a new password:</p>
+        <body style="font-family: Arial, sans-serif; margin: 0; padding: 0;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <div style="background: #ffffff; border-radius: 10px; padding: 30px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+                    <h2 style="color: #e336cc; text-align: center;">Password Reset</h2>
+                    <p>Hello <strong>{username}</strong>,</p>
+                    <p>Click the button below to reset your password:</p>
                     
                     <div style="text-align: center; margin: 30px 0;">
                         <a href="{reset_link}" 
@@ -95,51 +101,33 @@ def send_password_reset_email(email, token, username):
                                   color: white; 
                                   padding: 12px 30px; 
                                   text-decoration: none; 
-                                  border-radius: 5px; 
-                                  display: inline-block;
-                                  font-weight: bold;
-                                  font-size: 16px;">
+                                  border-radius: 5px;
+                                  display: inline-block;">
                             Reset Password
                         </a>
                     </div>
                     
-                    <p style="color: #666; font-size: 14px; line-height: 1.5;">
-                        <strong>📝 Important:</strong> This link will expire in 15 minutes for security reasons.
+                    <p style="color: #666; font-size: 14px;">
+                        Or copy this link: <br>
+                        <a href="{reset_link}" style="color: #e336cc; word-break: break-all;">{reset_link}</a>
                     </p>
                     
-                    <p style="color: #999; font-size: 12px; margin-top: 20px; padding: 10px; background-color: #f9f9f9; border-left: 3px solid #e336cc; word-break: break-all;">
-                        <strong>🔗 Direct link:</strong><br>
-                        <a href="{reset_link}" style="color: #e336cc; text-decoration: none;">{reset_link}</a>
-                    </p>
-                    
-                    <hr style="margin: 20px 0; border: none; border-top: 1px solid #eee;">
-                    
+                    <hr style="margin: 20px 0;">
                     <p style="color: #999; font-size: 12px;">
-                        If you didn't request this password reset, please ignore this email. Your password will remain unchanged.
-                    </p>
-                    
-                    <p style="color: #999; font-size: 12px; margin-top: 20px;">
-                        <strong>Security Tip:</strong> Never share this link with anyone. Creator Connect will never ask for your password.
-                    </p>
-                </div>
-                
-                <div style="text-align: center; padding: 20px 0 10px; border-top: 1px solid #eee; margin-top: 20px;">
-                    <p style="color: #999; font-size: 11px;">
-                        © 2025 Creator Connect • All rights reserved.<br>
-                        This is an automated message, please do not reply.
+                        This link expires in 15 minutes. If you didn't request this, ignore this email.
                     </p>
                 </div>
             </div>
         </body>
         </html>
         '''
+        
         return _send_via_brevo_api(email, "Password Reset Request - Creator Connect", html)
     except Exception as e:
         print(f"❌ Error sending password reset email: {e}")
         import traceback
         traceback.print_exc()
         return False
-
 
 def send_registration_success_email(email, username):
     """Send registration success email"""

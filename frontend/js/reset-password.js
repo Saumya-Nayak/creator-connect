@@ -2,8 +2,9 @@ const API_BASE_URL =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
     ? "http://localhost:3000/api"
-    : "/api";
+    : "/api"; // This should work on Railway
 
+console.log("🔧 API Base URL:", API_BASE_URL);
 // ===== THEME INITIALIZATION =====
 function initTheme() {
   const savedTheme = localStorage.getItem("theme") || "light";
