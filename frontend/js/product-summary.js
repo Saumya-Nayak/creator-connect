@@ -1041,6 +1041,12 @@ function decreaseQuantity() {
 // =====================================================================
 // SUBMIT ORDER
 // =====================================================================
+// =====================================================================
+// REPLACE ONLY the submitOrder function in product-summary.js
+// Find:  async function submitOrder() {
+// Replace the entire function with this:
+// =====================================================================
+
 async function submitOrder() {
   try {
     if (!pricingData._isPickup && currentProductData?.shipping_available) {
@@ -1106,7 +1112,6 @@ async function submitOrder() {
       localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
     const orderBtn = document.getElementById("placeOrderBtn");
     const originalHTML = orderBtn.innerHTML;
-
     orderBtn.disabled = true;
     orderBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Placing...';
 
@@ -1171,42 +1176,44 @@ async function submitOrder() {
     const data = await res.json();
     if (!data.success) throw new Error(data.message || "Failed to place order");
 
+    // ✅ FIX: Show acknowledgement FIRST before closing/redirecting
     const successMsg = pricingData._isPickup
-      ? `Order placed! Coordinate pickup with the seller. Total: ${fmt(
+      ? `✅ Order placed! Coordinate pickup with the seller. Total: ${fmt(
           data.total_amount || pricingData.total
         )}`
-      : `Order placed! Total: ${fmt(data.total_amount || pricingData.total)}`;
+      : `✅ Order placed successfully! Total: ${fmt(
+          data.total_amount || pricingData.total
+        )}`;
+
+    // Update button to show success state
+    orderBtn.innerHTML = '<i class="fas fa-check"></i> Order Placed!';
+    orderBtn.style.background = "#10b981";
 
     showToast(successMsg, "success");
 
-    // ✅ Reset button state before redirect
-    orderBtn.disabled = false;
-    orderBtn.innerHTML = originalHTML;
-
-    // ✅ Close modal and redirect
-    if (
-      window.parent &&
-      typeof window.parent.closeBookingModal === "function"
-    ) {
-      window.parent.closeBookingModal();
-    } else {
-      window.parent.postMessage({ action: "closeModal" }, "*");
-    }
-
+    // ✅ Wait 1.8s so user sees confirmation, THEN close modal + redirect
     setTimeout(() => {
+      if (
+        window.parent &&
+        typeof window.parent.closeBookingModal === "function"
+      ) {
+        window.parent.closeBookingModal();
+      } else {
+        window.parent.postMessage({ action: "closeModal" }, "*");
+      }
       window.location.href = "my-deals.html?role=buyer&type=products";
-    }, 500);
+    }, 1800);
   } catch (e) {
     console.error("Order error:", e);
-    showToast(e.message, "error");
+    showToast(e.message || "Failed to place order", "error");
     const orderBtn = document.getElementById("placeOrderBtn");
     if (orderBtn) {
       orderBtn.disabled = false;
       orderBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Place Order';
+      orderBtn.style.background = "";
     }
   }
 }
-
 // =====================================================================
 // AUTOFILL ADDRESS
 // =====================================================================

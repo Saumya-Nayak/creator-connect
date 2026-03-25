@@ -1005,6 +1005,12 @@ function setupFormHandlers() {
   // Inject slot picker after form is ready
   _injectSlotPicker();
 }
+// =====================================================================
+// REPLACE ONLY the submitBooking function in service-summary.js
+// Find:  async function submitBooking() {
+// Replace the entire function with this:
+// =====================================================================
+
 async function submitBooking() {
   try {
     if (!currentUser) {
@@ -1017,7 +1023,6 @@ async function submitBooking() {
     }
 
     const locType = currentServiceData.service_location_type || "online";
-
     if (locType === "both" && !buyerChosenLocType) {
       showToast(
         "Please choose whether you will visit the provider or need doorstep service.",
@@ -1025,10 +1030,8 @@ async function submitBooking() {
       );
       return;
     }
-
     const resolvedLocType = locType === "both" ? buyerChosenLocType : locType;
 
-    // FIX 3: hard block on out-of-range pincode
     if (resolvedLocType === "doorstep" && _pincodeBlocked) {
       showToast(
         "Your location is outside the provider's service area. Booking not possible.",
@@ -1070,7 +1073,6 @@ async function submitBooking() {
       return;
     }
 
-    // FIX 4: validate slot selection if provider has defined slots
     if (_availableSlots.length > 0 && startDateVal && !_selectedSlot) {
       showToast("Please select a preferred time slot.", "error");
       return;
@@ -1121,8 +1123,6 @@ async function submitBooking() {
 
     const bookBtn = document.getElementById("bookNowBtn");
     const originalHTML = bookBtn.innerHTML;
-
-    // Disable button and show loading
     bookBtn.disabled = true;
     bookBtn.innerHTML =
       '<i class="fas fa-spinner fa-spin"></i> Sending Request...';
@@ -1140,45 +1140,42 @@ async function submitBooking() {
 
     const data = await response.json();
 
-    if (!data.success) {
+    if (!data.success)
       throw new Error(data.message || "Failed to create booking");
-    }
 
-    // ✅ SUCCESS - Show success message
-    showToast("Booking request sent successfully!", "success");
-
-    // ✅ Reset button state before redirect
+    // ✅ FIX: Show toast FIRST, then close + redirect AFTER toast is visible
     bookBtn.disabled = false;
-    bookBtn.innerHTML = originalHTML;
+    bookBtn.innerHTML = '<i class="fas fa-check"></i> Booking Sent!';
+    bookBtn.style.background = "#10b981";
 
-    // ✅ Close the modal
-    if (
-      window.parent &&
-      typeof window.parent.closeBookingModal === "function"
-    ) {
-      window.parent.closeBookingModal();
-    } else {
-      window.parent.postMessage({ action: "closeModal" }, "*");
-    }
+    showToast("✅ Booking request sent successfully!", "success");
 
-    // ✅ Redirect to My Deals
+    // ✅ Wait 1.8s so the user sees the success message, THEN close and redirect
     setTimeout(() => {
+      // Notify parent to close modal
+      if (
+        window.parent &&
+        typeof window.parent.closeBookingModal === "function"
+      ) {
+        window.parent.closeBookingModal();
+      } else {
+        window.parent.postMessage({ action: "closeModal" }, "*");
+      }
+      // Redirect to My Deals
       window.location.href = "my-deals.html?role=buyer&type=services";
-    }, 500);
+    }, 1800);
   } catch (err) {
     console.error("Booking error:", err);
-    showToast(err.message, "error");
-
-    // Reset button on error
+    showToast(err.message || "Failed to send booking request", "error");
     const bookBtn = document.getElementById("bookNowBtn");
     if (bookBtn) {
       bookBtn.disabled = false;
       bookBtn.innerHTML =
         '<i class="fas fa-calendar-check"></i> Send Booking Request';
+      bookBtn.style.background = "";
     }
   }
 }
-
 // =====================================================================
 // UTILITIES  (unchanged from original)
 // =====================================================================

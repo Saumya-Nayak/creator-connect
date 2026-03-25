@@ -1,4 +1,5 @@
 from flask_mail import Message
+import threading
 from config.app_config import mail
 from flask import current_app
 from utils.network_utils import get_server_url  # ✅ FIXED
@@ -28,8 +29,15 @@ def send_otp_email(email, otp):
             </div>
             '''
         )
-        mail.send(msg)
-        print(f"✅ OTP email sent to {email}")
+        app = current_app._get_current_object()
+        def _send():
+            with app.app_context():
+                try:
+                    mail.send(msg)
+                    print(f"✅ OTP email sent to {email}")
+                except Exception as ex:
+                    print(f"❌ OTP email thread error: {ex}")
+        threading.Thread(target=_send, daemon=True).start()
         return True
     except Exception as e:
         print(f"❌ Error sending OTP email: {str(e)}")
@@ -88,7 +96,15 @@ def send_password_reset_email(email, token, username):
             </div>
             '''
         )
-        mail.send(msg)
+        app = current_app._get_current_object()
+        def _send():
+            with app.app_context():
+                try:
+                    mail.send(msg)
+                    print(f"✅ Password reset email sent to {email}")
+                except Exception as ex:
+                    print(f"❌ Password reset email thread error: {ex}")
+        threading.Thread(target=_send, daemon=True).start()
         return True
     except Exception as e:
         print(f"❌ Error sending password reset email: {str(e)}")
@@ -150,7 +166,15 @@ def send_registration_success_email(email, username):
             </div>
             """
         )
-        mail.send(msg)
+        app = current_app._get_current_object()
+        def _send():
+            with app.app_context():
+                try:
+                    mail.send(msg)
+                    print(f"✅ Registration email sent to {email}")
+                except Exception as ex:
+                    print(f"❌ Registration email thread error: {ex}")
+        threading.Thread(target=_send, daemon=True).start()
         return True
 
     except Exception as e:

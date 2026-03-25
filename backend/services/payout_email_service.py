@@ -16,6 +16,8 @@ Functions:
 
 from flask_mail import Message
 from config.app_config import mail
+import threading
+from flask import current_app
 
 # ── Brand tokens ──────────────────────────────────────────────────────────────
 BRAND  = "#e336cc"
@@ -140,13 +142,21 @@ def _now():
 
 
 def _send(subject, to_email, html):
+    """Send email in background thread — API response is instant."""
     try:
-        mail.send(Message(subject=subject, sender=FROM,
-                          recipients=[to_email], html=html))
-        print(f"✅ Email → {to_email} | {subject}")
+        msg = Message(subject=subject, sender=FROM, recipients=[to_email], html=html)
+        app = current_app._get_current_object()
+        def _bg(_m=msg, _a=app, _to=to_email, _s=subject):
+            with _a.app_context():
+                try:
+                    mail.send(_m)
+                    print(f"✅ Email → {_to} | {_s}")
+                except Exception as ex:
+                    print(f"❌ Email FAILED → {_to} | {ex}")
+        threading.Thread(target=_bg, daemon=True).start()
         return True
     except Exception as e:
-        print(f"❌ Email FAILED → {to_email} | {e}")
+        print(f"❌ Email setup FAILED → {to_email} | {e}")
         return False
 
 

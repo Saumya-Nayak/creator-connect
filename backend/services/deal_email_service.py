@@ -21,6 +21,8 @@ Save to:  services/deal_email_service.py
 """
 
 from flask_mail import Message
+import threading
+from flask import current_app
 from config.app_config import mail
 from database.db import get_db_connection
 from mysql.connector import Error
