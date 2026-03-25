@@ -1046,7 +1046,6 @@ function decreaseQuantity() {
 // Find:  async function submitOrder() {
 // Replace the entire function with this:
 // =====================================================================
-
 async function submitOrder() {
   try {
     if (!pricingData._isPickup && currentProductData?.shipping_available) {
@@ -1176,11 +1175,7 @@ async function submitOrder() {
     const data = await res.json();
     if (!data.success) throw new Error(data.message || "Failed to place order");
 
-    // ✅ FIX: Show acknowledgement FIRST before closing/redirecting
-    orderBtn.innerHTML = '<i class="fas fa-check"></i> Order Placed!';
-    orderBtn.style.background = "#10b981";
-
-    // Build the success message once
+    // ✅ Build success message
     const successMsg = pricingData._isPickup
       ? `✅ Order placed! Coordinate pickup with the seller. Total: ${fmt(
           data.total_amount || pricingData.total
@@ -1189,22 +1184,41 @@ async function submitOrder() {
           data.total_amount || pricingData.total
         )}`;
 
-    // Send to parent — parent shows toast + closes modal + redirects
+    // ✅ Show toast in iframe first
+    showToast(successMsg, "success");
+
+    // ✅ Update button to show success
+    orderBtn.innerHTML = '<i class="fas fa-check"></i> Order Placed!';
+    orderBtn.style.background = "#10b981";
+
+    // ✅ Send to parent with close instruction
     window.parent.postMessage(
       {
         action: "bookingSuccess",
         message: successMsg,
         redirectUrl: "my-deals.html?role=buyer&type=products",
+        shouldCloseModal: true,
       },
       "*"
     );
+
+    // ✅ Fallback: try to close modal after delay if parent doesn't respond
+    setTimeout(() => {
+      try {
+        window.parent.postMessage({ action: "closeModal" }, "*");
+      } catch (e) {}
+      if (window.parent === window) {
+        window.location.href = "my-deals.html?role=buyer&type=products";
+      }
+    }, 2000);
   } catch (e) {
     console.error("Order error:", e);
     showToast(e.message || "Failed to place order", "error");
     const orderBtn = document.getElementById("placeOrderBtn");
     if (orderBtn) {
       orderBtn.disabled = false;
-      orderBtn.innerHTML = '<i class="fas fa-shopping-cart"></i> Place Order';
+      orderBtn.innerHTML =
+        originalHTML || '<i class="fas fa-shopping-cart"></i> Place Order';
       orderBtn.style.background = "";
     }
   }
