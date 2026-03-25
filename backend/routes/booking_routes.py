@@ -873,8 +873,6 @@ def reject_order(order_id):
             print(f"🔔 Order rejected notification sent to buyer {buyer_id}")
         except Exception as e:
             print(f"⚠️ Failed to send order rejected notification (non-fatal): {e}")
-
-        return jsonify({'success': True, 'message': 'Order rejected'}), 200
         if _EMAILS_ENABLED:
             try:
                 send_order_rejected_email(
@@ -882,6 +880,8 @@ def reject_order(order_id):
                     product_name=product_name, reason=reason
                 )
             except Exception as _e: print(f"⚠️ Order rejected email (non-fatal): {_e}")
+        return jsonify({'success': True, 'message': 'Order rejected'}), 200
+        
     except Exception as e:
         print(f"❌ Error rejecting order: {e}")
         import traceback; traceback.print_exc()
