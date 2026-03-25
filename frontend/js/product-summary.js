@@ -1046,6 +1046,11 @@ function decreaseQuantity() {
 // Find:  async function submitOrder() {
 // Replace the entire function with this:
 // =====================================================================
+// =====================================================================
+// REPLACE ONLY the submitOrder function in product-summary.js
+// Find:  async function submitOrder() {
+// Replace the entire function with this:
+// =====================================================================
 
 async function submitOrder() {
   try {
@@ -1177,10 +1182,6 @@ async function submitOrder() {
     if (!data.success) throw new Error(data.message || "Failed to place order");
 
     // ✅ FIX: Show acknowledgement FIRST before closing/redirecting
-    orderBtn.innerHTML = '<i class="fas fa-check"></i> Order Placed!';
-    orderBtn.style.background = "#10b981";
-
-    // Build the success message once
     const successMsg = pricingData._isPickup
       ? `✅ Order placed! Coordinate pickup with the seller. Total: ${fmt(
           data.total_amount || pricingData.total
@@ -1189,15 +1190,24 @@ async function submitOrder() {
           data.total_amount || pricingData.total
         )}`;
 
-    // Send to parent — parent shows toast + closes modal + redirects
-    window.parent.postMessage(
-      {
-        action: "bookingSuccess",
-        message: successMsg,
-        redirectUrl: "my-deals.html?role=buyer&type=products",
-      },
-      "*"
-    );
+    // Update button to show success state
+    orderBtn.innerHTML = '<i class="fas fa-check"></i> Order Placed!';
+    orderBtn.style.background = "#10b981";
+
+    showToast(successMsg, "success");
+
+    // ✅ Wait 1.8s so user sees confirmation, THEN close modal + redirect
+    setTimeout(() => {
+      if (
+        window.parent &&
+        typeof window.parent.closeBookingModal === "function"
+      ) {
+        window.parent.closeBookingModal();
+      } else {
+        window.parent.postMessage({ action: "closeModal" }, "*");
+      }
+      window.location.href = "my-deals.html?role=buyer&type=products";
+    }, 1800);
   } catch (e) {
     console.error("Order error:", e);
     showToast(e.message || "Failed to place order", "error");
