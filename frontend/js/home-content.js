@@ -1327,8 +1327,6 @@ function openServiceSummary(postId) {
     showError("Please login to book services");
     return;
   }
-
-  // Remove any stale listener before adding a fresh one
   window.removeEventListener("message", handleBookingMessage);
 
   const modal = document.createElement("div");
@@ -1340,22 +1338,13 @@ function openServiceSummary(postId) {
         <button class="modal-close-btn" onclick="closeBookingModal()" title="Close">
           <i class="fas fa-times"></i>
         </button>
-        <iframe
-          src="service-summary.html?id=${postId}"
-          frameborder="0"
-          id="bookingIframe"
-          style="width:100%;height:100%;border:none;display:block;">
-        </iframe>
+        <iframe src="service-summary.html?id=${postId}" frameborder="0" id="bookingIframe"
+          style="width:100%;height:100%;border:none;display:block;"></iframe>
       </div>
-    </div>
-  `;
-
+    </div>`;
   document.body.appendChild(modal);
   document.body.style.overflow = "hidden";
-
   setTimeout(() => modal.classList.add("show"), 10);
-
-  // ✅ Add listener AFTER modal is in DOM
   window.addEventListener("message", handleBookingMessage);
 }
 function contactSeller(phoneNumber, itemTitle) {
@@ -1383,8 +1372,6 @@ function openProductSummary(postId) {
     showError("Please login to purchase products");
     return;
   }
-
-  // Remove any stale listener before adding a fresh one
   window.removeEventListener("message", handleBookingMessage);
 
   const modal = document.createElement("div");
@@ -1396,53 +1383,52 @@ function openProductSummary(postId) {
         <button class="modal-close-btn" onclick="closeBookingModal()" title="Close">
           <i class="fas fa-times"></i>
         </button>
-        <iframe
-          src="product-summary.html?id=${postId}"
-          frameborder="0"
-          id="bookingIframe"
-          style="width:100%;height:100%;border:none;display:block;">
-        </iframe>
+        <iframe src="product-summary.html?id=${postId}" frameborder="0" id="bookingIframe"
+          style="width:100%;height:100%;border:none;display:block;"></iframe>
       </div>
-    </div>
-  `;
-
+    </div>`;
   document.body.appendChild(modal);
   document.body.style.overflow = "hidden";
-
   setTimeout(() => modal.classList.add("show"), 10);
-
-  // ✅ Add listener AFTER modal is in DOM
   window.addEventListener("message", handleBookingMessage);
 }
 function closeBookingModal() {
   const modal = document.getElementById("bookingModal");
   if (!modal) return;
-
   modal.classList.remove("show");
-
   setTimeout(() => {
     modal.remove();
     document.body.style.overflow = "auto";
   }, 300);
-
-  // ✅ Delay removing listener so bookingSuccess can still fire
-  setTimeout(() => {
-    window.removeEventListener("message", handleBookingMessage);
-  }, 3000);
+  setTimeout(
+    () => window.removeEventListener("message", handleBookingMessage),
+    3000
+  );
 }
 function handleBookingMessage(event) {
-  const { action, message, redirectUrl } = event.data || {};
+  // ✅ Only handle messages from our own iframes
+  const data = event.data || {};
 
-  if (action === "closeModal") {
+  // Ignore MetaMask and other extension messages entirely
+  if (
+    data.target === "metamask-inpage" ||
+    data.source !== "creatorconnect_iframe"
+  ) {
+    return;
+  }
+
+  const { action, message, redirectUrl } = data;
+
+  if (action === "cc_closeModal" || action === "closeModal") {
     closeBookingModal();
     return;
   }
 
-  if (action === "bookingSuccess") {
-    // Show toast in parent FIRST (stays visible after modal closes)
+  if (action === "cc_bookingSuccess") {
+    // Show toast in parent window (visible after iframe closes)
     showSuccess(message || "✅ Done!");
 
-    // Close the modal
+    // Close modal
     closeBookingModal();
 
     // Redirect after toast is visible

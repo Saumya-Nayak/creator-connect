@@ -1010,7 +1010,6 @@ function setupFormHandlers() {
 // Find:  async function submitBooking() {
 // Replace the entire function with this:
 // =====================================================================
-
 async function submitBooking() {
   try {
     if (!currentUser) {
@@ -1122,7 +1121,6 @@ async function submitBooking() {
     };
 
     const bookBtn = document.getElementById("bookNowBtn");
-    const originalHTML = bookBtn.innerHTML;
     bookBtn.disabled = true;
     bookBtn.innerHTML =
       '<i class="fas fa-spinner fa-spin"></i> Sending Request...';
@@ -1143,21 +1141,40 @@ async function submitBooking() {
     if (!data.success)
       throw new Error(data.message || "Failed to create booking");
 
-    // ✅ FIX: Show toast FIRST, then close + redirect AFTER toast is visible
+    // ✅ Update button to show success
     bookBtn.disabled = false;
     bookBtn.innerHTML = '<i class="fas fa-check"></i> Booking Sent!';
     bookBtn.style.background = "#10b981";
 
-    // ✅ Primary path: tell parent to show toast + close + redirect
-    window.parent.postMessage(
-      {
-        action: "bookingSuccess",
-        message: "✅ Booking request sent successfully!",
-        redirectUrl: "my-deals.html?role=buyer&type=services",
-      },
-      "*"
-    );
+    // ✅ Send namespaced message to parent (bypasses header.js/login.js interception)
+    const successPayload = {
+      action: "cc_bookingSuccess",
+      message: "✅ Booking request sent successfully!",
+      redirectUrl: "my-deals.html?role=buyer&type=services",
+      source: "creatorconnect_iframe",
+    };
+    try {
+      window.parent.postMessage(successPayload, "*");
+    } catch (e) {}
+    try {
+      window.top.postMessage(successPayload, "*");
+    } catch (e) {}
+
+    // ✅ Fallback: if parent doesn't respond in 2s, redirect from iframe
+    setTimeout(() => {
+      showToast("✅ Booking sent!", "success");
+      setTimeout(() => {
+        try {
+          window.top.postMessage(
+            { action: "cc_closeModal", source: "creatorconnect_iframe" },
+            "*"
+          );
+        } catch (e) {}
+        window.location.href = "my-deals.html?role=buyer&type=services";
+      }, 1500);
+    }, 2000);
   } catch (err) {
+    // ✅ REQUIRED catch block — was missing, causing the syntax error
     console.error("Booking error:", err);
     showToast(err.message || "Failed to send booking request", "error");
     const bookBtn = document.getElementById("bookNowBtn");
@@ -1168,21 +1185,9 @@ async function submitBooking() {
       bookBtn.style.background = "";
     }
   }
-  setTimeout(() => {
-    // If modal is still open (postMessage didn't close it), do it ourselves
-    try {
-      showToast("✅ Booking request sent successfully!", "success");
-    } catch (e) {}
-    setTimeout(() => {
-      try {
-        window.parent.postMessage({ action: "closeModal" }, "*");
-      } catch (e) {}
-      try {
-        window.location.href = "my-deals.html?role=buyer&type=services";
-      } catch (e) {}
-    }, 1500);
-  }, 2500);
 }
+
+window.submitBooking = submitBooking;
 // =====================================================================
 // UTILITIES  (unchanged from original)
 // =====================================================================
@@ -1270,7 +1275,6 @@ function toggleSummaryVideoMute(videoId, btnId) {
     : "fas fa-volume-up";
 }
 
-window.submitBooking = submitBooking;
 window.closeSummary = closeSummary;
 window.navigateToProfile = navigateToProfile;
 window.loadServiceDetails = loadServiceDetails;
