@@ -795,192 +795,44 @@ function initPeriodicSessionCheck() {
 })();
 
 // FORGOT PASSWORD FUNCTIONALITY
+// Update the handleForgotPassword function in login.js
 async function handleForgotPassword() {
   const existingModal = document.getElementById("forgotPasswordModal");
   if (existingModal) {
     existingModal.remove();
   }
+
   const modalHTML = `
   <div id="forgotPasswordModal" class="fp-overlay">
-    <div class="fp-modal">
-      <h2 class="fp-title">
-        <i class="fas fa-key"></i> Forgot Password
-      </h2>
-
-      <p class="fp-desc">
-        Enter your email address and we'll send you a link to reset your password.
-      </p>
-
-      <div class="form-group">
-        <label class="fp-label">Email Address</label>
-        <input 
-          type="email" 
-          id="resetEmail" 
-          placeholder="Enter your email"
-          class="fp-input"
-          required
-        />
+      <div class="fp-modal">
+          <h2 class="fp-title">
+              <i class="fas fa-key"></i> Forgot Password
+          </h2>
+          <p class="fp-desc">
+              Enter your email address and we'll send you a link to reset your password.
+          </p>
+          <div class="form-group">
+              <label class="fp-label">Email Address</label>
+              <input 
+                  type="email" 
+                  id="resetEmail" 
+                  placeholder="Enter your email"
+                  class="fp-input"
+                  required
+              />
+          </div>
+          <div class="fp-button-row">
+              <button id="sendResetLink" class="fp-btn-primary">
+                  <i class="fas fa-paper-plane"></i> Send Reset Link
+              </button>
+              <button id="cancelReset" class="fp-btn-secondary">
+                  Cancel
+              </button>
+          </div>
+          <div id="resetMessage" style="margin-top: 15px;"></div>
       </div>
-
-      <div class="fp-button-row">
-        <button id="sendResetLink" class="fp-btn-primary">
-          <i class="fas fa-paper-plane"></i> Send Reset Link
-        </button>
-        <button id="cancelReset" class="fp-btn-secondary">
-          Cancel
-        </button>
-      </div>
-
-      <div id="resetMessage" style="margin-top: 15px;"></div>
-    </div>
   </div>
-
-  <style>
-    /* Overlay */
-    .fp-overlay {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0,0,0,0.1);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 10000;
-      animation: fadeIn 0.3s ease;
-    }
-
-    /* Modal box */
-    .fp-modal {
-      background: var(--fp-bg);
-      padding: 30px;
-      border-radius: 12px;
-      max-width: 400px;
-      width: 90%;
-      box-shadow: 0 10px 40px rgba(0,0,0,0.25);
-      animation: slideUp 0.3s ease;
-      transition: background 0.3s, color 0.3s;
-    }
- 
-    /* Light Mode (Default) */
-    :root {
-      --fp-bg: #ffffff;
-      --fp-text: #222;
-      --fp-subtext: #666;
-      --fp-input-bg: #ffffff;
-      --fp-input-border: #ddd;
-      --fp-btn-secondary-bg: #f0f0f0;
-      --fp-btn-secondary-text: #333;
-    }
-
-    /* Auto Dark Mode */
-    @media (prefers-color-scheme: dark) {
-      /* LIGHT MODE (default) */
-body.light {
-  --fp-bg: #ffffff;
-  --fp-text: #222222;
-  --fp-subtext: #666666;
-  --fp-input-bg: #ffffff;
-  --fp-input-border: #dddddd;
-  --fp-btn-secondary-bg: #f0f0f0;
-  --fp-btn-secondary-text: #333333;
-}
-
-/* DARK MODE */
-body.dark {
-  --fp-bg: #1f1f1f;
-  --fp-text: #f1f1f1;
-  --fp-subtext: #bbbbbb;
-  --fp-input-bg: #2a2a2a;
-  --fp-input-border: #444444;
-  --fp-btn-secondary-bg: #333333;
-  --fp-btn-secondary-text: #eeeeee;
-}
-
-    .fp-title {
-      margin: 0 0 10px 0;
-      color: #e336cc;
-      font-size: 24px;
-    }
-
-    .fp-desc {
-      color: var(--fp-subtext);
-      margin-bottom: 20px;
-      font-size: 14px;
-    }
-
-    .fp-label {
-      display: block;
-      margin-bottom: 8px;
-      color: var(--fp-text);
-      font-weight: 500;
-    }
-
-    .fp-input {
-      width: 100%;
-      padding: 12px;
-      border: 2px solid var(--fp-input-border);
-      border-radius: 8px;
-      font-size: 14px;
-      background: var(--fp-input-bg);
-      color: var(--fp-text);
-      transition: border-color 0.3s, background 0.3s, color 0.3s;
-    }
-
-    .fp-input:focus {
-      outline: none;
-      border-color: #e336cc !important;
-    }
-
-    .fp-button-row {
-      display: flex;
-      gap: 10px;
-    }
-
-    .fp-btn-primary {
-      flex: 1;
-      background: #e336cc;
-      color: white;
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .fp-btn-primary:hover {
-      background: #c32bb3 !important;
-    }
-
-    .fp-btn-secondary {
-      flex: 1;
-      background: var(--fp-btn-secondary-bg);
-      color: var(--fp-btn-secondary-text);
-      border: none;
-      padding: 12px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.3s;
-    }
-
-    .fp-btn-secondary:hover {
-      background:rgb(167, 165, 165) !important;
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; }
-      to { opacity: 1; }
-    }
-
-    @keyframes slideUp {
-      from { transform: translateY(20px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
-    }
-  </style>
-`;
+  `;
 
   document.body.insertAdjacentHTML("beforeend", modalHTML);
 
@@ -1006,10 +858,10 @@ body.dark {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!email || !emailRegex.test(email)) {
       messageDiv.innerHTML = `
-        <div style="background: #fee; color: #c33; padding: 10px; border-radius: 6px; font-size: 13px;">
-          <i class="fas fa-exclamation-circle"></i> Please enter a valid email address
-        </div>
-      `;
+              <div style="background: #fee; color: #c33; padding: 10px; border-radius: 6px; font-size: 13px;">
+                  <i class="fas fa-exclamation-circle"></i> Please enter a valid email address
+              </div>
+          `;
       return;
     }
 
@@ -1017,6 +869,8 @@ body.dark {
     sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Sending...';
 
     try {
+      console.log("📤 Sending password reset request for:", email);
+
       const response = await fetch(`${API_BASE_URL}/forgot-password`, {
         method: "POST",
         headers: {
@@ -1026,30 +880,35 @@ body.dark {
       });
 
       const data = await response.json();
+      console.log("📥 Server response:", data);
 
       if (data.success) {
         messageDiv.innerHTML = `
-          <div style="background: #d4edda; color: #155724; padding: 12px; border-radius: 6px; font-size: 13px;">
-            <i class="fas fa-check-circle"></i> ${data.message}
-          </div>
-        `;
+                  <div style="background: #d4edda; color: #155724; padding: 12px; border-radius: 6px; font-size: 13px;">
+                      <i class="fas fa-check-circle"></i> ${data.message}
+                  </div>
+              `;
 
         console.log("✅ Password reset link sent to:", email);
+
+        // Auto-close after 3 seconds
         setTimeout(closeModal, 3000);
       } else {
         messageDiv.innerHTML = `
-          <div style="background: #fee; color: #c33; padding: 10px; border-radius: 6px; font-size: 13px;">
-            <i class="fas fa-exclamation-circle"></i> ${data.message}
-          </div>
-        `;
+                  <div style="background: #fee; color: #c33; padding: 10px; border-radius: 6px; font-size: 13px;">
+                      <i class="fas fa-exclamation-circle"></i> ${
+                        data.message || "Failed to send reset link"
+                      }
+                  </div>
+              `;
       }
     } catch (error) {
       console.error("❌ Forgot password error:", error);
       messageDiv.innerHTML = `
-        <div style="background: #fee; color: #c33; padding: 10px; border-radius: 6px; font-size: 13px;">
-          <i class="fas fa-exclamation-circle"></i> Unable to connect to server. Please try again.
-        </div>
-      `;
+              <div style="background: #fee; color: #c33; padding: 10px; border-radius: 6px; font-size: 13px;">
+                  <i class="fas fa-exclamation-circle"></i> Unable to connect to server. Please try again.
+              </div>
+          `;
     } finally {
       sendBtn.disabled = false;
       sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i> Send Reset Link';

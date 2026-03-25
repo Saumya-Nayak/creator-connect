@@ -1,6 +1,6 @@
 import requests
 from flask import current_app
-from utils.network_utils import get_server_url
+from utils.network_utils import get_full_url
 
 BREVO_API_URL = "https://api.brevo.com/v3/smtp/email"
 
@@ -59,10 +59,16 @@ def send_otp_email(email, otp):
 
 
 def send_password_reset_email(email, token, username):
-    """Send password reset email"""
+    """Send password reset email with correct URL"""
     try:
-        base_url = get_server_url()
-        reset_link = f"{base_url}/frontend/reset-password.html?token={token}"
+        # Use the helper function to get the full URL
+        # The path should point to your reset-password.html file
+        reset_link = get_full_url(f"frontend/reset-password.html?token={token}")
+        
+        # Log the URL for debugging
+        print(f"📧 Sending password reset email to: {email}")
+        print(f"🔗 Reset link URL: {reset_link}")
+        
         html = f'''
         <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
             <h2 style="color: #e336cc;">🔐 Creator Connect - Password Reset</h2>
@@ -77,18 +83,25 @@ def send_password_reset_email(email, token, username):
             <p style="color: #999; font-size: 12px;">
                 This link expires in 15 minutes. If you didn't request this, ignore this email.
             </p>
+            <p style="color: #999; font-size: 12px; word-break: break-all;">
+                Or copy and paste this link into your browser:<br>
+                <a href="{reset_link}" style="color: #e336cc;">{reset_link}</a>
+            </p>
         </div>
         '''
         return _send_via_brevo_api(email, "Password Reset Request - Creator Connect", html)
     except Exception as e:
         print(f"❌ Error sending password reset email: {e}")
+        import traceback
+        traceback.print_exc()
         return False
 
 
 def send_registration_success_email(email, username):
     """Send registration success email"""
     try:
-        base_url = get_server_url()
+        login_url = get_full_url("frontend/login.html")
+        
         html = f"""
         <div style="font-family: Arial, sans-serif; max-width: 650px; margin: 0 auto; 
                     background: linear-gradient(135deg, #ffb6f3, #e336cc, #ff86d8); 
@@ -101,7 +114,7 @@ def send_registration_success_email(email, username):
                     Your <strong>Creator Connect</strong> account has been successfully created! ✨
                 </p>
                 <div style="text-align:center; margin-top: 30px;">
-                    <a href="{base_url}/login.html"
+                    <a href="{login_url}"
                        style="background-color: #e336cc; padding: 14px 28px; color: #fff; 
                               text-decoration: none; font-weight: bold; border-radius: 6px; 
                               display: inline-block;">
