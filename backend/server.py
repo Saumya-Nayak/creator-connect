@@ -481,19 +481,81 @@ def debug_files():
 # On Railway: serves your HTML/CSS/JS files
 # On localhost: you use Live Server (5500) so this won't interfere
 # ─────────────────────────────────────────────────────────────
+# Replace the frontend catch-all route section with this:
+
+# ─────────────────────────────────────────────────────────────
+# Frontend catch-all route — MUST be after all API routes
+# ─────────────────────────────────────────────────────────────
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
 def serve_frontend(path):
-    # Don't catch socket.io or unknown api calls
-    if path.startswith('socket.io'):
+    # Don't catch socket.io or api calls
+    if path.startswith('socket.io') or path.startswith('api/'):
         return jsonify({'error': 'Not found'}), 404
-    # If static folder exists, serve from it
-    if app.static_folder and os.path.exists(app.static_folder):
-        full_path = os.path.join(app.static_folder, path)
-        if path and os.path.exists(full_path):
-            return send_from_directory(app.static_folder, path)
-        return send_from_directory(app.static_folder, 'home.html')
-    return jsonify({'error': 'Frontend not found'}), 404
+    
+    # Log for debugging
+    print(f"🔍 Requested: {path}")
+    print(f"📁 Static folder: {app.static_folder}")
+    
+    # Try multiple possible frontend locations
+    possible_frontends = []
+    
+    # Add FRONTEND_DIR (original)
+    possible_frontends.append(FRONTEND_DIR)
+    
+    # Try parent directory (if frontend is at root level)
+    possible_frontends.append(os.path.join(os.path.dirname(BASE_DIR), 'frontend'))
+    
+    # Try current directory
+    possible_frontends.append(os.path.join(BASE_DIR, 'frontend'))
+    
+    # Try Railway default paths
+    possible_frontends.append('/app/frontend')
+    possible_frontends.append('/app/static')
+    
+    # Try to find the file
+    for frontend_dir in possible_frontends:
+        if os.path.exists(frontend_dir):
+            print(f"✅ Found frontend at: {frontend_dir}")
+            
+            # If path is empty, serve home.html
+            if not path:
+                home_path = os.path.join(frontend_dir, 'home.html')
+                if os.path.exists(home_path):
+                    return send_from_directory(frontend_dir, 'home.html')
+                continue
+            
+            # Try to serve the requested file
+            full_path = os.path.join(frontend_dir, path)
+            if os.path.exists(full_path) and os.path.isfile(full_path):
+                return send_from_directory(frontend_dir, path)
+            
+            # Try with .html extension if it's a path without extension
+            if '.' not in path:
+                html_path = os.path.join(frontend_dir, f"{path}.html")
+                if os.path.exists(html_path):
+                    return send_from_directory(frontend_dir, f"{path}.html")
+    
+    # If we get here, try to serve home.html as fallback (SPA behavior)
+    for frontend_dir in possible_frontends:
+        if os.path.exists(frontend_dir):
+            home_path = os.path.join(frontend_dir, 'home.html')
+            if os.path.exists(home_path):
+                return send_from_directory(frontend_dir, 'home.html')
+    
+    # Debug: List what's in the directory
+    debug_info = {
+        'error': 'Frontend not found',
+        'requested_path': path,
+        'FRONTEND_DIR': FRONTEND_DIR,
+        'BASE_DIR': BASE_DIR,
+        'exists': os.path.exists(FRONTEND_DIR),
+        'files_in_frontend': os.listdir(FRONTEND_DIR) if os.path.exists(FRONTEND_DIR) else [],
+        'cwd': os.getcwd(),
+        'cwd_files': os.listdir(os.getcwd())
+    }
+    print(f"❌ Debug info: {debug_info}")
+    return jsonify(debug_info), 404
 
 # ─────────────────────────────────────────────────────────────
 # Error handlers
@@ -502,7 +564,34 @@ def serve_frontend(path):
 def not_found(error):
     return jsonify({"error": "Resource not found"}), 404
 
-
+@app.route('/api/debug/paths', methods=['GET'])
+def debug_paths():
+    """Debug endpoint to check paths"""
+    import os
+    result = {
+        'BASE_DIR': BASE_DIR,
+        'FRONTEND_DIR': FRONTEND_DIR,
+        'UPLOAD_DIR': UPLOAD_DIR,
+        'cwd': os.getcwd(),
+        'is_production': IS_PRODUCTION,
+        'static_folder': app.static_folder,
+        'static_folder_exists': os.path.exists(app.static_folder) if app.static_folder else False,
+        'frontend_exists': os.path.exists(FRONTEND_DIR),
+        'files_in_frontend': [],
+        'files_in_cwd': os.listdir(os.getcwd()),
+        'files_in_parent': os.listdir(os.path.dirname(os.getcwd())) if os.path.exists(os.path.dirname(os.getcwd())) else []
+    }
+    
+    if os.path.exists(FRONTEND_DIR):
+        result['files_in_frontend'] = os.listdir(FRONTEND_DIR)[:20]  # First 20 files
+    
+    # Also check for frontend in parent directory
+    parent_frontend = os.path.join(os.path.dirname(BASE_DIR), 'frontend')
+    result['parent_frontend_exists'] = os.path.exists(parent_frontend)
+    if os.path.exists(parent_frontend):
+        result['files_in_parent_frontend'] = os.listdir(parent_frontend)[:20]
+    
+    return jsonify(result)
 @app.errorhandler(500)
 def internal_error(error):
     return jsonify({"error": "Internal server error"}), 500
