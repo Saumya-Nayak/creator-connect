@@ -33,8 +33,6 @@ lightBtn.addEventListener("click", () => setTheme(false));
 darkBtn.addEventListener("click", () => setTheme(true));
 
 // ── Active page detection: reads PARENT window URL ──
-// This fixes the bug where sidebar always showed "dashboard" active
-// because window.location.pathname was always "admin-sidebar.html"
 function applyActivePage(page) {
   document.querySelectorAll(".nav-item[data-page]").forEach((el) => {
     el.classList.toggle("active", el.getAttribute("data-page") === page);
@@ -75,8 +73,6 @@ document.getElementById("brandLink").addEventListener("click", (e) => {
 });
 
 // ── Logout: send message to PARENT to show modal in center of page ──
-// The modal itself is rendered in the parent page, NOT inside this iframe
-// This way it always appears centered on the full page, not inside the sidebar
 logoutBtn.addEventListener("click", () => {
   try {
     window.parent.postMessage({ type: "sb-logout-request" }, "*");
@@ -120,24 +116,42 @@ document.addEventListener("keydown", (e) => {
   }
 });
 
-// ── Badge counts ──
-const API =
+// ── FIX: Badge counts - Updated API URL and error handling ──
+const API_BASE_URL =
   window.location.hostname === "localhost" ||
   window.location.hostname === "127.0.0.1"
     ? "http://localhost:3000/api"
-    : `http://${window.location.hostname}:3000/api`;
+    : "/api"; // Use relative path on production
+
 async function loadBadges() {
   const token =
     localStorage.getItem("adminAuthToken") ||
     sessionStorage.getItem("adminAuthToken");
-  if (!token) return;
+
+  if (!token) {
+    console.log("No admin token found, skipping badge load");
+    return;
+  }
+
   try {
-    const r = await fetch(`${API}/admin/stats/badges`, {
-      headers: { Authorization: `Bearer ${token}` },
+    console.log("Loading admin badges...");
+    const r = await fetch(`${API_BASE_URL}/admin/stats/badges`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
     });
-    if (!r.ok) return;
+
+    if (!r.ok) {
+      console.error("Badge fetch failed:", r.status);
+      return;
+    }
+
     const d = await r.json();
-    const map = {
+    console.log("Badge data received:", d);
+
+    // Update badge elements
+    const badgeMap = {
       "badge-users": d.users,
       "badge-orders": d.orders,
       "badge-bookings": d.bookings,
@@ -146,13 +160,34 @@ async function loadBadges() {
       "badge-articles": d.articles,
       "badge-categories": d.categories,
     };
-    Object.entries(map).forEach(([id, val]) => {
+
+    Object.entries(badgeMap).forEach(([id, val]) => {
       const el = document.getElementById(id);
-      if (el && val != null) el.textContent = val;
+      if (el) {
+        if (val !== undefined && val !== null) {
+          el.textContent = val;
+          // Hide badge if count is 0
+          if (val === 0) {
+            el.style.display = "none";
+          } else {
+            el.style.display = "inline-flex";
+          }
+        } else {
+          el.textContent = "0";
+          el.style.display = "none";
+        }
+      }
     });
-  } catch (e) {}
+  } catch (e) {
+    console.error("Failed to load badges:", e);
+  }
 }
+
+// Load badges immediately
 loadBadges();
+
+// Refresh badges every 30 seconds
+setInterval(loadBadges, 30000);
 
 // ── Messages from parent ──
 window.addEventListener("message", (e) => {
@@ -164,4 +199,7 @@ window.addEventListener("message", (e) => {
     if (e.data.page) applyActivePage(e.data.page);
   }
   if (e.data?.type === "sb-do-logout") doLogout();
+  if (e.data?.type === "refresh-badges") loadBadges();
 });
+
+console.log("✅ Admin sidebar loaded with badge refresh");
