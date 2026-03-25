@@ -8,7 +8,8 @@ def send_otp_email(email, otp):
     """Send OTP verification email"""
     try:
         # Get sender from app config
-        sender = current_app.config.get('MAIL_DEFAULT_SENDER', 'saumyan24@gmail.com')
+        sender = current_app.config.get('MAIL_DEFAULT_SENDER')
+        
         
         msg = Message(
             subject='Your Verification Code',

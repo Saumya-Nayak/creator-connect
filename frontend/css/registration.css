@@ -54,16 +54,16 @@ body.dark .theme-toggle {
     background-color: #FFFFFF;
     -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
-
-    backdrop-filter: blur(20px);
     border-radius: 30px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     max-width: 600px;
-    height: 788px;
+    min-height: 788px;
+    /* ← was height: 788px */
     width: 100%;
     padding: 40px;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
+    /* ← was overflow: hidden */
     transition: all 0.3s ease;
 }
 
@@ -1310,5 +1310,24 @@ body.dark .reg-crop-footer .btn-primary:hover {
         width: 36px;
         height: 36px;
         font-size: 0.85rem;
+    }
+}
+
+@media (max-width: 640px) {
+    .container {
+        min-height: unset;
+        /* Let it grow as tall as it needs to */
+        height: auto;
+        overflow: visible;
+    }
+
+    /* Step 3 specific — location row stacks vertically on mobile */
+    .location-row {
+        flex-direction: column;
+        gap: 0;
+    }
+
+    .location-row .form-group {
+        margin-bottom: 15px;
     }
 }
