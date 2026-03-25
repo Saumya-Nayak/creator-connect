@@ -321,16 +321,16 @@ def forgot_password():
                 'message': 'Email is required'
             }), 400
         
-        # Log the environment
-        print(f"🌐 Environment: RAILWAY_STATIC_URL = {os.getenv('RAILWAY_STATIC_URL')}")
-        print(f"📧 Forgot password request for: {email}")
+        email_regex = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        if not re.match(email_regex, email):
+            return jsonify({
+                'success': False,
+                'message': 'Invalid email format'
+            }), 400
         
         result = create_password_reset_token(email)
         
         if result['success'] and result.get('user_found'):
-            # Log the generated token
-            print(f"🔑 Generated reset token: {result['token'][:20]}...")
-            
             email_sent = send_password_reset_email(
                 email, 
                 result['token'], 
@@ -344,14 +344,11 @@ def forgot_password():
                     'message': '📧 Password reset link has been sent to your email.'
                 }), 200
             else:
-                print(f"❌ Failed to send email to: {email}")
                 return jsonify({
                     'success': False,
                     'message': 'Failed to send email. Please try again.'
                 }), 500
         else:
-            # Don't reveal if user exists for security
-            print(f"ℹ️ Forgot password request for non-existent email: {email}")
             return jsonify({
                 'success': True,
                 'message': '📧 If the email exists, a password reset link has been sent.'
@@ -359,12 +356,11 @@ def forgot_password():
             
     except Exception as e:
         print(f"❌ Forgot password error: {str(e)}")
-        import traceback
-        traceback.print_exc()
         return jsonify({
             'success': False,
             'message': 'Failed to process request. Please try again.'
         }), 500
+
 @auth_bp.route('/verify-reset-token', methods=['POST'])
 def verify_reset_token_endpoint():
     """Verify if password reset token is valid"""
