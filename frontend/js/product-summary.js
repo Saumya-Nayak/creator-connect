@@ -1177,18 +1177,10 @@ async function submitOrder() {
     if (!data.success) throw new Error(data.message || "Failed to place order");
 
     // ✅ FIX: Show acknowledgement FIRST before closing/redirecting
-    const successMsg = pricingData._isPickup
-      ? `✅ Order placed! Coordinate pickup with the seller. Total: ${fmt(
-          data.total_amount || pricingData.total
-        )}`
-      : `✅ Order placed successfully! Total: ${fmt(
-          data.total_amount || pricingData.total
-        )}`;
-
-    // Update button to show success state
     orderBtn.innerHTML = '<i class="fas fa-check"></i> Order Placed!';
     orderBtn.style.background = "#10b981";
 
+    // Build the success message once
     const successMsg = pricingData._isPickup
       ? `✅ Order placed! Coordinate pickup with the seller. Total: ${fmt(
           data.total_amount || pricingData.total
@@ -1197,7 +1189,7 @@ async function submitOrder() {
           data.total_amount || pricingData.total
         )}`;
 
-    // Send success message to parent — parent shows toast + redirects
+    // Send to parent — parent shows toast + closes modal + redirects
     window.parent.postMessage(
       {
         action: "bookingSuccess",
